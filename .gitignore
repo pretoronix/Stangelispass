@@ -1,0 +1,44 @@
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Env
+.env
+.env.*
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# App workspace caches
+app/node_modules/
+app/jest_cache/
+app/jest_tmp/
+app/npm_cache/
+app/npm_cache*/
+app/coverage/
+app/tmp_*/
+app/.expo/
+app/.expo-shared/
+app/web-build/
+app/android/
+app/ios/
+app/dist/
+app/build/
+
+# Supabase local
+app/supabase/.temp/
+app/supabase/.branches/
+app/supabase/.cache/
+app/supabase/.env
+app/supabase/.env.local
