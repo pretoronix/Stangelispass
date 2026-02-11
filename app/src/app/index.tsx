@@ -85,7 +85,7 @@ export default function HomeScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
         }
         streakRef.current = nextStreak;
-    }, [beerCounts, currentUser?.id]);
+    }, [beerCounts, currentUser]);
 
     useEffect(() => {
         if (!streakAnnouncement) return;

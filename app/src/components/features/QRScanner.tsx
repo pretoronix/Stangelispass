@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,11 +14,15 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
 
-    useEffect(() => {
+    const requestPermissionCallback = useCallback(() => {
         if (!permission) {
             requestPermission();
         }
-    }, [permission]);
+    }, [permission, requestPermission]);
+
+    useEffect(() => {
+        requestPermissionCallback();
+    }, [requestPermissionCallback]);
 
     if (!permission) {
         return <View style={styles.centered}><Text style={styles.text}>Requesting camera permission...</Text></View>;

@@ -57,6 +57,8 @@ export const LeaderboardItem = memo(({ item, index, isLeader }: LeaderboardItemP
     );
 });
 
+LeaderboardItem.displayName = 'LeaderboardItem';
+
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
