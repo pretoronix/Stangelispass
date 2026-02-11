@@ -1,0 +1,925 @@
+import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import * as SecureStore from 'expo-secure-store';
+import { Database } from '@/types/database.types';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+import { assertSupabaseConfigured } from '@/utils/preflight';
+import { logWarn } from '@/utils/logger';
+
+// Custom storage adapter for Expo SecureStore (Native) / LocalStorage (Web)
+type StorageAdapter = {
+    getItem: (key: string) => Promise<string | null>;
+    setItem: (key: string, value: string) => Promise<void>;
+    removeItem: (key: string) => Promise<void>;
+};
+
+const ExpoSecureStoreAdapter: StorageAdapter = {
+    getItem: async (key: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                return window.localStorage.getItem(key);
+            }
+            return null;
+        }
+        return await SecureStore.getItemAsync(key);
+    },
+    setItem: async (key: string, value: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                window.localStorage.setItem(key, value);
+            }
+            return;
+        }
+        await SecureStore.setItemAsync(key, value);
+    },
+    removeItem: async (key: string) => {
+        if (Platform.OS === 'web') {
+            if (typeof window !== 'undefined') {
+                window.localStorage.removeItem(key);
+            }
+            return;
+        }
+        await SecureStore.deleteItemAsync(key);
+    },
+};
+
+let SUPABASE_URL = '';
+let SUPABASE_ANON_KEY = '';
+try {
+    if (typeof process !== 'undefined' && process.env) {
+        SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+        SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+    }
+} catch (e) {
+    SUPABASE_URL = '';
+    SUPABASE_ANON_KEY = '';
+}
+
+// Fallback to Expo Constants (app config) when available (avoids crash when env not exported)
+try {
+    const extras = (Constants && (Constants as any).expoConfig && (Constants as any).expoConfig.extra) || {};
+    SUPABASE_URL = SUPABASE_URL || extras.supabaseUrl || extras.EXPO_PUBLIC_SUPABASE_URL || '';
+    SUPABASE_ANON_KEY = SUPABASE_ANON_KEY || extras.supabaseAnonKey || extras.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+} catch (e) {
+    // ignore
+}
+
+// Attempt to create a real Supabase client; if not configured, create a noop client to avoid crashing
+function createNoopClient() {
+    // A small, chainable, thenable query builder so `await supabase.from(...).select(...).order(...)
+    //` resolves to a sensible noop result instead of throwing when Supabase isn't configured.
+    const noopResult = { data: null, error: null, count: 0 };
+
+    const makeBuilder = () => {
+        const builder: any = {
+            // Chainable methods return the builder itself so callers can chain arbitrarily.
+            select: (..._args: any[]) => builder,
+            insert: (..._args: any[]) => builder,
+            upsert: (..._args: any[]) => builder,
+            update: (..._args: any[]) => builder,
+            delete: (..._args: any[]) => builder,
+            eq: (..._args: any[]) => builder,
+            neq: (..._args: any[]) => builder,
+            is: (..._args: any[]) => builder,
+            match: (..._args: any[]) => builder,
+            filter: (..._args: any[]) => builder,
+            order: (..._args: any[]) => builder,
+            limit: (..._args: any[]) => builder,
+            maybeSingle: () => builder,
+            single: () => builder,
+            // Support then/catch so `await` works — resolve to the noop result.
+            then: (resolve: any) => Promise.resolve(noopResult).then(resolve),
+            catch: (reject: any) => Promise.resolve(noopResult).catch(reject),
+        };
+        return builder;
+    };
+
+    return {
+        auth: {
+            getSession: async () => ({ data: null, error: null }),
+            onAuthStateChange: () => ({ data: null }),
+        },
+        from: (_: string) => makeBuilder(),
+        channel: (_: string) => ({
+            on: () => ({
+                subscribe: () => ({
+                    // Return a minimal channel object so callers can pass it to removeChannel
+                    // and so the shape is similar to the real client.
+                    unsubscribe: () => {},
+                }),
+            }),
+        }),
+        removeChannel: () => {},
+    } as any;
+}
+
+let supabaseClient: any;
+let supabaseOk = false;
+try {
+    supabaseOk = assertSupabaseConfigured({ url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY });
+    if (!supabaseOk) throw new Error('No SUPABASE_URL');
+    supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+            storage: ExpoSecureStoreAdapter,
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionInUrl: false,
+        },
+    });
+} catch (e) {
+    const errorMessage = (e && (e as any).message) || e;
+    if (process.env.NODE_ENV === 'production') {
+        logWarn('Supabase not configured; aborting init', {
+            scope: 'supabase',
+            action: 'init',
+            metadata: { error: errorMessage },
+        });
+        throw e;
+    }
+    logWarn('Supabase not configured; using noop client', {
+        scope: 'supabase',
+        action: 'init',
+        metadata: { error: errorMessage },
+    });
+    supabaseClient = createNoopClient();
+}
+
+export const supabase = supabaseClient as unknown as SupabaseClient<Database>;
+
+export type NotificationPrefs = {
+    leader_change: boolean;
+    milestones: number[];
+};
+
+export type EventRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+export type EventMembership = {
+    id: string;
+    event_id: string;
+    user_id: string;
+    role: EventRole;
+    status: 'active' | 'invited' | 'removed';
+    invited_by: string | null;
+    joined_at: string;
+    created_at: string;
+    user?: Pick<User, 'id' | 'name' | 'is_admin'> | null;
+};
+
+export type EventGameStats = {
+    event_id: string;
+    user_id: string;
+    beer_count: number;
+    points: number;
+    streak_count: number;
+    longest_streak: number;
+    last_beer_at: string | null;
+    lead_changes: number;
+    user?: Pick<User, 'id' | 'name' | 'is_admin'> | null;
+};
+
+export type EventLeaderState = {
+    event_id: string;
+    user_id: string | null;
+    beer_count: number;
+    updated_at: string;
+    user?: Pick<User, 'id' | 'name' | 'is_admin'> | null;
+};
+
+export type EventPermissions = {
+    canManageEvent: boolean;
+    canManageMembers: boolean;
+    canManageLogs: boolean;
+    canIssueStamps: boolean;
+    canCloseEvent: boolean;
+    canInvite: boolean;
+    canResetEventData: boolean;
+};
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+    leader_change: true,
+    milestones: [5, 10, 20],
+};
+
+export const normalizeNotificationPrefs = (input: any): NotificationPrefs => {
+    const prefs = input && typeof input === 'object' ? input : {};
+    const leader_change = typeof prefs.leader_change === 'boolean'
+        ? prefs.leader_change
+        : DEFAULT_NOTIFICATION_PREFS.leader_change;
+
+    const milestones: number[] = Array.isArray(prefs.milestones)
+        ? prefs.milestones
+            .map((n: any) => Number(n))
+            .filter((n: number) => Number.isFinite(n) && n > 0)
+        : [...DEFAULT_NOTIFICATION_PREFS.milestones];
+
+    return {
+        leader_change,
+        milestones: [...new Set<number>(milestones)].sort((a, b) => a - b),
+    };
+};
+
+export type User = Database['public']['Tables']['users']['Row'] & {
+    subscription_tier?: 'pilsner' | 'craft' | 'brewmaster';
+    weight_kg?: number;
+    gender?: 'male' | 'female' | 'neutral';
+    notification_prefs?: NotificationPrefs;
+};
+
+export type Event = {
+    id: string;
+    name: string;
+    created_by: string;
+    is_active: boolean;
+    pass_type: 'free' | 'standard' | 'weekend';
+    expires_at: string;
+    created_at: string;
+};
+
+const PERMISSIONS_BY_ROLE: Record<EventRole, EventPermissions> = {
+    owner: {
+        canManageEvent: true,
+        canManageMembers: true,
+        canManageLogs: true,
+        canIssueStamps: true,
+        canCloseEvent: true,
+        canInvite: true,
+        canResetEventData: true,
+    },
+    admin: {
+        canManageEvent: true,
+        canManageMembers: true,
+        canManageLogs: true,
+        canIssueStamps: true,
+        canCloseEvent: true,
+        canInvite: true,
+        canResetEventData: false,
+    },
+    member: {
+        canManageEvent: false,
+        canManageMembers: false,
+        canManageLogs: false,
+        canIssueStamps: false,
+        canCloseEvent: false,
+        canInvite: false,
+        canResetEventData: false,
+    },
+    viewer: {
+        canManageEvent: false,
+        canManageMembers: false,
+        canManageLogs: false,
+        canIssueStamps: false,
+        canCloseEvent: false,
+        canInvite: false,
+        canResetEventData: false,
+    },
+};
+
+export type Beer = Database['public']['Tables']['beers']['Row'] & {
+    event_id?: string;
+    user?: User | null;
+    added_by_user?: User | null;
+};
+
+export type BeerStamp = {
+    id: string;
+    user_id: string;
+    event_id: string;
+    issued_by: string | null;
+    consumed_by: string | null;
+    consumed_at: string | null;
+    expires_at: string;
+    created_at: string;
+};
+export type BeerStampIssueResult = {
+    stamp: BeerStamp | null;
+    fallbackLegacy: boolean;
+};
+
+export const isMissingTableError = (error: any) => {
+    return error?.code === 'PGRST205' || error?.code === '42P01';
+};
+
+export const getPermissionsForRole = (role: EventRole | null | undefined, fallbackIsAdmin: boolean = false): EventPermissions => {
+    const rolePermissions = role && PERMISSIONS_BY_ROLE[role]
+        ? PERMISSIONS_BY_ROLE[role]
+        : PERMISSIONS_BY_ROLE.member;
+
+    if (!fallbackIsAdmin) {
+        return rolePermissions;
+    }
+
+    // Global admins keep admin capabilities even when event role is more restrictive.
+    return {
+        ...rolePermissions,
+        canManageEvent: rolePermissions.canManageEvent || PERMISSIONS_BY_ROLE.admin.canManageEvent,
+        canManageMembers: rolePermissions.canManageMembers || PERMISSIONS_BY_ROLE.admin.canManageMembers,
+        canManageLogs: rolePermissions.canManageLogs || PERMISSIONS_BY_ROLE.admin.canManageLogs,
+        canIssueStamps: rolePermissions.canIssueStamps || PERMISSIONS_BY_ROLE.admin.canIssueStamps,
+        canCloseEvent: rolePermissions.canCloseEvent || PERMISSIONS_BY_ROLE.admin.canCloseEvent,
+        canInvite: rolePermissions.canInvite || PERMISSIONS_BY_ROLE.admin.canInvite,
+        canResetEventData: rolePermissions.canResetEventData || PERMISSIONS_BY_ROLE.admin.canResetEventData,
+    };
+};
+
+export const hasEventAdminRights = (role: EventRole | null | undefined, fallbackIsAdmin: boolean = false) => {
+    const perms = getPermissionsForRole(role, fallbackIsAdmin);
+    return perms.canManageEvent || perms.canManageMembers || perms.canManageLogs;
+};
+
+// Helper to get all users
+export const getUsers = async () => {
+    try {
+        const from = (supabase as any).from && (supabase as any).from('users');
+        if (!from || typeof from.select !== 'function') {
+            // Supabase noop client or incompatible client — return safe default
+            return [];
+        }
+        const { data, error } = await from.select('*').order('name');
+
+        if (error) {
+            if ((error as any).code === 'PGRST205') {
+                console.warn('Supabase: table `users` not found. Returning empty users list.');
+                return [];
+            }
+            throw error;
+        }
+
+        return data || [];
+    } catch (e) {
+        // If any unexpected shape is encountered, return empty list to keep app running
+        console.warn('getUsers fallback due to error:', e);
+        return [];
+    }
+};
+
+// Helper to addUser
+export const addUser = async (name: string, isAdmin: boolean = false) => {
+    let shouldBeAdmin = isAdmin;
+    try {
+        // Ensure first user in an empty project becomes admin by default.
+        const { count, error } = await (supabase
+            .from('users') as any)
+            .select('*', { count: 'exact', head: true });
+        if (!error && Number(count || 0) === 0) {
+            shouldBeAdmin = true;
+        }
+    } catch (_e) {
+        // Ignore pre-check failures and continue with requested role.
+    }
+
+    // Cast to any to bypass strict type check on insert which incorrectly infers 'never'
+    const { data, error } = await (supabase
+        .from('users') as any)
+        .insert({ name, is_admin: shouldBeAdmin })
+        .select()
+        .single();
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `users` not found. addUser skipped.');
+            return null;
+        }
+        throw error;
+    }
+    return data;
+};
+
+// Helper to updateUser (bio-data, sub tier)
+export const updateUser = async (userId: string, updates: Partial<User>) => {
+    const { data, error } = await (supabase
+        .from('users') as any)
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `users` not found. updateUser skipped.');
+            return null;
+        }
+        throw error;
+    }
+    return data || null;
+};
+
+import { checkAchievements, BadgeType } from './achievements';
+
+export type Achievement = {
+    id: string;
+    user_id: string;
+    badge_type: BadgeType;
+    created_at: string;
+};
+
+// Helper to addBeer
+export const addBeer = async (userId: string, addedBy: string, eventId: string) => {
+    if (!eventId) {
+        throw new Error('eventId is required to log a beer');
+    }
+    // 1. Insert Beer
+    // Cast to any to bypass strict type check on insert which incorrectly infers 'never'
+    const { data: newBeer, error } = await (supabase
+        .from('beers') as any)
+        .insert({
+            user_id: userId,
+            added_by: addedBy,
+            event_id: eventId
+        })
+        .select()
+        .single();
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `beers` not found. addBeer skipped.');
+            return { beer: null, newBadges: [] };
+        }
+        throw error;
+    }
+
+    // 2. Context for Achievements
+    // Fetch last 10 beers for 'Hat Trick' logic (optimization)
+    const { data: recentBeers } = await supabase
+        .from('beers')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+    // Fetch lifetime count for 'Century Club'
+    const { count: lifetimeCount } = await supabase
+        .from('beers')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+    // 3. Check Logic
+    // Ensure we have safe values before checking achievements
+    const safeRecent = (recentBeers as Beer[]) || [];
+    const safeNewBeer = (newBeer as Beer) || { created_at: new Date().toISOString(), user_id: userId } as Beer;
+    const safeLifetime = (lifetimeCount as number) || 0;
+
+    const potentialBadges = checkAchievements(
+        safeRecent,
+        safeNewBeer,
+        safeLifetime
+    );
+
+    // 4. Dedup against existing
+    const { data: existing } = await supabase
+        .from('achievements')
+        .select('badge_type')
+        .eq('user_id', userId);
+    if (!existing && (existing as any) !== null) {
+        // If achievements table is missing, treat as no existing badges
+    }
+
+    const owned = new Set(existing?.map((b: any) => b.badge_type) || []);
+    const newlyUnlocked = potentialBadges.filter(b => !owned.has(b));
+
+    // 5. Award new badges
+    if (newlyUnlocked.length > 0) {
+        try {
+            await (supabase.from('achievements') as any).insert(
+                newlyUnlocked.map(type => ({
+                    user_id: userId,
+                    badge_type: type
+                }))
+            );
+        } catch (e: any) {
+            if (e?.code === 'PGRST205') {
+                console.warn('Supabase: table `achievements` not found. Skipping badge award.');
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    return { beer: newBeer, newBadges: newlyUnlocked };
+};
+
+// Helper to get achievements
+export const getUserAchievements = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('achievements')
+        .select('*')
+        .eq('user_id', userId);
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `achievements` not found. Returning empty achievements.');
+            return [];
+        }
+        throw error;
+    }
+    return (data as Achievement[]) || [];
+};
+
+// Helper to getBeers (history)
+export const getBeers = async (eventId?: string) => {
+    let query = supabase
+        .from('beers')
+        .select(`
+            *,
+            user:users!user_id(*),
+            added_by_user:users!added_by(*)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (eventId) {
+        query = query.eq('event_id', eventId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `beers` not found. Returning empty beers list.');
+            return [];
+        }
+        throw error;
+    }
+    // Cast to Beer type because joins return complex objects
+    return (data as unknown as Beer[]) || [];
+};
+
+// Helper to get beers for a specific user
+export const getBeersByUser = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('beers')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `beers` not found. Returning empty beers list.');
+            return [];
+        }
+        throw error;
+    }
+    return (data as Beer[]) || [];
+};
+
+// Helper to removeBeer
+export const removeBeer = async (beerId: string) => {
+    const { error } = await supabase
+        .from('beers')
+        .delete()
+        .eq('id', beerId);
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `beers` not found. removeBeer skipped.');
+            return;
+        }
+        throw error;
+    }
+};
+
+// Helper to getBeerCountByUser
+export const getBeerCountByUser = async (eventId?: string) => {
+    // Use explicit aggregation instead of nested relation count filters because
+    // those are brittle across different PostgREST/runtime setups.
+    const { data: users, error: usersError } = await (supabase
+        .from('users') as any)
+        .select('id,name,is_admin');
+
+    if (usersError) {
+        if ((usersError as any).code === 'PGRST205') {
+            console.warn('Supabase: table `users` not found. Returning empty beer counts.');
+            return [];
+        }
+        throw usersError;
+    }
+
+    let beersQuery = (supabase
+        .from('beers') as any)
+        .select('user_id');
+
+    if (eventId) {
+        beersQuery = beersQuery.eq('event_id', eventId);
+    }
+
+    const { data: beers, error: beersError } = await beersQuery;
+    if (beersError) {
+        if ((beersError as any).code === 'PGRST205') {
+            console.warn('Supabase: table `beers` not found. Returning zero beer counts.');
+            return (users || []).map((u: any) => ({
+                userId: u.id,
+                name: u.name,
+                count: 0,
+                isAdmin: !!u.is_admin,
+            }));
+        }
+        throw beersError;
+    }
+
+    const counts = new Map<string, number>();
+    for (const row of beers || []) {
+        const key = (row as any).user_id as string;
+        counts.set(key, (counts.get(key) || 0) + 1);
+    }
+
+    return (users || []).map((u: any) => ({
+        userId: u.id,
+        name: u.name,
+        count: counts.get(u.id) || 0,
+        isAdmin: !!u.is_admin,
+    }));
+};
+
+// Helper to get Wall of Fame entries
+export const getWallOfFame = async () => {
+    const { data, error } = await supabase
+        .from('wall_of_fame')
+        .select(`
+            *,
+            winner:users!winner_id(*),
+            event:events!event_id(*)
+        `)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `wall_of_fame` not found. Returning empty wall of fame.');
+            return [];
+        }
+        throw error;
+    }
+    return data || [];
+};
+
+// Helper to add entry to Wall of Fame
+export const addToWallOfFame = async (eventId: string, winnerId: string, totalBeers: number) => {
+    const { data, error } = await (supabase
+        .from('wall_of_fame') as any)
+        .insert({
+            event_id: eventId,
+            winner_id: winnerId,
+            total_stängeli: totalBeers
+        })
+        .select()
+        .single();
+
+    if (error) {
+        if ((error as any).code === 'PGRST205') {
+            console.warn('Supabase: table `wall_of_fame` not found. addToWallOfFame skipped.');
+            return null;
+        }
+        throw error;
+    }
+    return data || null;
+};
+
+export const createBeerStamp = async (userId: string, eventId: string, issuedBy: string): Promise<BeerStampIssueResult> => {
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await (supabase
+        .from('beer_stamps') as any)
+        .insert({
+            user_id: userId,
+            event_id: eventId,
+            issued_by: issuedBy,
+            expires_at: expiresAt,
+        })
+        .select()
+        .single();
+
+    if (error) {
+        if (isMissingTableError(error)) {
+            console.warn('Supabase: table `beer_stamps` not found. createBeerStamp skipped.');
+            return { stamp: null, fallbackLegacy: true };
+        }
+        throw error;
+    }
+
+    return { stamp: (data as BeerStamp) || null, fallbackLegacy: false };
+};
+
+export const redeemBeerStamp = async (stampId: string, addedBy: string) => {
+    const { data: stamp, error: fetchError } = await (supabase
+        .from('beer_stamps') as any)
+        .select('*')
+        .eq('id', stampId)
+        .maybeSingle();
+
+    if (fetchError) {
+        if (isMissingTableError(fetchError)) {
+            return { ok: false, reason: 'stamps_unavailable', beer: null, newBadges: [] as BadgeType[] };
+        }
+        throw fetchError;
+    }
+
+    if (!stamp) return { ok: false, reason: 'invalid_stamp', beer: null, newBadges: [] as BadgeType[] };
+    if (stamp.consumed_at) return { ok: false, reason: 'already_redeemed', beer: null, newBadges: [] as BadgeType[] };
+    if (new Date(stamp.expires_at).getTime() < Date.now()) {
+        return { ok: false, reason: 'expired_stamp', beer: null, newBadges: [] as BadgeType[] };
+    }
+
+    const { data: claimed, error: claimError } = await (supabase
+        .from('beer_stamps') as any)
+        .update({ consumed_at: new Date().toISOString(), consumed_by: addedBy })
+        .eq('id', stampId)
+        .is('consumed_at', null)
+        .select()
+        .single();
+
+    if (claimError || !claimed) {
+        return { ok: false, reason: 'already_redeemed', beer: null, newBadges: [] as BadgeType[] };
+    }
+
+    try {
+        const { beer, newBadges } = await addBeer(claimed.user_id, addedBy, claimed.event_id);
+        return { ok: true, reason: 'redeemed', beer, newBadges };
+    } catch (e) {
+        // Best-effort rollback of redemption marker if beer insertion fails.
+        await (supabase
+            .from('beer_stamps') as any)
+            .update({ consumed_at: null, consumed_by: null })
+            .eq('id', stampId)
+            .eq('consumed_by', addedBy);
+        throw e;
+    }
+};
+
+export const getEventMembership = async (eventId: string, userId: string) => {
+    try {
+        const { data, error } = await (supabase
+            .from('event_memberships') as any)
+            .select('*')
+            .eq('event_id', eventId)
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        if (error) {
+            if (isMissingTableError(error)) {
+                return { membership: null as EventMembership | null, missingTable: true };
+            }
+            throw error;
+        }
+
+        return { membership: (data as EventMembership) || null, missingTable: false };
+    } catch (e: any) {
+        if (isMissingTableError(e)) {
+            return { membership: null as EventMembership | null, missingTable: true };
+        }
+        throw e;
+    }
+};
+
+export const getEventGameStats = async (eventId: string) => {
+    try {
+        const { data, error } = await (supabase
+            .from('event_game_stats') as any)
+            .select('*, user:users!user_id(id,name,is_admin)')
+            .eq('event_id', eventId)
+            .order('points', { ascending: false })
+            .order('beer_count', { ascending: false });
+
+        if (error) {
+            if (isMissingTableError(error)) {
+                return { stats: [] as EventGameStats[], missingTable: true };
+            }
+            throw error;
+        }
+
+        return { stats: (data as EventGameStats[]) || [], missingTable: false };
+    } catch (e: any) {
+        if (isMissingTableError(e)) {
+            return { stats: [] as EventGameStats[], missingTable: true };
+        }
+        throw e;
+    }
+};
+
+export const getEventLeaderState = async (eventId: string) => {
+    try {
+        const { data, error } = await (supabase
+            .from('event_leader_state') as any)
+            .select('*, user:users!user_id(id,name,is_admin)')
+            .eq('event_id', eventId)
+            .maybeSingle();
+
+        if (error) {
+            if (isMissingTableError(error)) {
+                return { leader: null as EventLeaderState | null, missingTable: true };
+            }
+            throw error;
+        }
+
+        return { leader: (data as EventLeaderState) || null, missingTable: false };
+    } catch (e: any) {
+        if (isMissingTableError(e)) {
+            return { leader: null as EventLeaderState | null, missingTable: true };
+        }
+        throw e;
+    }
+};
+
+export const getEventMembers = async (eventId: string) => {
+    try {
+        const { data, error } = await (supabase
+            .from('event_memberships') as any)
+            .select('*, user:users!user_id(id,name,is_admin)')
+            .eq('event_id', eventId)
+            .eq('status', 'active')
+            .order('created_at', { ascending: true });
+
+        if (error) {
+            if (isMissingTableError(error)) return [] as EventMembership[];
+            throw error;
+        }
+
+        return (data as EventMembership[]) || [];
+    } catch (e: any) {
+        if (isMissingTableError(e)) return [] as EventMembership[];
+        throw e;
+    }
+};
+
+export const upsertEventMemberRole = async (eventId: string, userId: string, role: EventRole, invitedBy?: string | null) => {
+    const payload = {
+        event_id: eventId,
+        user_id: userId,
+        role,
+        status: 'active',
+        invited_by: invitedBy || null,
+        joined_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await (supabase
+        .from('event_memberships') as any)
+        .upsert(payload, { onConflict: 'event_id,user_id' })
+        .select()
+        .single();
+
+    if (error) {
+        if (isMissingTableError(error)) return null;
+        throw error;
+    }
+
+    return (data as EventMembership) || null;
+};
+
+export const removeEventMember = async (eventId: string, userId: string) => {
+    const { error } = await (supabase
+        .from('event_memberships') as any)
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', userId);
+
+    if (error) {
+        if (isMissingTableError(error)) return false;
+        throw error;
+    }
+
+    return true;
+};
+
+export const joinEvent = async (eventId: string, userId: string, invitedBy?: string | null) => {
+    const membership = await upsertEventMemberRole(eventId, userId, 'member', invitedBy || null);
+    if (!membership) {
+        // Legacy fallback when table doesn't exist yet.
+        return { ok: true, fallbackLegacy: true };
+    }
+    return { ok: true, fallbackLegacy: false };
+};
+
+// Admin helper: clear event-related data (keeps users)
+export const resetEventData = async () => {
+    const results: { table: string; ok: boolean; skipped?: boolean; error?: any }[] = [];
+    const tables = [
+        'beers',
+        'beer_stamps',
+        'achievements',
+        'notifications',
+        'device_tokens',
+        'wall_of_fame',
+        'event_game_stats',
+        'event_leader_state',
+        'event_memberships',
+        'events',
+    ];
+
+    for (const table of tables) {
+        try {
+            const { error } = await (supabase as any)
+                .from(table)
+                .delete()
+                .neq('id', '');
+            if (error) {
+                if (isMissingTableError(error)) {
+                    results.push({ table, ok: true, skipped: true });
+                    continue;
+                }
+                results.push({ table, ok: false, error });
+            } else {
+                results.push({ table, ok: true });
+            }
+        } catch (e) {
+            results.push({ table, ok: false, error: e });
+        }
+    }
+
+    return results;
+};

@@ -3,6 +3,7 @@
 
 # Logs
 *.log
+*.map
 
 # Env
 .env
@@ -42,3 +43,8 @@ app/supabase/.branches/
 app/supabase/.cache/
 app/supabase/.env
 app/supabase/.env.local
+app/.jest_tmp/*
+app/.npm_cache/*
+app/.expo/*
+app/.expo-shared/*
+app/.npm-cache/*
