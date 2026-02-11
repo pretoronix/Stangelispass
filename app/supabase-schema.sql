@@ -189,6 +189,34 @@ CREATE INDEX IF NOT EXISTS idx_wall_event ON wall_of_fame(event_id);
 CREATE INDEX IF NOT EXISTS idx_beer_stamps_event_consumed ON beer_stamps(event_id, consumed_at);
 CREATE INDEX IF NOT EXISTS idx_beer_stamps_expires_at ON beer_stamps(expires_at);
 
+-- 9. Device Tokens (Push notifications)
+CREATE TABLE IF NOT EXISTS device_tokens (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  platform TEXT DEFAULT 'ios',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (user_id, token)
+);
+
+CREATE INDEX IF NOT EXISTS idx_device_tokens_user_id ON device_tokens(user_id);
+
+-- 10. Notifications Queue
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+  target_user UUID REFERENCES users(id) ON DELETE CASCADE,
+  payload JSONB NOT NULL,
+  processed BOOLEAN DEFAULT FALSE,
+  processed_at TIMESTAMPTZ,
+  attempts INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_processed ON notifications(processed, created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_target_user ON notifications(target_user);
+
 -- --- SECURITY (RLS) ---
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE beers ENABLE ROW LEVEL SECURITY;
@@ -198,6 +226,8 @@ ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE wall_of_fame ENABLE ROW LEVEL SECURITY;
 ALTER TABLE toasts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE beer_stamps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE device_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 -- Idempotent Policy Helper
 DO $$
@@ -227,6 +257,12 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'beer_stamps') THEN
         CREATE POLICY "Public Access" ON beer_stamps FOR ALL USING (true) WITH CHECK (true);
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'device_tokens') THEN
+        CREATE POLICY "Public Access" ON device_tokens FOR ALL USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public Access' AND tablename = 'notifications') THEN
+        CREATE POLICY "Public Access" ON notifications FOR ALL USING (true) WITH CHECK (true);
+    END IF;
 END$$;
 
 -- --- REALTIME ENABLEMENT ---
@@ -235,7 +271,7 @@ DECLARE
   tab RECORD;
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-    FOR tab IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('users', 'beers', 'events', 'event_memberships', 'achievements', 'wall_of_fame', 'toasts', 'beer_stamps'))
+    FOR tab IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename IN ('users', 'beers', 'events', 'event_memberships', 'achievements', 'wall_of_fame', 'toasts', 'beer_stamps', 'device_tokens', 'notifications'))
     LOOP
       IF NOT EXISTS (
         SELECT 1 FROM pg_publication_rel pr

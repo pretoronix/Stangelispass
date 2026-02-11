@@ -15,6 +15,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { reportError } from '@/utils/logger';
 import { assertSupabaseConfigured } from '@/utils/preflight';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface AppContextType {
     currentUser: User | null;
@@ -52,6 +53,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [currentEventRole, setCurrentEventRole] = useState<EventRole | null>(null);
     const [eventPermissions, setEventPermissions] = useState<EventPermissions>(getPermissionsForRole(null, false));
     const [eventMembers, setEventMembers] = useState<EventMembership[]>([]);
+
+    // Register device for push notifications when user is set
+    const { token: pushToken, isRegistered: isPushRegistered } = useNotifications(currentUser?.id || null);
 
     const handleError = useCallback((error: any, context: string) => {
         reportError(error, { scope: 'app_provider', action: context });

@@ -4,6 +4,7 @@ import { AppProvider } from '@/providers/AppProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/lib/theme';
 
@@ -13,6 +14,7 @@ export default function RootLayout() {
             <AppErrorBoundary>
                 <QueryProvider>
                     <AppProvider>
+                        <OfflineBanner />
                         <Tabs
                             screenOptions={{
                                 headerShown: false,

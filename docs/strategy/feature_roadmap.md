@@ -153,21 +153,83 @@ The following features have been successfully implemented and verified.
 
 ## 🎯 Recommended Next Steps (Q2 2026)
 
+> 📋 **Detailed implementation plans available in** `/docs/implementation-plans/`
+> Each feature has time estimates, complexity ratings, and step-by-step guides.
+
 ### Immediate Opportunities (High ROI)
-1. **Push Notifications** - Infrastructure 80% complete, high user value
-2. **Migrate Components to React Query** - Leverage new hooks in existing screens
-3. **Persist Query Cache** - Enable offline data viewing with minimal effort
-4. **React Query DevTools** - Add development debugging tools
+
+1. **Push Notifications** ⭐⭐⭐⭐⭐  
+   - **Time**: 3-4 days | **Complexity**: Medium
+   - Infrastructure 80% complete, high user value
+   - 📄 [Implementation Plan](../implementation-plans/01-push-notifications.md)
+
+2. **Migrate Components to React Query** ⭐⭐⭐⭐⭐  
+   - **Time**: 2-3 days | **Complexity**: Low-Medium
+   - Leverage new hooks in existing screens
+   - 📄 [Implementation Plan](../implementation-plans/02-migrate-to-react-query.md)
+
+3. **Persist Query Cache** ⭐⭐⭐⭐  
+   - **Time**: 1 day | **Complexity**: Low
+   - Enable offline data viewing with minimal effort
+   - 📄 [Implementation Plan](../implementation-plans/03-persist-query-cache.md)
+
+4. **React Query DevTools** ⭐⭐⭐  
+   - **Time**: 2 hours | **Complexity**: Very Low
+   - Add development debugging tools
+   - 📄 [Implementation Plan](../implementation-plans/04-react-query-devtools.md)
 
 ### Medium Priority
-5. **Comments System** - Add social layer to beer logs
-6. **Connection Monitoring** - NetInfo integration for offline detection
-7. **Optimistic UI Updates** - Instant feedback for mutations
+
+5. **Comments System** ⭐⭐⭐  
+   - **Time**: 5-7 days | **Complexity**: Medium
+   - Add social layer to beer logs
+   - 📄 [Implementation Plan](../implementation-plans/05-comments-system.md)
+
+6. **Connection Monitoring** ⭐⭐⭐  
+   - **Time**: 1 day | **Complexity**: Low-Medium
+   - NetInfo integration for offline detection
+   - 📄 [Implementation Plan](../implementation-plans/06-connection-monitoring.md)
+
+7. **Optimistic UI Updates** ⭐⭐⭐⭐  
+   - **Time**: 3 hours | **Complexity**: Low-Medium
+   - Instant feedback for mutations
+   - 📄 [Implementation Plan](../implementation-plans/07-optimistic-updates.md)
 
 ### Future Considerations
-8. **User Authentication** - When scaling beyond friend groups
-9. **Advanced Analytics** - ML-based insights and predictions
-10. **The "Pour" Animation** - Polish feature for premium feel
+
+8. **User Authentication** ⭐⭐⭐⭐  
+   - **Time**: 2-3 weeks | **Complexity**: High
+   - When scaling beyond friend groups
+   - 📄 [Implementation Plan](../implementation-plans/08-user-authentication.md)
+
+9. **Advanced Analytics** ⭐⭐⭐  
+   - **Time**: 4-6 weeks | **Complexity**: Very High
+   - ML-based insights and predictions
+   - 📄 [Implementation Plan](../implementation-plans/09-advanced-analytics.md)
+
+10. **The "Pour" Animation** ⭐⭐  
+   - **Time**: 1-2 weeks | **Complexity**: High
+   - Polish feature for premium feel
+   - 📄 [Implementation Plan](../implementation-plans/10-pour-animation.md)
+
+---
+
+## 📊 Feature Comparison Matrix
+
+| Feature | Time | Complexity | ROI | Status |
+|---------|------|-----------|-----|--------|
+| Push Notifications | 3-4 days | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 80% ready |
+| Migrate to React Query | 2-3 days | ⭐⭐ | ⭐⭐⭐⭐⭐ | Infrastructure ready |
+| Persist Cache | 1 day | ⭐ | ⭐⭐⭐⭐ | Easy add-on |
+| DevTools | 2 hours | ⭐ | ⭐⭐⭐ | Simple integration |
+| Comments | 5-7 days | ⭐⭐⭐ | ⭐⭐⭐ | New schema needed |
+| Connection Monitor | 1 day | ⭐⭐ | ⭐⭐⭐ | NetInfo needed |
+| Optimistic Updates | 3 hours | ⭐⭐ | ⭐⭐⭐⭐ | React Query ready |
+| Authentication | 2-3 weeks | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Major refactor |
+| Analytics & ML | 4-6 weeks | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | Research phase |
+| Pour Animation | 1-2 weeks | ⭐⭐⭐⭐ | ⭐⭐ | Premium feature |
+
+**Total Time for All Features**: 61-70 working days (~3-3.5 months)
 
 ---
 

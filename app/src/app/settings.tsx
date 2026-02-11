@@ -35,8 +35,10 @@ import { Card } from '@/components/ui/Card';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { audioService } from '@/services/audio';
+import { getCacheStats, clearCache, type CacheStats } from '@/utils/cacheManager';
 
 export default function SettingsScreen() {
+    const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
     const {
         currentUser,
         setCurrentUser,
@@ -63,6 +65,35 @@ export default function SettingsScreen() {
         const currentMemberIds = new Set(eventMembers.map((member) => member.user_id));
         return users.filter((user) => !currentMemberIds.has(user.id));
     }, [activeEvent, eventMembers, users]);
+
+    // Load cache stats on mount
+    React.useEffect(() => {
+        getCacheStats().then(setCacheStats);
+    }, []);
+
+    const handleClearCache = async () => {
+        Alert.alert(
+            'Clear Cache',
+            'This will remove all cached data. The app will reload fresh data from the server.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Clear',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await clearCache();
+                            const stats = await getCacheStats();
+                            setCacheStats(stats);
+                            Alert.alert('Success', 'Cache cleared successfully');
+                        } catch (error) {
+                            Alert.alert('Error', 'Failed to clear cache');
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     const updateNotificationPrefs = async (nextPrefs: NotificationPrefs) => {
         if (!currentUser) return;
@@ -514,6 +545,39 @@ export default function SettingsScreen() {
                     </Card>
                 </View>
 
+                {/* Cache Management Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>Cache & Storage</Text>
+                    <Card>
+                        {cacheStats && (
+                            <>
+                                <View style={styles.bioRow}>
+                                    <Text style={styles.bioLabel}>Cache Size</Text>
+                                    <Text style={styles.bioValue}>
+                                        {cacheStats.sizeKB.toFixed(2)} KB
+                                    </Text>
+                                </View>
+                                <View style={styles.bioRow}>
+                                    <Text style={styles.bioLabel}>Cached Queries</Text>
+                                    <Text style={styles.bioValue}>
+                                        {cacheStats.queriesCount}
+                                    </Text>
+                                </View>
+                            </>
+                        )}
+                        <Button
+                            title="Clear Cache"
+                            variant="secondary"
+                            onPress={handleClearCache}
+                            icon="trash-outline"
+                            style={styles.clearCacheButton}
+                        />
+                        <Text style={styles.bioDisclaimer}>
+                            Cached data enables offline viewing and instant app startup.
+                        </Text>
+                    </Card>
+                </View>
+
                 {currentUser && (
                     <View style={styles.section}>
                         <Text style={styles.sectionLabel}>Notifications</Text>
@@ -946,6 +1010,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'right',
         width: 100,
+    },
+    bioValue: {
+        ...typography.body,
+        color: colors.primary,
+        fontWeight: 'bold',
+    },
+    clearCacheButton: {
+        marginTop: spacing.md,
     },
     genderContainer: {
         flexDirection: 'row',
