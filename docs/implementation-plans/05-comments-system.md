@@ -4,6 +4,28 @@
 **Estimated Time**: 5-7 days  
 **Technical Complexity**: ⭐⭐⭐ Medium  
 **ROI**: High (adds social layer with existing infrastructure)
+**Status**: ✅ **IMPLEMENTED** (Core functionality complete)
+
+---
+
+## Implementation Status
+
+✅ **Phase 1 - Database**: Migration created (`20260212001334_create_comments.sql`)  
+✅ **Phase 2 - Types**: Comment types added to `services/types.ts`  
+✅ **Phase 3 - Service Layer**: `services/comments.ts` with full CRUD operations  
+✅ **Phase 4 - Query Hooks**: `hooks/useCommentsQuery.ts` with optimistic updates  
+✅ **Phase 5 - Real-time**: `hooks/useRealtimeComments.ts` for live updates  
+✅ **Phase 6 - UI Components**: 
+- `CommentsList.tsx` - Main comments interface
+- `CommentButton.tsx` - Toggle button with count badge
+- `BeerLogItemWithComments.tsx` - Integration example  
+✅ **Phase 7 - Test IDs**: Labels added to `ui/labels.ts`
+
+⏳ **Remaining**:
+- Database migration needs to be run on Supabase
+- Integration into actual beer log screens
+- Additional tests for comments functionality
+- Optional: Edit comment feature
 
 ---
 
@@ -762,20 +784,191 @@ export function BeerLogItem({ beer, onDelete }: BeerLogItemProps) {
 
 ## Success Criteria
 
-- ✅ Comments appear in real-time
-- ✅ Users can add/edit/delete own comments
-- ✅ Character limit enforced (500 chars)
-- ✅ Smooth expand/collapse animation
-- ✅ No performance degradation
-- ✅ Works offline (shows cached comments)
+- ✅ Comments database schema created with proper indexes and RLS
+- ✅ Service layer with full CRUD operations and error handling
+- ✅ React Query hooks with optimistic updates
+- ✅ Real-time subscription for live updates
+- ✅ UI components with proper styling and accessibility
+- ✅ Character limit enforced (500 chars) with visual feedback
+- ✅ Admin/owner delete permissions implemented
+- ✅ Type-safe implementations throughout
+- ⏳ Migration applied to production database
+- ⏳ Integrated into actual beer log screens
+- ⏳ End-to-end tests added
+
+---
+
+## How to Use
+
+### 1. Run the Migration
+
+```bash
+cd app
+npm run db:push
+```
+
+This will apply the `20260212001334_create_comments.sql` migration to your Supabase database.
+
+### 2. Integrate into Your Screen
+
+```typescript
+import { BeerLogItemWithComments } from '@/components/features/BeerLogItemWithComments';
+import { useApp } from '@/providers/AppProvider';
+
+function BeerFeedScreen() {
+    const { currentUser } = useApp();
+    const { data: beers } = useBeersQuery(eventId);
+    
+    return (
+        <FlatList
+            data={beers}
+            renderItem={({ item }) => (
+                <BeerLogItemWithComments
+                    beer={item}
+                    currentUserId={currentUser?.id}
+                    currentUserIsAdmin={currentUser?.is_admin}
+                />
+            )}
+        />
+    );
+}
+```
+
+### 3. Or Use Individual Components
+
+```typescript
+import { CommentButton } from '@/components/features/CommentButton';
+import { CommentsList } from '@/components/features/CommentsList';
+
+function CustomBeerItem({ beer, userId, isAdmin }) {
+    const [showComments, setShowComments] = useState(false);
+    
+    return (
+        <View>
+            <BeerHeader beer={beer} />
+            
+            <CommentButton 
+                beerId={beer.id}
+                onPress={() => setShowComments(!showComments)}
+                isExpanded={showComments}
+            />
+            
+            {showComments && (
+                <CommentsList 
+                    beerId={beer.id}
+                    currentUserId={userId}
+                    currentUserIsAdmin={isAdmin}
+                />
+            )}
+        </View>
+    );
+}
+```
+
+---
+
+## Testing
+
+### Manual Testing Checklist
+
+1. **Basic Functionality**
+   - [ ] Can view existing comments
+   - [ ] Can add a new comment
+   - [ ] Can delete own comment
+   - [ ] Admin can delete any comment
+   - [ ] Character counter appears near limit
+   - [ ] Cannot submit empty comment
+   - [ ] Cannot submit comment over 500 chars
+
+2. **Real-time Updates**
+   - [ ] Comments appear immediately when added (optimistic)
+   - [ ] Real-time updates work across devices
+   - [ ] Deleted comments disappear immediately
+   - [ ] Comment count updates in real-time
+
+3. **Offline Support**
+   - [ ] Can view cached comments offline
+   - [ ] Comments queued when offline
+   - [ ] Comments sync when back online
+
+4. **UI/UX**
+   - [ ] Smooth expand/collapse animation
+   - [ ] Proper keyboard handling
+   - [ ] Scroll to new comment after posting
+   - [ ] Loading states displayed
+   - [ ] Error messages shown appropriately
+
+### Automated Tests
+
+Add tests in `app/src/__tests__/comments.spec.tsx`:
+
+```typescript
+describe('Comments System', () => {
+    it('should add a comment with optimistic update', () => {
+        // Test optimistic comment addition
+    });
+    
+    it('should delete comment with confirmation', () => {
+        // Test comment deletion flow
+    });
+    
+    it('should enforce character limit', () => {
+        // Test 500 char limit
+    });
+});
+```
+
+---
+
+## Troubleshooting
+
+### Comments Not Appearing
+
+1. Check that migration was applied:
+   ```bash
+   npm run db:status
+   ```
+
+2. Check Supabase RLS policies are enabled
+
+3. Verify real-time subscriptions are working in browser console
+
+### Type Errors
+
+If you see TypeScript errors about the `comments` table:
+
+1. Regenerate Supabase types (if you have the CLI):
+   ```bash
+   npx supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.types.ts
+   ```
+
+2. Or use the `as any` type assertion pattern already in place
+
+### Performance Issues
+
+If comments slow down the feed:
+
+1. Implement pagination for comments (limit to 20 per beer)
+2. Use virtual lists for large comment threads
+3. Debounce real-time updates
 
 ---
 
 ## Future Enhancements
 
-1. **Reactions**: 👍 👎 🍺 quick reactions
-2. **Mentions**: @username tagging
-3. **Rich Text**: Bold, italics, links
-4. **Images**: Attach photos to comments
-5. **Threading**: Reply to specific comments
-6. **Notifications**: Alert when someone comments on your beer
+### Short Term (Next Sprint)
+1. **Edit Comments**: Add update functionality with edited timestamp
+2. **Pagination**: Load comments in batches for beers with many comments
+3. **Notifications**: Notify users when someone comments on their beer
+
+### Medium Term
+4. **Reactions**: 👍 👎 🍺 quick reactions to comments
+5. **Mentions**: @username tagging with autocomplete
+6. **Rich Text**: Bold, italics, links using markdown
+
+### Long Term
+7. **Threading**: Reply to specific comments
+8. **Images**: Attach photos to comments
+9. **Moderation**: Report/flag inappropriate comments
+10. **Search**: Search within comments
+

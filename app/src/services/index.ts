@@ -30,6 +30,9 @@ export type {
     BeerStampIssueResult,
     Achievement,
     NotificationPrefs,
+    Comment,
+    CommentInput,
+    CommentUpdate,
 } from './types';
 
 export { DEFAULT_NOTIFICATION_PREFS } from './types';
@@ -77,3 +80,14 @@ export {
     addToWallOfFame,
     resetEventData,
 } from './events';
+
+// Comment operations
+export {
+    getComments,
+    getCommentsByEvent,
+    getCommentCount,
+    addComment,
+    updateComment,
+    deleteComment,
+} from './comments';
+

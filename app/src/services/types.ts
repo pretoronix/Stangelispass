@@ -105,3 +105,25 @@ export type Achievement = {
     badge_type: BadgeType;
     created_at: string;
 };
+
+export type Comment = {
+    id: string;
+    beer_id: string;
+    user_id: string;
+    text: string;
+    created_at: string;
+    updated_at: string;
+    user?: Pick<User, 'id' | 'name' | 'is_admin'> | null;
+    beer?: Pick<Beer, 'id' | 'user_id' | 'event_id'> | null;
+};
+
+export type CommentInput = {
+    beer_id: string;
+    user_id: string;
+    text: string;
+};
+
+export type CommentUpdate = {
+    text: string;
+};
+

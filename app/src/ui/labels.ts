@@ -19,4 +19,12 @@ export const labels = {
         startEvent: { testID: 'settings.start_event', accessibilityLabel: 'Start new event' },
         resetEvent: { testID: 'settings.reset_event', accessibilityLabel: 'Reset event data' },
     },
+    comments: {
+        list: { testID: 'comments.list', accessibilityLabel: 'Comments list' },
+        input: { testID: 'comments.input', accessibilityLabel: 'Comment input' },
+        submitButton: { testID: 'comments.submit_button', accessibilityLabel: 'Submit comment' },
+        deleteButton: { testID: 'comments.delete_button', accessibilityLabel: 'Delete comment' },
+        commentItem: { testID: 'comments.comment_item', accessibilityLabel: 'Comment' },
+        toggleButton: { testID: 'comments.toggle_button', accessibilityLabel: 'Toggle comments' },
+    },
 };

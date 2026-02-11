@@ -8,7 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts,.tsx",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "process-notifications": "node scripts/process_notifications.js",
     "db:push": "bash scripts/supabase_migrate.sh push",
@@ -36,6 +36,7 @@
     "expo-haptics": "~15.0.8",
     "expo-linear-gradient": "^15.0.8",
     "expo-linking": "^8.0.11",
+    "expo-media-library": "~18.2.1",
     "expo-notifications": "^0.32.16",
     "expo-router": "~6.0.23",
     "expo-secure-store": "~15.0.8",
@@ -51,6 +52,7 @@
     "react-native-safe-area-context": "5.6.2",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-view-shot": "4.0.3",
     "react-native-web": "~0.21.2"
   },
   "devDependencies": {

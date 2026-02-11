@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme';
 import { Avatar } from '../ui/Avatar';
 import { Card } from '../ui/Card';
 import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
+import { useBeerClink, useUserToasts } from '@/hooks/useWallOfFame';
+import { useApp } from '@/providers/AppProvider';
+import * as Haptics from 'expo-haptics';
 
 interface WallOfFameItem {
     id: string;
@@ -16,6 +19,7 @@ interface WallOfFameItem {
     event: {
         name: string;
     };
+    toasts?: Array<{ count: number }>;
 }
 
 interface WallOfFameProps {
@@ -23,6 +27,25 @@ interface WallOfFameProps {
 }
 
 export function WallOfFame({ entries }: WallOfFameProps) {
+    const { currentUser } = useApp();
+    const { data: userToasts } = useUserToasts(currentUser?.id || null);
+    const { toggleToast, isLoading } = useBeerClink(currentUser?.id || null);
+
+    const handleToast = (wallId: string) => {
+        if (!currentUser) return;
+        
+        const isToasted = userToasts?.includes(wallId) || false;
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
+        toggleToast({ wallId, isToasted });
+    };
+
+    const getToastCount = (item: any) => {
+        if (Array.isArray(item.toasts)) {
+            return item.toasts.length;
+        }
+        return item.toast_count || 0;
+    };
+
     if (entries.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -57,6 +80,29 @@ export function WallOfFame({ entries }: WallOfFameProps) {
                         <Text style={styles.scoreValue}>{item.total_stängeli}</Text>
                         <Text style={styles.scoreLabel}>BEERS</Text>
                     </View>
+
+                    {currentUser && (
+                        <Pressable
+                            style={[
+                                styles.toastButton,
+                                userToasts?.includes(item.id) && styles.toastButtonActive,
+                            ]}
+                            onPress={() => handleToast(item.id)}
+                            disabled={isLoading}
+                        >
+                            <Ionicons
+                                name={userToasts?.includes(item.id) ? 'beer' : 'beer-outline'}
+                                size={24}
+                                color={userToasts?.includes(item.id) ? colors.primary : colors.textMuted}
+                            />
+                            <Text style={[
+                                styles.toastCount,
+                                userToasts?.includes(item.id) && styles.toastCountActive,
+                            ]}>
+                                {getToastCount(item)}
+                            </Text>
+                        </Pressable>
+                    )}
                 </Card>
             )}
             {...{ contentContainerStyle: styles.listContent }}
@@ -133,5 +179,26 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
         textAlign: 'center',
         marginTop: spacing.md,
+    },
+    toastButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: spacing.sm,
+        marginLeft: spacing.sm,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.surfaceLight,
+        minWidth: 50,
+    },
+    toastButtonActive: {
+        backgroundColor: colors.primary + '20',
+    },
+    toastCount: {
+        ...typography.caption,
+        color: colors.textMuted,
+        fontWeight: 'bold',
+        marginTop: spacing.xs / 2,
+    },
+    toastCountActive: {
+        color: colors.primary,
     },
 });
