@@ -23,7 +23,7 @@ export const getComments = async (beerId: string): Promise<Comment[]> => {
     
     if (error) {
         if (isMissingTableError(error)) {
-            reportError(new Error('[Comments] table `comments` not found. Returning empty array.'), { scope: 'comments', action: 'replace_console', level: 'warn' });
+            console.log('[Comments] table `comments` not found. Returning empty array. (expected)');
             return [];
         }
         throw error;

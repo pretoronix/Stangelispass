@@ -29,6 +29,7 @@ export function useLeaderboardAnnouncements({
 }: UseLeaderboardAnnouncementsProps) {
     const [leaderAnnouncement, setLeaderAnnouncement] = useState<string | null>(null);
     const [streakAnnouncement, setStreakAnnouncement] = useState<string | null>(null);
+    const [showConfetti, setShowConfetti] = useState(false);
     const leaderRef = useRef<string | null>(null);
     const streakRef = useRef<number>(0);
 
@@ -37,6 +38,7 @@ export function useLeaderboardAnnouncements({
         if (!activeEventId || !leaderInfo?.userId) return;
         if (leaderRef.current && leaderRef.current !== leaderInfo.userId) {
             setLeaderAnnouncement(`${leaderInfo.name} took the lead!`);
+            setShowConfetti(true); // 🎉 Trigger confetti on leader change
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
         }
         leaderRef.current = leaderInfo.userId;
@@ -57,6 +59,7 @@ export function useLeaderboardAnnouncements({
         if (nextStreak > (streakRef.current || 0) && isStreakMilestone(nextStreak)) {
             const bonus = getStreakBonus(nextStreak);
             setStreakAnnouncement(`Streak x${nextStreak}! +${bonus} pts`);
+            setShowConfetti(true); // 🎉 Trigger confetti on streak milestone
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
         }
         streakRef.current = nextStreak;
@@ -72,6 +75,8 @@ export function useLeaderboardAnnouncements({
     return {
         leaderAnnouncement,
         streakAnnouncement,
+        showConfetti,
+        setShowConfetti,
         setLeaderAnnouncement,
         setStreakAnnouncement,
     };

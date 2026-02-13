@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             // If the error indicates missing tables in Supabase schema, set a local fallback
             const err: any = e;
             if (err?.code === 'PGRST205') {
-                reportError(new Error('Supabase schema missing: events table not found — using local fallback event'), { scope: 'AppProvider', action: 'replace_console', level: 'warn' });
+                console.log('[AppProvider] Supabase schema missing: events table not found — using local fallback event (expected)');
                 // create a lightweight local active event so the UI can operate in offline mode
                 const localEvent: Event = {
                     id: 'local',

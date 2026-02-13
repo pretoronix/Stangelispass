@@ -38,7 +38,7 @@ export function useScanHandler(
                 if (currentUser) {
                     if (payload.eventId) {
                         await joinEvent(payload.eventId, currentUser.id).catch((e) => {
-                            reportError(new Error('Failed to join event membership:', e), { scope: 'useScanHandler', action: 'replace_console', level: 'warn' });
+                            reportError(new Error('Failed to join event membership:', e), { scope: 'useScanHandler', action: 'replace_console' });
                         });
                     }
                     Alert.alert('Joined!', `You are now part of ${payload.eventName || 'the round'}.`);

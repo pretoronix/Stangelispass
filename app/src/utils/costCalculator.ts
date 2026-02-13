@@ -5,6 +5,8 @@
  * All calculations use the event's configured beer_price.
  */
 
+import { reportError } from './logger';
+
 export const DEFAULT_BEER_PRICE = 5.00;
 
 /**
@@ -16,11 +18,11 @@ export const DEFAULT_BEER_PRICE = 5.00;
 export function calculateUserCost(beerCount: number, eventPrice?: number): number {
     const price = eventPrice ?? DEFAULT_BEER_PRICE;
     if (beerCount < 0) {
-        reportError(new Error(`calculateUserCost called with negative beerCount: ${beerCount}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console', level: 'warn' });
+        reportError(new Error(`calculateUserCost called with negative beerCount: ${beerCount}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console' });
         return 0;
     }
     if (price <= 0) {
-        reportError(new Error(`calculateUserCost called with non-positive price: ${price}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console', level: 'warn' });
+        reportError(new Error(`calculateUserCost called with non-positive price: ${price}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console' });
         return 0;
     }
     return beerCount * price;

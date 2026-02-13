@@ -25,17 +25,19 @@ describe('BroadcastModal', () => {
     });
 
     it('renders correctly when visible', () => {
-        const { getByText, getByPlaceholderText } = render(
+        const { getByPlaceholderText, getByTestId } = render(
             <BroadcastModal
                 visible={true}
                 eventId="event-123"
+                senderId="user-123"
+                eventName="Test Event"
                 onClose={jest.fn()}
             />
         );
 
-        expect(getByText('Send Broadcast')).toBeTruthy();
         expect(getByPlaceholderText('Type your message...')).toBeTruthy();
-        expect(getByText('0 / 100')).toBeTruthy();
+        expect(getByTestId('broadcast-send-button')).toBeTruthy();
+        expect(getByTestId('broadcast-cancel-button')).toBeTruthy();
     });
 
     it('updates character counter as user types', () => {
@@ -43,6 +45,8 @@ describe('BroadcastModal', () => {
             <BroadcastModal
                 visible={true}
                 eventId="event-123"
+                senderId="user-123"
+                eventName="Test Event"
                 onClose={jest.fn()}
             />
         );
@@ -50,27 +54,32 @@ describe('BroadcastModal', () => {
         const input = getByPlaceholderText('Type your message...');
         fireEvent.changeText(input, 'Hello everyone!');
 
-        expect(getByText('15 / 100')).toBeTruthy();
+        // Check for "X characters left" instead of "X / 100"
+        expect(getByText('85 characters left')).toBeTruthy();
     });
 
     it('disables send button when message is empty', () => {
-        const { getByText } = render(
+        const { getByTestId } = render(
             <BroadcastModal
                 visible={true}
                 eventId="event-123"
+                senderId="user-123"
+                eventName="Test Event"
                 onClose={jest.fn()}
             />
         );
 
-        const sendButton = getByText('Send');
+        const sendButton = getByTestId('broadcast-send-button');
         expect(sendButton.props.accessibilityState?.disabled).toBe(true);
     });
 
     it('enables send button when message is valid', () => {
-        const { getByPlaceholderText, getByText } = render(
+        const { getByPlaceholderText, getByTestId } = render(
             <BroadcastModal
                 visible={true}
                 eventId="event-123"
+                senderId="user-123"
+                eventName="Test Event"
                 onClose={jest.fn()}
             />
         );
@@ -78,7 +87,7 @@ describe('BroadcastModal', () => {
         const input = getByPlaceholderText('Type your message...');
         fireEvent.changeText(input, 'Valid message');
 
-        const sendButton = getByText('Send');
+        const sendButton = getByTestId('broadcast-send-button');
         expect(sendButton.props.accessibilityState?.disabled).toBe(false);
     });
 });

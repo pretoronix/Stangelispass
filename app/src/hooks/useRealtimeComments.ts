@@ -80,7 +80,7 @@ export function useRealtimeComments(beerId: string, enabled = true) {
                         metadata: { beerId, channelName, status },
                     });
                 } else if (status === 'TIMED_OUT') {
-                    reportError(new Error(`[Comments] Subscription timed out for ${channelName}`), { scope: 'useRealtimeComments', action: 'replace_console', level: 'warn' });
+                    reportError(new Error(`[Comments] Subscription timed out for ${channelName}`), { scope: 'useRealtimeComments', action: 'replace_console' });
                 } else if (status === 'CLOSED') {
                     console.log(`[Comments] Channel closed: ${channelName}`);
                 }

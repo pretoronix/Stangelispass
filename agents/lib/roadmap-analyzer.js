@@ -17,7 +17,7 @@ export class RoadmapAnalyzer {
     roadmapPath;
     constructor(projectRoot) {
         this.projectRoot = projectRoot;
-        this.roadmapPath = path.join(projectRoot, 'docs/strategy/feature_roadmap.md');
+        this.roadmapPath = path.join(projectRoot, 'docs/planning/strategy/feature_roadmap.md');
     }
     /**
      * Analyze roadmap against actual codebase
@@ -96,38 +96,64 @@ export class RoadmapAnalyzer {
     }
     /**
      * Scan codebase for feature implementation evidence
+     *
+     * NOTE: We intentionally scan source + migrations + agent code, but NOT docs,
+     * to avoid false positives from documentation mentions.
      */
     async scanCodebaseForFeatures(features) {
         const evidence = new Map();
-        // Keywords to search for each feature type
+        // Keywords to search for each feature type (content-based search)
         const featureKeywords = {
-            'Comments': ['CommentSection', 'useComments', 'comments.ts', 'addComment'],
-            'Pour Animation': ['PourAnimation', 'Lottie', 'pour-animation'],
+            Comments: ['CommentsSection', 'useComments', 'services/comments', 'addComment'],
+            'Pour Animation': ['Lottie', 'pour', 'Haptics'],
             'Cost Tracker': ['CostSummaryCard', 'costCalculator', 'beer_price'],
-            'Push Notifications': ['expo-notifications', 'device_tokens', 'notificationProcessor'],
-            'Badges': ['BadgeIcon', 'achievements', 'checkAchievements'],
-            'Velocity': ['VelocityMetricCard', 'calculateVelocity', 'statsCalculator'],
-            'React Query': ['useQuery', 'QueryProvider', 'react-query'],
-            'Offline': ['MMKV', 'persistQueryClient', 'offline']
+            'Push Notifications': ['expo-notifications', 'device_tokens', 'notificationProcessor', 'notifications.ts'],
+            Badges: ['BadgeIcon', 'achievements', 'checkAchievements', 'badge_type'],
+            Velocity: ['VelocityMetricCard', 'calculateVelocity', 'statsCalculator'],
+            Heatmap: ['prepareTrendData', 'gifted-charts', 'heatmap'],
+            'Enhanced UX': ['audio.ts', 'event_game_stats', 'MVP', 'streak'],
+            'Swarm Agents': ['SwarmOrchestrator', 'ConsensusEngine', 'swarm-agents.json'],
+            'React Query': ['useQuery', 'QueryProvider', '@tanstack/react-query'],
+            Offline: ['MMKV', 'persistQueryClient', 'persistQueryClientRestore']
         };
-        // Search codebase
+        const filesToScan = await glob('{app/src/**/*.{ts,tsx,js,jsx},app/supabase/**/*.{sql},agents/**/*.{ts,js,mjs,json,yml,yaml}}', {
+            cwd: this.projectRoot,
+            nodir: true,
+            ignore: ['**/node_modules/**', '**/.git/**']
+        });
+        const contentCache = new Map();
+        const readFileCached = async (relPath) => {
+            const cached = contentCache.get(relPath);
+            if (cached !== undefined)
+                return cached;
+            try {
+                const absPath = path.join(this.projectRoot, relPath);
+                const txt = await fs.readFile(absPath, 'utf-8');
+                contentCache.set(relPath, txt);
+                return txt;
+            }
+            catch {
+                contentCache.set(relPath, '');
+                return '';
+            }
+        };
         for (const [featureName, keywords] of Object.entries(featureKeywords)) {
             const foundFiles = [];
-            for (const keyword of keywords) {
-                try {
-                    // Search in app directory
-                    const files = await glob(`app/src/**/*${keyword}*`, {
-                        cwd: this.projectRoot,
-                        nodir: true
-                    });
-                    foundFiles.push(...files);
+            for (const file of filesToScan) {
+                // quick path check first
+                if (keywords.some(k => file.toLowerCase().includes(k.toLowerCase()))) {
+                    foundFiles.push(file);
+                    continue;
                 }
-                catch (error) {
-                    logger.debug(`Error searching for ${keyword}: ${error}`);
+                const txt = await readFileCached(file);
+                if (!txt)
+                    continue;
+                if (keywords.some(k => txt.includes(k))) {
+                    foundFiles.push(file);
                 }
             }
             if (foundFiles.length > 0) {
-                evidence.set(featureName, [...new Set(foundFiles)]); // Deduplicate
+                evidence.set(featureName, [...new Set(foundFiles)]);
             }
         }
         return evidence;

@@ -25,26 +25,26 @@ npm run lint
 
 ## 📚 Documentation
 
+**→ [Full Documentation Index](./docs/README.md)**
+
 ### Start Here
-- **[Description.md](./Description.md)** - Project overview and value propositions
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status and metrics
-- **[AGENTS.md](./AGENTS.md)** - Developer quick reference
+- **[Description.md](./Description.md)** - What is Stängelispass?
+- **[docs/planning/project-status.md](./docs/planning/project-status.md)** - Current status
+- **[docs/development/agents.md](./docs/development/agents.md)** - Developer quickstart
 
-### Architecture & Technical
-- **[HIGH_PRIORITY_REFACTORING.md](./HIGH_PRIORITY_REFACTORING.md)** - Architecture improvements
-- **[MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md)** - React Query migration guide
-- **[REFACTORING_SUMMARY.md](./REFACTORING_SUMMARY.md)** - Complete refactoring overview
+### Testing (NEW! ✅)
+- **[docs/testing/integration-tests.md](./docs/testing/integration-tests.md)** - 70 integration tests
+- **[docs/testing/complete-summary.md](./docs/testing/complete-summary.md)** - Test results & coverage
 
-### Feature Documentation
-- **[COMMENTS_INTEGRATION_SUMMARY.md](./COMMENTS_INTEGRATION_SUMMARY.md)** - Comments system
-- **[POUR_ANIMATION_SUMMARY.md](./POUR_ANIMATION_SUMMARY.md)** - Pour animation
-- **[docs/strategy/feature_roadmap.md](./docs/strategy/feature_roadmap.md)** - Complete roadmap
+### Development
+- **[docs/refactoring/refactoring-history.md](./docs/refactoring/refactoring-history.md)** - Code evolution
+- **[docs/refactoring/migration-guides.md](./docs/refactoring/migration-guides.md)** - Migration guides
+- **[docs/deployment/deployment-checklist.md](./docs/deployment/deployment-checklist.md)** - Deploy guide
 
-### Deployment
-- **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Production verification
-
-### Updates
-- **[DOCUMENTATION_UPDATE.md](./DOCUMENTATION_UPDATE.md)** - Recent documentation changes
+### Features
+- **[docs/features/notifications.md](./docs/features/notifications.md)** - Push notifications
+- **[docs/features/viral-features.md](./docs/features/viral-features.md)** - Social features
+- **[docs/planning/strategy/feature_roadmap.md](./docs/planning/strategy/feature_roadmap.md)** - Roadmap
 
 ## ✨ Key Features
 

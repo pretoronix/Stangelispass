@@ -184,7 +184,7 @@ export class ConsensusEngine {
     // Map proposal types to expertise domains
     const expertiseMap: Record<string, string[]> = {
       roadmap_update: ['product_strategy', 'feature_planning'],
-      feature_addition: ['product_design', 'software_architecture'],
+      feature_addition: ['product_design', 'software_architecture', 'product_strategy', 'feature_planning'],
       documentation_fix: ['technical_writing', 'content_organization'],
       priority_change: ['product_strategy', 'roadmap_management']
     };

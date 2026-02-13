@@ -23,7 +23,7 @@ export const useNotificationPreferences = ({
         try {
             await updateUser(currentUser.id, { notification_prefs: nextPrefs } as Partial<User>);
         } catch (e) {
-            reportError(new Error('Failed to update notification prefs:', e), { scope: 'useNotificationPreferences', action: 'replace_console', level: 'warn' });
+            reportError(new Error('Failed to update notification prefs:', e), { scope: 'useNotificationPreferences', action: 'replace_console' });
             setCurrentUser(previousUser);
             Alert.alert('Error', 'Could not save notification settings.');
         }

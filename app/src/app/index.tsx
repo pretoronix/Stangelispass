@@ -9,6 +9,7 @@ import {
     Alert,
     Modal,
     ScrollView,
+    Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,7 @@ import { calculateVelocity, prepareTrendData } from '@/utils/statsCalculator';
 import { VelocityMetricCard } from '@/components/features/VelocityMetricCard';
 import { InviteModal } from '@/components/features/InviteModal';
 import { BroadcastModal } from '@/components/notifications/BroadcastModal';
+import { Confetti } from '@/components/animations/Confetti';
 import { labels } from '@/ui/labels';
 
 // Extracted hooks
@@ -50,7 +52,7 @@ export default function HomeScreen() {
     const [showBroadcast, setShowBroadcast] = useState(false);
 
     // Custom hooks for business logic
-    const { leaderAnnouncement, streakAnnouncement } = useLeaderboardAnnouncements({
+    const { leaderAnnouncement, streakAnnouncement, showConfetti, setShowConfetti } = useLeaderboardAnnouncements({
         activeEventId: activeEvent?.id,
         leaderInfo: leaderInfo ?? undefined,
         beerCounts,
@@ -331,6 +333,16 @@ export default function HomeScreen() {
                         <Text style={styles.emptySubtext}>Time to start tracking? </Text>
                     </View>
                 }
+            />
+
+            {/* 🎉 Confetti Animation for leader changes & achievements */}
+            <Confetti
+                trigger={showConfetti}
+                count={150}
+                origin={{ x: Dimensions.get('window').width / 2, y: 0 }}
+                explosionSpeed={350}
+                fallSpeed={2500}
+                onAnimationEnd={() => setShowConfetti(false)}
             />
         </SafeAreaView>
     );

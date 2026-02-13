@@ -67,7 +67,7 @@ export default function SettingsScreen() {
         try {
             await userManagement.handleUpdateUserField({ weight_kg: weight });
         } catch (e) {
-            reportError(new Error('Failed to update weight:', e), { scope: 'settings', action: 'replace_console', level: 'warn' });
+            reportError(new Error('Failed to update weight:', e), { scope: 'settings', action: 'replace_console' });
         }
     };
 
@@ -75,7 +75,7 @@ export default function SettingsScreen() {
         try {
             await userManagement.handleUpdateUserField({ gender });
         } catch (e) {
-            reportError(new Error('Failed to update gender:', e), { scope: 'settings', action: 'replace_console', level: 'warn' });
+            reportError(new Error('Failed to update gender:', e), { scope: 'settings', action: 'replace_console' });
         }
     };
 

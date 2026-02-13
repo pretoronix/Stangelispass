@@ -67,6 +67,7 @@ export const Button = ({
             style={({ pressed }) => [getButtonStyle(pressed), style]}
             onPress={handlePress}
             disabled={disabled}
+            accessibilityState={{ disabled: disabled }}
             testID={testID}
             accessibilityLabel={accessibilityLabel}
         >

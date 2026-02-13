@@ -28,7 +28,7 @@ export async function isLowEndDevice(): Promise<boolean> {
         // Default to capable if we can't determine
         return false;
     } catch (error) {
-        reportError(new Error('Device detection failed:', error), { scope: 'deviceInfo', action: 'replace_console', level: 'warn' });
+        reportError(new Error('Device detection failed:', error), { scope: 'deviceInfo', action: 'replace_console' });
         // On error, assume capable device
         return false;
     }
@@ -53,7 +53,7 @@ export async function shouldShowAnimations(): Promise<boolean> {
         const isLowEnd = await isLowEndDevice();
         return !isLowEnd;
     } catch (error) {
-        reportError(new Error('Failed to check animation preference:', error), { scope: 'deviceInfo', action: 'replace_console', level: 'warn' });
+        reportError(new Error('Failed to check animation preference:', error), { scope: 'deviceInfo', action: 'replace_console' });
         // Default to showing animations
         return true;
     }

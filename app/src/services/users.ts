@@ -22,7 +22,7 @@ export const getUsers = async (): Promise<User[]> => {
 
         if (error) {
             if ((error as any).code === 'PGRST205') {
-                reportError(new Error('Supabase: table `users` not found. Returning empty users list.'), { scope: 'users', action: 'replace_console', level: 'warn' });
+                console.log('[users] table `users` not found. Returning empty users list. (expected)');
                 return [];
             }
             throw error;
@@ -31,7 +31,7 @@ export const getUsers = async (): Promise<User[]> => {
         return data || [];
     } catch (e) {
         // If any unexpected shape is encountered, return empty list to keep app running
-        reportError(new Error('getUsers fallback due to error:', e), { scope: 'users', action: 'replace_console', level: 'warn' });
+        console.log('[users] getUsers fallback due to error (expected):', e);
         return [];
     }
 };
@@ -58,7 +58,7 @@ export const addUser = async (name: string, isAdmin: boolean = false): Promise<U
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `users` not found. addUser skipped.'), { scope: 'users', action: 'replace_console', level: 'warn' });
+            console.log('[users] table `users` not found. addUser skipped. (expected)');
             return null;
         }
         throw error;
@@ -76,7 +76,7 @@ export const updateUser = async (userId: string, updates: Partial<User>): Promis
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `users` not found. updateUser skipped.'), { scope: 'users', action: 'replace_console', level: 'warn' });
+            console.log('[users] table `users` not found. updateUser skipped. (expected)');
             return null;
         }
         throw error;

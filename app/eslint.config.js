@@ -14,7 +14,7 @@ const compat = new FlatCompat({
 export default [
     ...compat.extends('expo', 'plugin:@typescript-eslint/recommended'),
     {
-        ignores: ['tmp_*.js', 'tmp_*.ts', '.expo/', 'node_modules/', 'jest_tmp/', '.jest_tmp/'],
+        ignores: ['.expo/', 'node_modules/'],
     },
     {
         files: ['**/*.ts', '**/*.tsx'],

@@ -1,8 +1,8 @@
 # Stängelispass: The Social Brew-Graph Utility 🍻
 
-**Version**: 2.0.0 | **Status**: Production Ready | **Last Updated**: February 2026
+**Version**: 2.1.0 | **Status**: Production Ready | **Last Updated**: February 2026
 
-Stängelispass is a high-fidelity, real-time social competition platform designed for group beverage tracking. It bridges the gap between casual night-outs and legendary competition through a premium iOS-inspired interface and a synchronized real-time backend.
+Stängelispass is a high-fidelity, real-time social competition platform designed for group beverage tracking. It bridges the gap between casual night-outs and legendary competition through a premium iOS-inspired interface, a synchronized real-time backend, and AI-powered strategic planning.
 
 ## 💎 Core Value Propositions
 - **The "Truth Machine"**: A real-time, admin-audited leaderboard that eliminates disputes over whose turn it is to buy the next round.
@@ -10,6 +10,7 @@ Stängelispass is a high-fidelity, real-time social competition platform designe
 - **Legacy & Archival**: The "Wall of Fame" automatically archives event winners, turning one-off nights into local legends.
 - **Real-time Social Layer**: Comments and reactions create engagement beyond simple tracking.
 - **Delightful Interactions**: Pour animations, optimistic updates, and instant feedback make every action satisfying.
+- **AI-Powered Planning** ✨ NEW: Swarm agent system for automated roadmap analysis and strategic insights.
 
 ## 🏗️ Technical Architecture & Stack
 Designed for low-latency synchronization and native performance.
@@ -22,6 +23,7 @@ Designed for low-latency synchronization and native performance.
 | **Persistence** | Expo SecureStore + MMKV | High-security local persistence with fast query cache. |
 | **Sensory** | Expo Haptics + Lottie | High-fidelity tactile and visual confirmation. |
 | **Real-time** | Supabase Subscriptions | Live comment updates and event synchronization. |
+| **AI Planning** | Swarm Agent System | Multi-agent collaboration for strategic analysis and documentation. |
 
 ## 🚀 The Feature Ecosystem
 
@@ -68,6 +70,13 @@ Designed for low-latency synchronization and native performance.
 
 ## ✅ Recent Deliveries (February 2026)
 
+### Swarm Agent System ✨ NEW
+- Multi-agent AI collaboration framework  
+- 4 specialized agents: Strategy, Product, Technical, Documentation
+- Automated roadmap analysis and gap detection
+- Consensus-based decision making for feature planning
+- AI-driven strategic insights and recommendations
+
 ### Comments System ✅
 - Real-time commenting with Supabase subscriptions
 - Optimistic UI updates
@@ -95,11 +104,12 @@ Designed for low-latency synchronization and native performance.
 ## 🛣️ Strategic Roadmap: What's Next
 
 ### Completed ✅
-1. ✅ **Phase 9: Velocity & Insights**: Predictive drinking metrics and peak-consumption heatmaps
-2. ✅ **Phase 10: The Badge Economy**: Digital achievements to drive retention and status
-3. ✅ **Phase 11: Enhanced Cost Management**: Individual tracking with configurable pricing
-4. ✅ **Phase 12: Social Interaction**: Real-time comments and engagement layer
-5. ✅ **Phase 13: Infrastructure**: Offline-first architecture with persistent cache
+1. ✅ **Phase 9**: Velocity & Insights
+2. ✅ **Phase 10**: The Badge Economy
+3. ✅ **Phase 11**: Enhanced Cost Management
+4. ✅ **Phase 12**: Social Interaction
+5. ✅ **Phase 13**: Infrastructure
+6. ✅ **Phase 14**: Swarm Agent System ✨ NEW
 
 ### In Progress 🏗️
 1. **Push Notifications**: "Friends are drinking" alerts (infrastructure 80% ready)
@@ -110,6 +120,31 @@ Designed for low-latency synchronization and native performance.
 1. **User Authentication**: OTP-based login for scaling beyond friend groups
 2. **Advanced Analytics**: ML-based insights and drinking pattern predictions
 3. **Enhanced Animations**: Confetti, progress rings, badge pulses
+4. **AI-Enhanced Features**: Smart recommendations, pattern detection
+
+## 🤖 AI-Powered Development
+
+### Swarm Agent System
+The project includes an advanced multi-agent system for automated project management:
+
+- **🎯 Strategy Agent**: Analyzes roadmap vs. implementation, detects gaps
+- **💡 Product Agent**: Evaluates features from user perspective
+- **⚙️ Technical Agent**: Assesses complexity and dependencies
+- **📚 Documentation Agent**: Maintains consistency across all docs
+
+**Benefits:**
+- Automated roadmap maintenance
+- AI-driven feature prioritization
+- Cross-document consistency validation
+- Strategic insights generation
+
+**Usage:**
+```bash
+npm run swarm:analyze      # Full analysis
+npm run swarm:roadmap      # Roadmap updates
+npm run swarm:docs         # Doc synchronization
+npm run swarm:brainstorm   # Feature ideation
+```
 
 ## 📊 Status Metrics
 
@@ -121,6 +156,7 @@ Designed for low-latency synchronization and native performance.
 ✅ Production Database Deployed
 ✅ Real-time Features Working
 ✅ Offline Support Enabled
+✅ 6 AI Agents Running (4 Swarm + 2 Quality)
 ```
 
 ## 📚 Documentation
@@ -130,9 +166,10 @@ Designed for low-latency synchronization and native performance.
 - **Roadmap**: See `docs/strategy/feature_roadmap.md` for complete feature plans
 - **Status**: See `PROJECT_STATUS.md` for current state overview
 - **Deployment**: See `DEPLOYMENT_CHECKLIST.md` for production verification
+- **AI Agents**: See `agents/docs/SWARM_AGENTS.md` for swarm system details
 
 ---
 
 *For detailed strategy, marketing plans, and implementation specs, refer to the [docs/](file:///Users/ppf/Downloads/Stängelispass/docs/) directory.*
 
-**Built with ❤️ and 🍺 | Production Ready 🚀**
+**Built with ❤️ and 🍺 | Powered by AI 🤖 | Production Ready 🚀**

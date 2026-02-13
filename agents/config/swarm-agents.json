@@ -200,6 +200,14 @@
             "prioritize_queue",
             "create_implementation_plan"
           ]
+        },
+        {
+          "name": "execution",
+          "participants": ["strategy-agent", "documentation-agent"],
+          "actions": [
+            "update_feature_roadmap",
+            "log_changes"
+          ]
         }
       ],
       "consensus_threshold": 0.8,
@@ -273,14 +281,14 @@
   },
   "file_targets": {
     "primary": [
-      "docs/strategy/feature_roadmap.md",
+      "docs/planning/strategy/feature_roadmap.md",
       "Description.md",
-      "DOCUMENTATION_UPDATE.md"
+      "docs/archive/documentation-update.md"
     ],
     "secondary": [
-      "PROJECT_STATUS.md",
-      "AGENTS.md",
-      "HIGH_PRIORITY_REFACTORING.md"
+      "docs/planning/project-status.md",
+      "docs/development/agents.md",
+      "docs/refactoring/high-priority-items.md"
     ],
     "watch": [
       "app/src/**/*.{ts,tsx}",

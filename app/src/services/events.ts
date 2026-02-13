@@ -166,7 +166,7 @@ export const getWallOfFame = async (): Promise<any[]> => {
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `wall_of_fame` not found. Returning empty wall of fame.'), { scope: 'events', action: 'replace_console', level: 'warn' });
+            console.log('[Events] table `wall_of_fame` not found. Returning empty wall of fame. (expected)');
             return [];
         }
         throw error;
@@ -187,7 +187,7 @@ export const addToWallOfFame = async (eventId: string, winnerId: string, totalBe
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `wall_of_fame` not found. addToWallOfFame skipped.'), { scope: 'events', action: 'replace_console', level: 'warn' });
+            console.log('[Events] table `wall_of_fame` not found. addToWallOfFame skipped. (expected)');
             return null;
         }
         throw error;

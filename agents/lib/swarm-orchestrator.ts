@@ -118,13 +118,8 @@ export class SwarmOrchestrator {
 
       // Execute phase actions
       for (const action of phase.actions) {
-        const result = await this.executeAction(action, agents, execution);
+        const result = await this.executeAction(action, agents, execution, consensusThreshold);
         phase.outputs = { ...phase.outputs, [action]: result };
-      }
-
-      // If proposals were generated, collect votes
-      if (execution.proposals.length > 0) {
-        await this.conductVoting(execution, agents, consensusThreshold);
       }
 
       phase.status = 'completed';
@@ -142,7 +137,8 @@ export class SwarmOrchestrator {
   private async executeAction(
     action: string,
     agents: SwarmAgent[],
-    execution: SwarmWorkflowExecution
+    execution: SwarmWorkflowExecution,
+    consensusThreshold: number
   ): Promise<any> {
     logger.info(`Executing action: ${action}`);
 
@@ -160,10 +156,47 @@ export class SwarmOrchestrator {
         return await this.validateTechnicalFeasibility(agents, execution);
       
       case 'vote_on_proposals':
-        return await this.conductVoting(execution, agents, 0.75);
+        return await this.conductVoting(execution, agents, consensusThreshold);
+
+      case 'vote_on_features':
+        return await this.conductVoting(execution, agents, consensusThreshold);
       
       case 'update_feature_roadmap':
         return await this.updateFeatureRoadmap(execution);
+
+      // Roadmap workflow enhancements
+      case 'suggest_new_features':
+        return await this.proposeFeatures(agents, execution);
+      case 'prioritize_backlog':
+        return await this.prioritizeQueue(execution);
+
+      // Feature brainstorm workflow
+      case 'analyze_user_needs':
+        return await this.analyzeUserNeeds(agents, execution);
+      case 'identify_market_trends':
+        return await this.identifyMarketTrends(agents, execution);
+      case 'propose_features':
+        return await this.proposeFeatures(agents, execution);
+      case 'assess_complexity':
+      case 'identify_dependencies':
+      case 'estimate_effort':
+      case 'discuss_tradeoffs':
+      case 'refine_proposals':
+      case 'create_specifications':
+        return null;
+      case 'prioritize_queue':
+        return await this.prioritizeQueue(execution);
+      case 'create_implementation_plan':
+        return await this.createImplementationPlan(agents, execution);
+
+      // No-op actions (configured in swarm-agents.json but not yet implemented)
+      case 'identify_completion_status':
+      case 'check_documentation_impact':
+      case 'resolve_conflicts':
+      case 'finalize_updates':
+      case 'update_documentation_index':
+      case 'log_changes':
+        return null;
       
       default:
         logger.warn(`Unknown action: ${action}`);
@@ -228,7 +261,7 @@ export class SwarmOrchestrator {
           description: `Roadmap shows "${gap.roadmap_status}" but implementation is "${gap.actual_status}"`,
           rationale: gap.recommended_action,
           changes: [{
-            file: 'docs/strategy/feature_roadmap.md',
+            file: 'docs/planning/strategy/feature_roadmap.md',
             operation: 'update',
             preview: `Update ${gap.feature_name} status from ${gap.roadmap_status} to ${gap.actual_status}`
           }],
@@ -268,6 +301,190 @@ export class SwarmOrchestrator {
     }
   }
 
+  private async analyzeUserNeeds(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const productAgent = agents.find(a => a.role === 'product_management') ?? agents[0];
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: productAgent?.id ?? 'product-agent',
+      message: 'Brainstorm: deriving feature ideas from explicit TODOs in docs/features/*.md (grounded, offline).',
+      type: 'suggestion',
+      timestamp: new Date()
+    });
+  }
+
+  private async identifyMarketTrends(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const strategyAgent = agents.find(a => a.role === 'strategic_planning') ?? agents[0];
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: strategyAgent?.id ?? 'strategy-agent',
+      message: 'Brainstorm: no external internet sources; using repo docs + existing feature backlog as the source of truth.',
+      type: 'comment',
+      timestamp: new Date()
+    });
+  }
+
+  private async proposeFeatures(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const productAgent = agents.find(a => a.role === 'product_management') ?? agents[0];
+
+    const roadmapFile = path.join(this.projectRoot, 'docs/planning/strategy/feature_roadmap.md');
+    const roadmapContent = await fs.readFile(roadmapFile, 'utf-8');
+    const roadmapLower = roadmapContent.toLowerCase();
+
+    const ideas = await this.collectFeatureIdeasFromDocs();
+    const max = this.config.rules?.safety?.max_changes_per_run ?? 10;
+
+    let added = 0;
+    for (const idea of ideas) {
+      if (execution.proposals.length >= max) break;
+      if (roadmapLower.includes(idea.title.toLowerCase())) continue;
+
+      const impact = this.inferImpact(idea.title);
+      const proposal: AgentProposal = {
+        id: this.generateId(),
+        agent_id: productAgent?.id ?? 'product-agent',
+        type: 'feature_addition',
+        title: idea.title,
+        description: `Add to roadmap backlog: ${idea.title}`,
+        rationale: `Found as TODO in ${idea.source}`,
+        changes: [{
+          file: 'docs/planning/strategy/feature_roadmap.md',
+          operation: 'update',
+          preview: `Append to Swarm Feature Backlog: ${idea.title}`
+        }],
+        impact,
+        confidence: 0.85,
+        created_at: new Date()
+      };
+
+      execution.proposals.push(proposal);
+      added++;
+    }
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: productAgent?.id ?? 'product-agent',
+      message: `Generated ${added} feature proposal(s) from docs TODOs`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+  }
+
+  private inferImpact(title: string): 'low' | 'medium' | 'high' {
+    const t = title.toLowerCase();
+    if (t.includes('social media') || t.includes('integration')) return 'high';
+    if (t.includes('deep link') || t.includes('deeplink') || t.includes('security')) return 'medium';
+    if (t.includes('confetti') || t.includes('template')) return 'low';
+    return 'medium';
+  }
+
+  private async collectFeatureIdeasFromDocs(): Promise<Array<{ title: string; source: string }>> {
+    const baseDir = path.join(this.projectRoot, 'docs/features');
+    const files = await this.collectFilesRecursive(baseDir);
+
+    const seen = new Set<string>();
+    const ideas: Array<{ title: string; source: string }> = [];
+
+    const isTestLike = (t: string) =>
+      /\b(cannot|works|accurate|state|shows|closes|receive|respected|validation|counter|button)\b/i.test(t);
+
+    const prefixFromSlug = (slug: string) =>
+      slug
+        .replace(/\.md$/, '')
+        .split(/[-_]/g)
+        .filter(Boolean)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+
+    for (const file of files) {
+      if (!file.endsWith('.md')) continue;
+
+      const rel = path.relative(this.projectRoot, file);
+      const content = await fs.readFile(file, 'utf-8');
+      const slug = path.basename(file);
+      const prefix = prefixFromSlug(slug);
+
+      const todos: string[] = [];
+      for (const line of content.split('\n')) {
+        const m = line.match(/^\s*-\s*\[ \]\s*(.+)\s*$/);
+        if (!m) continue;
+        const t = m[1].trim().replace(/\s+/g, ' ');
+        if (t) todos.push(t);
+      }
+
+      if (todos.length === 0) continue;
+
+      const testLikeCount = todos.filter(isTestLike).length;
+      const mostlyTestLike = testLikeCount / todos.length >= 0.7;
+
+      if (mostlyTestLike) {
+        const title = `${prefix}: Complete remaining TODOs`;
+        const key = title.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          ideas.push({ title, source: rel });
+        }
+        continue;
+      }
+
+      for (const todo of todos) {
+        if (isTestLike(todo)) continue;
+        const title = `${prefix}: ${todo}`;
+        const key = title.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        ideas.push({ title, source: rel });
+      }
+    }
+
+    return ideas;
+  }
+
+  private async collectFilesRecursive(dir: string): Promise<string[]> {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    const out: string[] = [];
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        out.push(...await this.collectFilesRecursive(full));
+      } else {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  private async prioritizeQueue(execution: SwarmWorkflowExecution): Promise<void> {
+    const score = (p: AgentProposal) => (p.impact === 'high' ? 3 : p.impact === 'medium' ? 2 : 1) * p.confidence;
+    execution.proposals.sort((a, b) => score(b) - score(a));
+  }
+
+  private async createImplementationPlan(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const strategyAgent = agents.find(a => a.role === 'strategic_planning') ?? agents[0];
+    const approved = execution.proposals.filter(p => execution.consensus_results.find(c => c.proposal_id === p.id)?.approved);
+    for (const proposal of approved) {
+      execution.discussions.push({
+        id: this.generateId(),
+        agent_id: strategyAgent?.id ?? 'strategy-agent',
+        proposal_id: proposal.id,
+        message: `Implementation plan (high level): add spec doc in docs/features/, wire UI entrypoint, add tests, then update roadmap status.`,
+        type: 'suggestion',
+        timestamp: new Date()
+      });
+    }
+  }
+
   /**
    * Conduct voting on proposals
    */
@@ -303,10 +520,78 @@ export class SwarmOrchestrator {
       for (const proposal of approvedProposals) {
         logger.info(`  - ${proposal.title}`);
       }
-    } else {
-      // In production, would actually update files here
-      execution.changes_applied = approvedProposals.map(p => p.title);
+      return;
     }
+
+    // Safe write: record what was applied without trying to rewrite roadmap structure.
+    // This makes --no-dry-run tangible while keeping changes low-risk.
+    if (approvedProposals.length === 0) {
+      execution.changes_applied = [];
+      return;
+    }
+
+    const roadmapFile = path.join(this.projectRoot, 'docs/planning/strategy/feature_roadmap.md');
+    const logHeader = '## 🤖 Swarm Sync Log';
+    const date = new Date().toISOString().slice(0, 10);
+
+    let content = await fs.readFile(roadmapFile, 'utf-8');
+    if (!content.includes(logHeader)) {
+      content += `\n\n---\n\n${logHeader}\n`;
+    }
+
+    const backlogHeader = '## 🧠 Swarm Feature Backlog (Proposed)';
+    const approvedFeatureProposals = approvedProposals.filter(p => p.type === 'feature_addition');
+    let changed = false;
+
+    if (approvedFeatureProposals.length > 0) {
+      const logIdx = content.indexOf(logHeader);
+      if (!content.includes(backlogHeader)) {
+        const section = `\n\n---\n\n${backlogHeader}\n`;
+        content = logIdx !== -1
+          ? content.slice(0, logIdx) + section + content.slice(logIdx)
+          : content + section;
+        changed = true;
+      }
+
+      const headerIdx = content.indexOf(backlogHeader);
+      const insertAt = content.indexOf('\n', headerIdx + backlogHeader.length) + 1;
+      const existingLower = content.toLowerCase();
+      const newLines = approvedFeatureProposals
+        .filter(p => !existingLower.includes(p.title.toLowerCase()))
+        .map(p => `- [ ] ${p.title} — ${p.rationale}`)
+        .join('\n');
+
+      if (newLines) {
+        content = content.slice(0, insertAt) + `${newLines}\n` + content.slice(insertAt);
+        changed = true;
+      }
+    }
+
+    const lines = approvedProposals.map(p => `  - ${p.title}`).join('\n');
+    const todayMarker = `\n- ${date}: Applied`;
+
+    let alreadyLogged = false;
+    const start = content.indexOf(todayMarker);
+    if (start !== -1) {
+      const end = content.indexOf('\n- ', start + todayMarker.length);
+      const todayBlock = content.slice(start, end === -1 ? undefined : end);
+      alreadyLogged = approvedProposals.every(p => todayBlock.includes(`  - ${p.title}`));
+    }
+
+    if (!alreadyLogged) {
+      content += `\n- ${date}: Applied ${approvedProposals.length} swarm-approved roadmap suggestions\n${lines}\n`;
+      changed = true;
+    }
+
+    if (!changed) {
+      logger.info('No new roadmap changes to apply');
+      execution.changes_applied = approvedProposals.map(p => p.title);
+      return;
+    }
+
+    await fs.writeFile(roadmapFile, content, 'utf-8');
+
+    execution.changes_applied = approvedProposals.map(p => p.title);
   }
 
   /**

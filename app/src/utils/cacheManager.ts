@@ -76,7 +76,10 @@ export async function checkAndClearIfOversized(maxSizeMB: number = 5): Promise<b
         const maxSizeKB = maxSizeMB * 1024;
 
         if (stats.sizeKB > maxSizeKB) {
-            reportError(new Error(`[CacheManager] Cache size (${stats.sizeKB}KB), { scope: 'cacheManager', action: 'replace_console', level: 'warn' }) exceeds limit (${maxSizeKB}KB), clearing...`);
+            reportError(
+                new Error(`[CacheManager] Cache size (${stats.sizeKB}KB) exceeds limit (${maxSizeKB}KB), clearing...`),
+                { scope: 'cacheManager', action: 'replace_console' }
+            );
             await clearCache();
             return true;
         }

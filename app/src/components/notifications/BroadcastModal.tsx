@@ -150,12 +150,14 @@ export function BroadcastModal({ visible, onClose, eventId, senderId, eventName 
                             onPress={handleClose}
                             disabled={sendBroadcast.isPending}
                             style={styles.actionButton}
+                            testID="broadcast-cancel-button"
                         />
                         <Button
                             title={sendBroadcast.isPending ? 'Sending...' : 'Send'}
                             onPress={handleSend}
                             disabled={!isValid || sendBroadcast.isPending}
                             style={styles.actionButton}
+                            testID="broadcast-send-button"
                         />
                     </View>
 

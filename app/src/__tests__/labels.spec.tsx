@@ -1,9 +1,29 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomeScreen from '@/app/index';
 import AddBeerScreen from '@/app/add';
 import SettingsScreen from '@/app/settings';
 import { labels } from '@/ui/labels';
+
+// Create a query client for tests
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+    },
+});
+
+// Wrapper component
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+        {children}
+    </QueryClientProvider>
+);
+
+const renderWithProviders = (ui: React.ReactElement) => {
+    return render(ui, { wrapper: AllTheProviders });
+};
 
 const activeEvent = {
     id: 'e1',
@@ -148,15 +168,16 @@ jest.mock('@/services/notifications', () => ({
 describe('UI labels', () => {
     beforeEach(() => {
         mockUseAppState.activeEvent = activeEvent;
+        queryClient.clear();
     });
 
     test('home labels exist', () => {
         mockUseAppState.activeEvent = null;
-        const noEvent = render(<HomeScreen />);
+        const noEvent = renderWithProviders(<HomeScreen />);
         expect(noEvent.getByTestId(labels.home.startRound.testID)).toBeTruthy();
 
         mockUseAppState.activeEvent = activeEvent;
-        const withEvent = render(<HomeScreen />);
+        const withEvent = renderWithProviders(<HomeScreen />);
         expect(withEvent.getByTestId(labels.home.scan.testID)).toBeTruthy();
         expect(withEvent.getByTestId(labels.home.export.testID)).toBeTruthy();
         expect(withEvent.getByTestId(labels.home.invite.testID)).toBeTruthy();
@@ -165,7 +186,7 @@ describe('UI labels', () => {
     });
 
     test('add screen labels exist', () => {
-        const { getByTestId, getByText } = render(<AddBeerScreen />);
+        const { getByTestId, getByText } = renderWithProviders(<AddBeerScreen />);
         fireEvent.press(getByText('Test'));
         fireEvent.press(getByText('User QR (Admin Log)'));
         expect(getByTestId(labels.add.addBeer.testID)).toBeTruthy();
@@ -175,7 +196,7 @@ describe('UI labels', () => {
     });
 
     test('settings labels exist', () => {
-        const { getByTestId } = render(<SettingsScreen />);
+        const { getByTestId } = renderWithProviders(<SettingsScreen />);
         expect(getByTestId(labels.settings.switchUser.testID)).toBeTruthy();
         expect(getByTestId(labels.settings.addUser.testID)).toBeTruthy();
         expect(getByTestId(labels.settings.startEvent.testID)).toBeTruthy();

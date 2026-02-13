@@ -24,7 +24,7 @@ class AudioService {
             );
             this.sound = sound;
         } catch (e) {
-            reportError(new Error('Failed to load sound:', e), { scope: 'audio', action: 'replace_console', level: 'warn' });
+            reportError(new Error('Failed to load sound:', e), { scope: 'audio', action: 'replace_console' });
         }
     }
 

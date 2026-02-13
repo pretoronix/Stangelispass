@@ -21,10 +21,11 @@ const buildPayload = (level: LogLevel, message: string, context: LogContext) => 
 
 const emit = (level: LogLevel, message: string, context: LogContext) => {
     const payload = buildPayload(level, message, context);
+    // Use console directly to avoid infinite recursion
     if (level === 'error') {
-        reportError(payload as Error, { scope: 'logger', action: 'replace_console' });
+        console.error(payload);
     } else if (level === 'warn') {
-        reportError(new Error(payload), { scope: 'logger', action: 'replace_console', level: 'warn' });
+        console.warn(payload);
     } else {
         console.log(payload);
     }
@@ -34,6 +35,14 @@ const emit = (level: LogLevel, message: string, context: LogContext) => {
 export const logInfo = (message: string, context: LogContext) => emit('info', message, context);
 export const logWarn = (message: string, context: LogContext) => emit('warn', message, context);
 export const logError = (message: string, context: LogContext) => emit('error', message, context);
+
+/**
+ * Log an expected warning (e.g., missing Supabase table, simulator limitations)
+ * These are not errors - they're expected conditions in certain environments
+ */
+export const logExpected = (message: string, scope: string) => {
+    console.log(`[${scope}] ${message} (expected)`);
+};
 
 export const reportError = (
     error: unknown,

@@ -55,7 +55,7 @@ export function useEventActions(
             } else {
                 if (pendingJoinEventId) {
                     await joinEventService(pendingJoinEventId, user.id).catch((e) => {
-                        reportError(new Error('Failed to join event membership:', e), { scope: 'useEventActions', action: 'replace_console', level: 'warn' });
+                        reportError(new Error('Failed to join event membership:', e), { scope: 'useEventActions', action: 'replace_console' });
                     });
                 }
                 Alert.alert('Joined!', `You are now part of ${pendingJoinEventName || 'the round'}.`);

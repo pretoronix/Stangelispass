@@ -4,17 +4,19 @@ import Constants from 'expo-constants';
 import { supabase } from './supabase';
 import { NotificationTemplates } from './notificationTemplates';
 import { getEventMembers } from './events';
-import { reportError } from '@/utils/logger';
+import { reportError, logWarn } from '@/utils/logger';
 
 // Register the device for Expo push notifications and store the token in Supabase
 export async function registerForPushNotificationsAsync(userId: string) {
   try {
     if (Platform.OS === 'web') {
-      reportError(new Error('Push notifications are not supported on web.'), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+      // Expected on web - just log as info, not error
+      console.log('[Notifications] Push notifications not supported on web (expected)');
       return null;
     }
     if (!Device.isDevice) {
-      reportError(new Error('Must use a physical device for push notifications.'), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+      // Expected on simulator - just log as info, not error
+      console.log('[Notifications] Push notifications require physical device (simulator detected - expected)');
       return null;
     }
 
@@ -30,7 +32,7 @@ export async function registerForPushNotificationsAsync(userId: string) {
     }
 
     if (finalStatus !== 'granted') {
-      reportError(new Error('Failed to get push token for push notifications.'), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+      reportError(new Error('Failed to get push token for push notifications.'), { scope: 'notifications', action: 'replace_console' });
       return null;
     }
 
@@ -51,15 +53,15 @@ export async function registerForPushNotificationsAsync(userId: string) {
       .select();
     if (error) {
       if ((error as any)?.code === 'PGRST205' || (error as any)?.code === '42P01') {
-        reportError(new Error('Supabase: table `device_tokens` not found. Push token not persisted.'), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+        console.log('[Notifications] table `device_tokens` not found. Push token not persisted. (expected)');
       } else {
-        reportError(new Error('Failed to save push token to Supabase:', error.message || error), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+        reportError(new Error('Failed to save push token to Supabase:', error.message || error), { scope: 'notifications', action: 'replace_console' });
       }
     }
 
     return token;
   } catch (err) {
-    reportError(new Error('Error registering for push notifications:', err), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+    reportError(new Error('Error registering for push notifications:', err), { scope: 'notifications', action: 'replace_console' });
     return null;
   }
 }
@@ -67,10 +69,10 @@ export async function registerForPushNotificationsAsync(userId: string) {
 export async function unregisterPushToken(userId: string, token: string) {
   try {
     const { error } = await supabase.from('device_tokens').delete().match({ user_id: userId, token });
-    if (error) reportError(new Error('Failed to remove push token:', error.message || error), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+    if (error) reportError(new Error('Failed to remove push token:', error.message || error), { scope: 'notifications', action: 'replace_console' });
     return !error;
   } catch (err) {
-    reportError(new Error('Error removing push token:', err), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+    reportError(new Error('Error removing push token:', err), { scope: 'notifications', action: 'replace_console' });
     return false;
   }
 }
@@ -175,7 +177,7 @@ export async function sendAdminBroadcast(
 
     if (insertError) {
       if ((insertError as any)?.code === 'PGRST205' || (insertError as any)?.code === '42P01') {
-        reportError(new Error('Cannot send broadcast: Supabase table `notifications` does not exist.'), { scope: 'notifications', action: 'replace_console', level: 'warn' });
+        reportError(new Error('Cannot send broadcast: Supabase table `notifications` does not exist.'), { scope: 'notifications', action: 'replace_console' });
         return { success: false, count: 0, error: 'Notifications table not found' };
       }
       throw insertError;

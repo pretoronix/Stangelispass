@@ -27,7 +27,7 @@ export const addBeer = async (userId: string, addedBy: string, eventId: string):
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `beers` not found. addBeer skipped.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beers` not found. addBeer skipped. (expected)');
             return { beer: null, newBadges: [] };
         }
         throw error;
@@ -77,7 +77,7 @@ export const addBeer = async (userId: string, addedBy: string, eventId: string):
             );
         } catch (e: any) {
             if (e?.code === 'PGRST205') {
-                reportError(new Error('Supabase: table `achievements` not found. Skipping badge award.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+                console.log('[beers] table `achievements` not found. Skipping badge award. (expected)');
             } else {
                 throw e;
             }
@@ -105,7 +105,7 @@ export const getBeers = async (eventId?: string): Promise<Beer[]> => {
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `beers` not found. Returning empty beers list.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beers` not found. Returning empty beers list. (expected)');
             return [];
         }
         throw error;
@@ -122,7 +122,7 @@ export const getBeersByUser = async (userId: string): Promise<Beer[]> => {
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `beers` not found. Returning empty beers list.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beers` not found. Returning empty beers list. (expected)');
             return [];
         }
         throw error;
@@ -138,7 +138,7 @@ export const removeBeer = async (beerId: string): Promise<void> => {
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `beers` not found. removeBeer skipped.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beers` not found. removeBeer skipped. (expected)');
             return;
         }
         throw error;
@@ -152,7 +152,7 @@ export const getBeerCountByUser = async (eventId?: string): Promise<{ userId: st
 
     if (usersError) {
         if ((usersError as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `users` not found. Returning empty beer counts.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `users` not found. Returning empty beer counts. (expected)');
             return [];
         }
         throw usersError;
@@ -169,7 +169,7 @@ export const getBeerCountByUser = async (eventId?: string): Promise<{ userId: st
     const { data: beers, error: beersError } = await beersQuery;
     if (beersError) {
         if ((beersError as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `beers` not found. Returning zero beer counts.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beers` not found. Returning zero beer counts. (expected)');
             return (users || []).map((u: any) => ({
                 userId: u.id,
                 name: u.name,
@@ -209,7 +209,7 @@ export const createBeerStamp = async (userId: string, eventId: string, issuedBy:
 
     if (error) {
         if (isMissingTableError(error)) {
-            reportError(new Error('Supabase: table `beer_stamps` not found. createBeerStamp skipped.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `beer_stamps` not found. createBeerStamp skipped. (expected)');
             return { stamp: null, fallbackLegacy: true };
         }
         throw error;
@@ -272,7 +272,7 @@ export const getUserAchievements = async (userId: string): Promise<Achievement[]
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            reportError(new Error('Supabase: table `achievements` not found. Returning empty achievements.'), { scope: 'beers', action: 'replace_console', level: 'warn' });
+            console.log('[beers] table `achievements` not found. Returning empty achievements. (expected)');
             return [];
         }
         throw error;
