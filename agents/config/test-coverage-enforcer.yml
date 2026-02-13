@@ -1,0 +1,107 @@
+name: test-coverage-enforcer
+version: 1.0.0
+description: Ensures comprehensive test coverage and quality across the codebase
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: pre_commit
+    actions:
+      - run_affected_tests
+    enabled: true
+
+  - event: pr_opened
+    actions:
+      - coverage_report
+      - detect_flaky_tests
+    enabled: true
+
+  - event: daily_cron
+    schedule: "0 1 * * *"
+    actions:
+      - full_test_suite
+      - coverage_report
+      - detect_flaky_tests
+    enabled: true
+
+  - event: manual
+    actions:
+      - generate_component_tests
+      - update_snapshots
+      - coverage_report
+      - suggest_integration_tests
+    enabled: true
+
+actions:
+  run_affected_tests:
+    type: autonomous
+    command: cd app && npm test -- --onlyChanged --passWithNoTests
+    rollback_on_failure: false
+    timeout_seconds: 300
+
+  full_test_suite:
+    type: autonomous
+    command: cd app && npm test -- --coverage --watchAll=false
+    rollback_on_failure: false
+    timeout_seconds: 600
+
+  update_snapshots:
+    type: autonomous
+    command: cd app && npm test -- --updateSnapshot --watchAll=false
+    rollback_on_failure: true
+    timeout_seconds: 300
+
+  generate_component_tests:
+    type: advisory
+    script: scripts/generate-tests.ts
+    approval_required: true
+    timeout_seconds: 180
+
+  coverage_report:
+    type: advisory
+    script: scripts/coverage-report.ts
+    approval_required: false
+    timeout_seconds: 120
+
+  detect_flaky_tests:
+    type: advisory
+    script: scripts/detect-flaky-tests.ts
+    approval_required: false
+    timeout_seconds: 300
+
+  suggest_integration_tests:
+    type: advisory
+    script: scripts/suggest-integration-tests.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+  - write:code
+  - run:tests
+  - create:pr_comment
+  - commit:auto_fix
+
+monitoring:
+  log_level: info
+  metrics:
+    - tests_generated
+    - tests_passing
+    - code_coverage_percentage
+    - flaky_tests_detected
+    - snapshots_updated
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-13T19:00:00Z"
+  updated_at: "2026-02-13T19:00:00Z"
+  tags:
+    - testing
+    - coverage
+    - quality
+    - hybrid

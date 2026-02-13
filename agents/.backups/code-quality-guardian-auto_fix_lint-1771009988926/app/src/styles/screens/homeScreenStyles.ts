@@ -1,0 +1,258 @@
+import { StyleSheet } from 'react-native';
+import { colors, spacing, borderRadius, typography } from '@/lib/theme';
+
+export const homeScreenStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.background,
+    },
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: colors.background,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    listContent: {
+        paddingHorizontal: spacing.md,
+        paddingTop: spacing.sm,
+        paddingBottom: spacing.xl,
+    },
+    header: {
+        alignItems: 'center',
+        marginBottom: spacing.lg,
+        marginTop: spacing.md,
+    },
+    totalLabel: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        textTransform: 'uppercase',
+        letterSpacing: 1.2,
+        fontWeight: '700',
+    },
+    totalValue: {
+        fontSize: 72,
+        fontWeight: '800',
+        color: colors.primary,
+        marginVertical: spacing.xs,
+    },
+    statsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: spacing.xl,
+        width: '100%',
+        marginTop: spacing.sm,
+    },
+    gameSummaryRow: {
+        width: '100%',
+        marginTop: spacing.md,
+        gap: spacing.sm,
+    },
+    gameChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingVertical: 6,
+        paddingHorizontal: spacing.md,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.surface,
+        borderWidth: 1,
+        borderColor: colors.surfaceLight,
+    },
+    gameChipText: {
+        ...typography.caption,
+        color: colors.textPrimary,
+        fontWeight: '700',
+    },
+    gameBanner: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.surfaceLight,
+        marginTop: spacing.sm,
+    },
+    gameBannerText: {
+        ...typography.callout,
+        color: colors.textPrimary,
+        fontWeight: '700',
+    },
+    statBox: {
+        alignItems: 'center',
+    },
+    statLabel: {
+        ...typography.caption,
+        color: colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    statValue: {
+        ...typography.title,
+        color: colors.textPrimary,
+        fontWeight: '700',
+    },
+    whoPaysButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    exportButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    divider: {
+        height: 1,
+        width: '30%',
+        backgroundColor: colors.surfaceLight,
+        marginVertical: spacing.lg,
+        opacity: 0.5,
+    },
+    largeTitle: {
+        ...typography.largeTitle,
+        alignSelf: 'flex-start',
+        marginBottom: spacing.xs,
+    },
+    itemWrapper: {
+        marginBottom: spacing.sm,
+    },
+    currentUserHighlight: {
+        borderWidth: 1,
+        borderColor: colors.primary,
+        borderRadius: 14,
+        padding: 1,
+    },
+    startEventBanner: {
+        backgroundColor: colors.surface,
+        padding: spacing.lg,
+        borderRadius: borderRadius.lg,
+        alignItems: 'center',
+        width: '100%',
+        marginBottom: spacing.lg,
+        borderWidth: 1,
+        borderColor: colors.primary + '30',
+    },
+    startEventText: {
+        ...typography.headline,
+        color: colors.textPrimary,
+        marginVertical: spacing.sm,
+    },
+    startButton: {
+        width: '100%',
+        height: 50,
+    },
+    startRoundModal: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: spacing.lg,
+    },
+    startRoundCard: {
+        width: '100%',
+        maxWidth: 420,
+        backgroundColor: colors.surface,
+        borderRadius: borderRadius.lg,
+        padding: spacing.lg,
+        borderWidth: 1,
+        borderColor: colors.surfaceLight,
+    },
+    startRoundTitle: {
+        ...typography.title,
+        color: colors.textPrimary,
+        marginBottom: spacing.xs,
+    },
+    startRoundSubtitle: {
+        ...typography.body,
+        color: colors.textSecondary,
+        marginBottom: spacing.md,
+    },
+    startRoundLabel: {
+        ...typography.body,
+        color: colors.textPrimary,
+        marginBottom: spacing.xs,
+        fontWeight: '600',
+    },
+    startRoundInput: {
+        height: 48,
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.surfaceLight,
+        paddingHorizontal: spacing.md,
+        color: colors.textPrimary,
+        backgroundColor: colors.background,
+        marginBottom: spacing.md,
+    },
+    startRoundActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: spacing.sm,
+    },
+    startRoundButton: {
+        height: 40,
+        paddingHorizontal: spacing.md,
+    },
+    trialText: {
+        ...typography.caption,
+        color: colors.textMuted,
+        marginTop: spacing.sm,
+    },
+    activeEventBanner: {
+        backgroundColor: colors.primary + '15',
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        borderRadius: borderRadius.lg,
+        marginBottom: spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    eventInfo: {
+        flex: 1,
+    },
+    activeEventName: {
+        ...typography.headline,
+        color: colors.primary,
+    },
+    activeEventTime: {
+        ...typography.caption,
+        color: colors.primary,
+        opacity: 0.8,
+    },
+    bannerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    scanButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    inviteButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    broadcastButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    endButton: {
+        height: 32,
+        paddingHorizontal: spacing.sm,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: spacing.xxl,
+    },
+    emptyText: {
+        ...typography.subtitle,
+        marginTop: spacing.md,
+        color: colors.textPrimary,
+    },
+    emptySubtext: {
+        ...typography.body,
+        color: colors.textMuted,
+        marginTop: spacing.xs,
+    },
+});

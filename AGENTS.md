@@ -1,61 +1,110 @@
 # AGENTS.md
 
 ## Quick Commands
+
+### App Development
 - Install: `cd app && npm ci`
 - Tests: `cd app && npm test`
 - Lint: `cd app && npm run lint`
 - Typecheck: `cd app && npm run typecheck`
 - Start dev: `cd app && npm run start`
 
-## Agent System (NEW - Phase 1 Complete)
+### Quality Maintenance (NEW)
+- **Quick check:** `npm run quality` - Full analysis + fixes
+- **Auto-fix:** `npm run quality:fix` - Fix linting & formatting
+- **Reports:** `npm run quality:report` - Daily quality reports
+- **Manual:** `npm run agent:manual` - All analysis actions
+- **Dry-run:** `npm run agent:dry-run` - Preview without changes
 
-The Stängelispass project now includes an agentic AI workflow system for automating development tasks.
+## Agent System ✅ PRODUCTION READY
+
+The Stängelispass project includes an agentic AI workflow system that automates code quality maintenance, testing, and analysis.
+
+### 📊 Current Codebase Health
+
+**From Latest Analysis:**
+- TypeScript Coverage: **95%** 🟢
+- Test Coverage: **1%** 🔴 (101 files untested)
+- Complex Functions: **26 out of 219** (12%) 🟡
+- Code Smells: **2,682 total**
+  - 43 long functions (>50 lines)
+  - 2,362 deep nesting issues
+  - 65 'any' types
+  - 11 console statements
+
+**Priority Actions:**
+1. Fix 43 long functions (AppProvider: 347 lines!)
+2. Improve test coverage from 1% to 80%+
+3. Replace 65 'any' types with specific types
+4. Add reportError() to improve error handling (currently 32%)
+
+### Available Agents
+
+#### 1. Code Quality Guardian 🛡️
+
+**Autonomous Actions (Auto-Execute):**
+- Auto-fixes ESLint errors
+- Formats code with Prettier
+- Replaces console.* with reportError()
+
+**Advisory Actions (Generate Reports):**
+- Code quality analysis (TS coverage, any usage, error handling)
+- Cyclomatic complexity analysis (26 complex functions found)
+- Code smell detection (2,682 issues identified)
+
+#### 2. Test Coverage Enforcer 🧪
+
+**Autonomous Actions:**
+- Runs affected tests on commit
+- Updates test snapshots
+
+**Advisory Actions:**
+- Coverage report (1% coverage, 101 untested files)
+- Flaky test detection
+- Integration test suggestions (6 areas identified)
 
 ### Quick Start
 
 ```bash
-# Install agent dependencies
-npm install
+# Full quality maintenance (recommended)
+npm run quality
 
-# Run code quality checks (safe - dry run first)
-npm run agent:pre-commit --dry-run
+# Just fix issues
+npm run quality:fix
 
-# Run actual fixes
+# Just see reports
+npm run quality:report
+
+# Manual trigger (all analysis)
+npm run agent:manual
+
+# Pre-commit (auto-fix only)
 npm run agent:pre-commit
 
-# Manual trigger
-npm run agent manual
-
-# Daily quality report
+# Daily report
 npm run agent:daily
 ```
 
-### Available Agents
-
-1. **Code Quality Guardian** 🛡️
-   - Auto-fixes ESLint errors
-   - Formats code with Prettier
-   - Replaces console.* with reportError()
-   - Generates quality reports
-
 ### Documentation
 
-- [Architecture](./agents/docs/AGENTS_ARCHITECTURE.md) - System design and components
-- [Development Guide](./agents/docs/AGENT_DEVELOPMENT.md) - Creating new agents
-- [Agent Configurations](./agents/config/) - YAML manifest files
+- **[Quality Maintenance Guide](./QUALITY_MAINTENANCE.md)** - How to use agents
+- **[Architecture](./agents/docs/AGENTS_ARCHITECTURE.md)** - System design
+- **[Development Guide](./agents/docs/AGENT_DEVELOPMENT.md)** - Create new agents
+- **[Agent README](./agents/README.md)** - Configuration reference
 
-### Agent CLI
+### Features
 
-```bash
-# General format
-npm run agent <trigger> [--dry-run] [--skip-approval]
+✅ **Rollback Protection** - Automatic backup before changes  
+✅ **Dry-Run Mode** - Preview changes without applying  
+✅ **Structured Logging** - All actions logged to `agents/agent.log`  
+✅ **CI/CD Integration** - GitHub Actions workflows included  
+✅ **Hybrid Autonomy** - Safe actions auto-execute, complex ones need approval
 
-# Examples
-npm run agent pre_commit          # Run pre-commit agents
-npm run agent daily_cron          # Run daily agents
-npm run agent pr_opened           # Run PR analysis
-npm run agent manual --dry-run    # Test without changes
-```
+### Maintenance Schedule
+
+- **Pre-Commit:** Auto-fix linting, formatting (automatic)
+- **Daily:** Quality reports, complexity analysis (GitHub Actions)
+- **Manual:** Full analysis when needed (`npm run quality`)
 
 ## Runbook
 1. Check Supabase config via `.env` in `app/` or Expo extras.

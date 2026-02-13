@@ -16,12 +16,21 @@ triggers:
     actions:
       - generate_quality_report
       - analyze_complexity
+      - suggest_refactoring
     enabled: true
 
   - event: pr_opened
     actions:
       - analyze_code
-      - comment_suggestions
+      - analyze_complexity
+    enabled: true
+
+  - event: manual
+    actions:
+      - replace_console
+      - generate_quality_report
+      - analyze_complexity
+      - suggest_refactoring
     enabled: true
 
 actions:
@@ -57,21 +66,15 @@ actions:
 
   analyze_code:
     type: advisory
-    script: scripts/analyze-pr.ts
+    script: scripts/analyze-quality.ts
     approval_required: false
-    timeout_seconds: 300
-
-  comment_suggestions:
-    type: advisory
-    script: scripts/comment-pr.ts
-    approval_required: true
-    timeout_seconds: 120
+    timeout_seconds: 60
 
   suggest_refactoring:
     type: advisory
     script: scripts/suggest-refactoring.ts
-    approval_required: true
-    timeout_seconds: 600
+    approval_required: false
+    timeout_seconds: 90
 
 permissions:
   - read:code

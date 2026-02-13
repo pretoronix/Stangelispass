@@ -135,7 +135,7 @@ export class AgentOrchestrator {
   }
 
   /**
-   * Run an action (command or script)
+   * Run an action (command or script) with rollback support
    */
   private async runAction(
     agent: AgentManifest,
@@ -144,14 +144,75 @@ export class AgentOrchestrator {
     context: AgentExecutionContext
   ): Promise<AgentExecutionResult> {
     const startTime = Date.now();
+    let backup: BackupInfo | undefined;
 
-    if (action.command) {
-      return this.runCommand(action.command, action, context, startTime);
-    } else if (action.script) {
-      return this.runScript(action.script, action, context, startTime);
-    } else {
-      throw new Error('Action must have either command or script defined');
+    // Create backup if rollback is enabled
+    if (action.rollback_on_failure) {
+      try {
+        // Determine files to backup based on action
+        const filesToBackup = await this.getFilesToBackup(action);
+        
+        if (filesToBackup.length > 0) {
+          backup = await rollbackManager.createBackup(
+            filesToBackup,
+            agent.name,
+            actionName
+          );
+        }
+      } catch (error) {
+        logger.warn(`Failed to create backup: ${(error as Error).message}`, undefined, agent.name, actionName);
+      }
     }
+
+    try {
+      // Execute the action
+      let result: AgentExecutionResult;
+      
+      if (action.command) {
+        result = await this.runCommand(action.command, action, context, startTime);
+      } else if (action.script) {
+        result = await this.runScript(action.script, action, context, startTime);
+      } else {
+        throw new Error('Action must have either command or script defined');
+      }
+
+      // If successful, clean up backup
+      if (result.status === 'success' && backup) {
+        await rollbackManager.deleteBackup(backup);
+      }
+
+      // If failed and rollback enabled, restore from backup
+      if (result.status === 'failed' && backup && action.rollback_on_failure) {
+        logger.warn('Action failed, rolling back changes...', undefined, agent.name, actionName);
+        await rollbackManager.restoreBackup(backup, agent.name, actionName);
+        result.output = (result.output || '') + '\n[ROLLED BACK]';
+      }
+
+      return result;
+    } catch (error) {
+      // On exception, rollback if enabled
+      if (backup && action.rollback_on_failure) {
+        logger.warn('Action threw exception, rolling back changes...', undefined, agent.name, actionName);
+        await rollbackManager.restoreBackup(backup, agent.name, actionName);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Determine which files to backup for an action
+   */
+  private async getFilesToBackup(action: AgentAction): Promise<string[]> {
+    // For commands that modify files in app/src
+    if (action.command) {
+      if (action.command.includes('lint') || action.command.includes('prettier')) {
+        return await rollbackManager.getAffectedFiles('app/src/**/*.{ts,tsx}');
+      }
+    }
+
+    // For scripts, they can specify files in their output
+    // For now, return empty array for scripts - they handle their own backups
+    return [];
   }
 
   /**

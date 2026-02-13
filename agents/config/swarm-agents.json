@@ -1,0 +1,295 @@
+{
+  "version": "1.0.0",
+  "description": "Swarm agent system configuration for collaborative roadmap and documentation management",
+  "collaboration_mode": "consensus",
+  "agents": [
+    {
+      "id": "strategy-agent",
+      "name": "Strategy Agent",
+      "emoji": "🎯",
+      "role": "strategic_planning",
+      "capabilities": [
+        "roadmap_analysis",
+        "gap_detection",
+        "feature_prioritization",
+        "phase_planning",
+        "completion_tracking"
+      ],
+      "responsibilities": [
+        "Analyze current project state against roadmap",
+        "Identify completed features in codebase",
+        "Detect roadmap drift and gaps",
+        "Propose new phases and features",
+        "Update feature_roadmap.md status"
+      ],
+      "voting_weight": 2.0,
+      "expertise_domains": [
+        "product_strategy",
+        "feature_planning",
+        "roadmap_management"
+      ]
+    },
+    {
+      "id": "product-agent",
+      "name": "Product Agent",
+      "emoji": "💡",
+      "role": "product_management",
+      "capabilities": [
+        "feature_evaluation",
+        "user_value_assessment",
+        "competitive_analysis",
+        "marketing_content",
+        "roi_estimation"
+      ],
+      "responsibilities": [
+        "Evaluate features from user perspective",
+        "Assess value propositions",
+        "Write compelling descriptions",
+        "Update Description.md",
+        "Maintain marketing content"
+      ],
+      "voting_weight": 1.5,
+      "expertise_domains": [
+        "product_design",
+        "user_experience",
+        "market_positioning"
+      ]
+    },
+    {
+      "id": "technical-agent",
+      "name": "Technical Agent",
+      "emoji": "⚙️",
+      "role": "technical_assessment",
+      "capabilities": [
+        "complexity_analysis",
+        "dependency_mapping",
+        "architecture_review",
+        "effort_estimation",
+        "technical_debt_tracking"
+      ],
+      "responsibilities": [
+        "Assess implementation complexity",
+        "Identify technical dependencies",
+        "Estimate effort levels",
+        "Flag technical debt",
+        "Create implementation plans"
+      ],
+      "voting_weight": 2.0,
+      "expertise_domains": [
+        "software_architecture",
+        "technical_planning",
+        "code_analysis"
+      ]
+    },
+    {
+      "id": "documentation-agent",
+      "name": "Documentation Agent",
+      "emoji": "📚",
+      "role": "documentation_quality",
+      "capabilities": [
+        "consistency_validation",
+        "cross_reference_checking",
+        "version_tracking",
+        "style_enforcement",
+        "completeness_analysis"
+      ],
+      "responsibilities": [
+        "Validate cross-references",
+        "Check version/date consistency",
+        "Enforce documentation standards",
+        "Update DOCUMENTATION_UPDATE.md",
+        "Ensure completeness"
+      ],
+      "voting_weight": 1.5,
+      "expertise_domains": [
+        "technical_writing",
+        "content_organization",
+        "quality_assurance"
+      ]
+    }
+  ],
+  "workflows": {
+    "roadmap_update": {
+      "name": "Roadmap Analysis & Update",
+      "description": "Collaborative roadmap maintenance workflow",
+      "phases": [
+        {
+          "name": "analysis",
+          "participants": ["strategy-agent", "technical-agent"],
+          "actions": [
+            "scan_codebase_for_features",
+            "compare_roadmap_vs_reality",
+            "identify_completion_status"
+          ]
+        },
+        {
+          "name": "proposal",
+          "participants": ["strategy-agent", "product-agent"],
+          "actions": [
+            "propose_roadmap_updates",
+            "suggest_new_features",
+            "prioritize_backlog"
+          ]
+        },
+        {
+          "name": "validation",
+          "participants": ["technical-agent", "documentation-agent"],
+          "actions": [
+            "validate_technical_feasibility",
+            "check_documentation_impact"
+          ]
+        },
+        {
+          "name": "consensus",
+          "participants": ["all"],
+          "actions": [
+            "vote_on_proposals",
+            "resolve_conflicts",
+            "finalize_updates"
+          ]
+        },
+        {
+          "name": "execution",
+          "participants": ["strategy-agent", "documentation-agent"],
+          "actions": [
+            "update_feature_roadmap",
+            "update_documentation_index",
+            "log_changes"
+          ]
+        }
+      ],
+      "consensus_threshold": 0.75,
+      "timeout_minutes": 30
+    },
+    "feature_brainstorm": {
+      "name": "New Feature Brainstorming",
+      "description": "Collaborative feature ideation and planning",
+      "phases": [
+        {
+          "name": "ideation",
+          "participants": ["product-agent", "strategy-agent"],
+          "actions": [
+            "analyze_user_needs",
+            "identify_market_trends",
+            "propose_features"
+          ]
+        },
+        {
+          "name": "evaluation",
+          "participants": ["technical-agent"],
+          "actions": [
+            "assess_complexity",
+            "identify_dependencies",
+            "estimate_effort"
+          ]
+        },
+        {
+          "name": "refinement",
+          "participants": ["all"],
+          "actions": [
+            "discuss_tradeoffs",
+            "refine_proposals",
+            "create_specifications"
+          ]
+        },
+        {
+          "name": "decision",
+          "participants": ["all"],
+          "actions": [
+            "vote_on_features",
+            "prioritize_queue",
+            "create_implementation_plan"
+          ]
+        }
+      ],
+      "consensus_threshold": 0.8,
+      "timeout_minutes": 45
+    },
+    "documentation_sync": {
+      "name": "Documentation Synchronization",
+      "description": "Ensure all documentation is consistent and up-to-date",
+      "phases": [
+        {
+          "name": "audit",
+          "participants": ["documentation-agent"],
+          "actions": [
+            "scan_all_documentation",
+            "validate_cross_references",
+            "check_version_consistency",
+            "identify_outdated_content"
+          ]
+        },
+        {
+          "name": "verification",
+          "participants": ["strategy-agent", "technical-agent"],
+          "actions": [
+            "verify_roadmap_accuracy",
+            "validate_technical_claims",
+            "check_feature_status"
+          ]
+        },
+        {
+          "name": "update",
+          "participants": ["documentation-agent", "product-agent"],
+          "actions": [
+            "fix_inconsistencies",
+            "update_dates_versions",
+            "refresh_content",
+            "improve_clarity"
+          ]
+        }
+      ],
+      "consensus_threshold": 0.7,
+      "timeout_minutes": 20
+    }
+  },
+  "rules": {
+    "voting": {
+      "mechanism": "weighted",
+      "quorum_required": 0.75,
+      "tie_breaker": "strategy-agent",
+      "abstain_allowed": true
+    },
+    "consensus": {
+      "approval_threshold": 0.75,
+      "veto_enabled": false,
+      "compromise_attempts": 3
+    },
+    "safety": {
+      "dry_run_default": true,
+      "require_human_approval_for": [
+        "major_roadmap_changes",
+        "new_phase_addition",
+        "feature_deprecation"
+      ],
+      "rollback_on_failure": true,
+      "max_changes_per_run": 10
+    },
+    "quality": {
+      "min_confidence_threshold": 0.7,
+      "require_cross_validation": true,
+      "validation_timeout_seconds": 300
+    }
+  },
+  "file_targets": {
+    "primary": [
+      "docs/strategy/feature_roadmap.md",
+      "Description.md",
+      "DOCUMENTATION_UPDATE.md"
+    ],
+    "secondary": [
+      "PROJECT_STATUS.md",
+      "AGENTS.md",
+      "HIGH_PRIORITY_REFACTORING.md"
+    ],
+    "watch": [
+      "app/src/**/*.{ts,tsx}",
+      "docs/**/*.md"
+    ]
+  },
+  "metadata": {
+    "created_at": "2026-02-13T19:22:00Z",
+    "author": "Swarm Agent System",
+    "version": "1.0.0"
+  }
+}

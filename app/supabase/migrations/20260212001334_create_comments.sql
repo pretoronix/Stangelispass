@@ -1,8 +1,6 @@
 -- Comments System Migration
 -- Enables social commenting on beer logs
 
--- Enable UUID extension if not already enabled (using pgcrypto which is standard in Supabase)
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Drop existing table if it has errors
 DROP TABLE IF EXISTS comments CASCADE;

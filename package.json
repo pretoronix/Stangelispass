@@ -10,7 +10,15 @@
     "agent:daily": "tsx agents/scripts/agent-runner.ts daily_cron",
     "agent:pr": "tsx agents/scripts/agent-runner.ts pr_opened",
     "agent:manual": "tsx agents/scripts/agent-runner.ts manual",
-    "agent:dry-run": "tsx agents/scripts/agent-runner.ts"
+    "agent:dry-run": "tsx agents/scripts/agent-runner.ts manual --dry-run",
+    "quality": "tsx maintain-quality.mjs",
+    "quality:fix": "tsx agents/scripts/agent-runner.ts pre_commit",
+    "quality:report": "tsx agents/scripts/agent-runner.ts daily_cron",
+    "swarm:analyze": "node agents/scripts/run-swarm-analysis.mjs",
+    "swarm:roadmap": "node agents/scripts/run-swarm-analysis.mjs roadmap_update",
+    "swarm:docs": "node agents/scripts/run-swarm-analysis.mjs documentation_sync",
+    "swarm:brainstorm": "node agents/scripts/run-swarm-analysis.mjs feature_brainstorm",
+    "swarm:dry-run": "node agents/scripts/run-swarm-analysis.mjs"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

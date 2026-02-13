@@ -1,0 +1,564 @@
+{
+  "backup_id": "code-quality-guardian-auto_fix_lint-1771009988926",
+  "timestamp": "2026-02-13T19:13:08.957Z",
+  "agent": "code-quality-guardian",
+  "action": "auto_fix_lint",
+  "files": [
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/polyfills.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/polyfills.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/statsCalculator.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/statsCalculator.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/shareImage.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/shareImage.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/scanPayload.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/scanPayload.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/preflight.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/preflight.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/logger.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/logger.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/gameStats.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/gameStats.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/deviceInfo.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/deviceInfo.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/costCalculator.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/costCalculator.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/cacheManager.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/cacheManager.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/bacCalculator.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/bacCalculator.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/ui/labels.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/ui/labels.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/types/database.types.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/types/database.types.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/providers/QueryProvider.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/providers/QueryProvider.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/providers/AppProvider.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/providers/AppProvider.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/wallOfFame.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/wallOfFame.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/users.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/users.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/types.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/types.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/supabase.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/supabase.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/storage.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/storage.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/permissions.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/permissions.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/notifications.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/notifications.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/notificationTemplates.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/notificationTemplates.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/notificationProcessor.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/notificationProcessor.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/index.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/index.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/helpers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/helpers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/events.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/events.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/comments.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/comments.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/client.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/client.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/beers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/beers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/audio.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/audio.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/services/achievements.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/services/achievements.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/lib/theme.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/lib/theme.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/AppErrorBoundary.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/AppErrorBoundary.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useWallOfFame.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useWallOfFame.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useUsersQuery.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useUsersQuery.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useUsers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useUsers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useRealtimeComments.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useRealtimeComments.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useOptimisticError.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useOptimisticError.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useOfflineMutations.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useOfflineMutations.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useNotificationsQuery.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useNotificationsQuery.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useNotifications.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useNotifications.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useNotificationHandler.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useNotificationHandler.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useNetworkStatus.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useNetworkStatus.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useEventsQuery.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useEventsQuery.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useEventPermissions.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useEventPermissions.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useCurrentUser.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useCurrentUser.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useCommentsQuery.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useCommentsQuery.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useBeersQuery.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useBeersQuery.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/useBeers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/useBeers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/query.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/query.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/settings.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/settings.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/profile.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/profile.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/legends.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/legends.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/index.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/index.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/history.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/history.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/add.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/add.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/app/_layout.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/app/_layout.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/useWallOfFame.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/useWallOfFame.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/useOfflineMutations.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/useOfflineMutations.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/useNotifications.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/useNotifications.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/useNetworkStatus.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/useNetworkStatus.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/theme.test.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/theme.test.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/supabase.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/supabase.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/shareImage.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/shareImage.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/scanPayload.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/scanPayload.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/preflight.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/preflight.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/pourAnimation.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/pourAnimation.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/optimisticUpdates.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/optimisticUpdates.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/notificationProcessor.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/notificationProcessor.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/logger.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/logger.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/labels.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/labels.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/gameStats.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/gameStats.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/costCalculator.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/costCalculator.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/comments.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/comments.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/cacheManager.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/cacheManager.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/button.test.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/button.test.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/beerCounts.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/beerCounts.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/appErrorBoundary.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/appErrorBoundary.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/achievements.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/achievements.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/QueryProvider.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/QueryProvider.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/MvpFeatures.test.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/MvpFeatures.test.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/MVPRecapModal.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/MVPRecapModal.spec.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/settings/settingsHelpers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/settings/settingsHelpers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/settings/settingsConstants.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/settings/settingsConstants.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/settings/index.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/settings/index.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/utils/home/homeHelpers.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/utils/home/homeHelpers.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/styles/screens/homeScreenStyles.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/styles/screens/homeScreenStyles.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/SyncIndicator.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/SyncIndicator.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/OptimisticItem.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/OptimisticItem.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/OfflineBanner.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/OfflineBanner.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/Card.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/Card.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/Button.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/Button.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/ui/Avatar.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/ui/Avatar.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/index.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/index.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/UserSelectionGrid.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/UserSelectionGrid.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/StartEventModal.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/StartEventModal.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/SensorySection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/SensorySection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/PremiumTierCard.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/PremiumTierCard.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/PhysiologySection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/PhysiologySection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/NotificationsSection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/NotificationsSection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/EventMemberRow.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/EventMemberRow.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/EventAdminSection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/EventAdminSection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/CurrentUserCard.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/CurrentUserCard.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/CacheManagementSection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/CacheManagementSection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/settings/AddUserSection.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/settings/AddUserSection.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/notifications/BroadcastModal.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/notifications/BroadcastModal.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/home/StartRoundPrompt.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/home/StartRoundPrompt.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/WallOfFame.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/WallOfFame.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/VelocityMetricCard.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/VelocityMetricCard.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/QRScanner.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/QRScanner.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/QRGenerator.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/QRGenerator.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/MVPRecapModal.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/MVPRecapModal.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/MVPModal.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/MVPModal.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/LeaderboardItem.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/LeaderboardItem.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/InviteModal.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/InviteModal.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/CostSummaryCard.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/CostSummaryCard.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/CommentsList.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/CommentsList.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/CommentButton.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/CommentButton.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/BeerLogItemWithComments.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/BeerLogItemWithComments.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/BadgeIcon.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/BadgeIcon.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/features/BadgeGrid.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/features/BadgeGrid.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/examples/BeerLogItemExample.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/examples/BeerLogItemExample.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/animations/SimplePourFeedback.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/animations/SimplePourFeedback.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/animations/PourAnimation.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/animations/PourAnimation.tsx"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/useUserManagement.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/useUserManagement.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/useNotificationPreferences.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/useNotificationPreferences.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/useEventManagement.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/useEventManagement.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/useCacheManagement.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/useCacheManagement.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/useAnimationPreferences.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/useAnimationPreferences.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/settings/index.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/settings/index.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/home/useScanHandler.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/home/useScanHandler.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/home/useLeaderboardAnnouncements.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/home/useLeaderboardAnnouncements.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/home/useExportData.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/home/useExportData.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/hooks/home/useEventActions.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/hooks/home/useEventActions.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/helpers/testDataFactory.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/helpers/testDataFactory.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/helpers/mockSupabase.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/helpers/mockSupabase.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/__tests__/integration/criticalEventFlow.spec.ts",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/__tests__/integration/criticalEventFlow.spec.ts"
+    },
+    {
+      "original": "/Users/ppf/Downloads/Stängelispass/app/src/components/notifications/__tests__/BroadcastModal.spec.tsx",
+      "backup": "/Users/ppf/Downloads/Stängelispass/agents/.backups/code-quality-guardian-auto_fix_lint-1771009988926/app/src/components/notifications/__tests__/BroadcastModal.spec.tsx"
+    }
+  ]
+}
