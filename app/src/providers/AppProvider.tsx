@@ -25,7 +25,7 @@ interface AppContextType {
     refreshUsers: () => Promise<void>;
     loading: boolean;
     activeEvent: Event | null;
-    startEvent: (name: string, passType: Event['pass_type']) => Promise<void>;
+    startEvent: (name: string, passType: Event['pass_type'], beerPrice?: number) => Promise<void>;
     closeEvent: () => Promise<void>;
     showRecap: boolean;
     setShowRecap: (show: boolean) => void;
@@ -187,7 +187,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const startEvent = useCallback(async (name: string, passType: Event['pass_type']) => {
+    const startEvent = useCallback(async (name: string, passType: Event['pass_type'], beerPrice?: number) => {
         if (!currentUser) {
             throw new Error('No current user selected');
         }
@@ -203,6 +203,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     created_by: currentUser.id,
                     is_active: true,
                     pass_type: passType,
+                    beer_price: beerPrice ?? 5.00,
                     expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
                 })
                 .select()

@@ -18,10 +18,12 @@ import { Card } from '@/components/ui/Card';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { BadgeIcon } from '@/components/features/BadgeIcon';
+import { CostSummaryCard } from '@/components/features/CostSummaryCard';
 
 export default function ProfileScreen() {
-    const { currentUser } = useApp();
+    const { currentUser, activeEvent } = useApp();
     const [beers, setBeers] = useState<any[]>([]);
+    const [roundBeers, setRoundBeers] = useState<any[]>([]);
     const [achievements, setAchievements] = useState<Achievement[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -34,6 +36,13 @@ export default function ProfileScreen() {
                 getUserAchievements(currentUser.id)
             ]);
             setBeers(userBeers);
+            
+            // Filter beers for current round (activeEvent)
+            const currentRoundBeers = activeEvent
+                ? userBeers.filter(b => b.event_id === activeEvent.id)
+                : [];
+            setRoundBeers(currentRoundBeers);
+            
             setAchievements(userAchievements);
         } catch (e) {
             console.error('Failed to fetch profile data:', e);
@@ -41,7 +50,7 @@ export default function ProfileScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [currentUser]);
+    }, [currentUser, activeEvent]);
 
     useEffect(() => {
         fetchData();
@@ -95,6 +104,18 @@ export default function ProfileScreen() {
                             {currentUser.subscription_tier === 'craft' ? '💎 Craft Member' : '🍺 Pilsner Member'}
                         </Text>
                     </View>
+
+                    {/* Cost Summary - Current Round */}
+                    {activeEvent && roundBeers.length > 0 && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionLabel}>Current Round Spending</Text>
+                            <CostSummaryCard
+                                beerCount={roundBeers.length}
+                                pricePerBeer={activeEvent.beer_price ?? 5.00}
+                                eventName={activeEvent.name}
+                            />
+                        </View>
+                    )}
 
                     {/* BAC Meter */}
                     <View style={styles.section}>

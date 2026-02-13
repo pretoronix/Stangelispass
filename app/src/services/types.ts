@@ -9,11 +9,13 @@ import { BadgeType } from './achievements';
 export type NotificationPrefs = {
     leader_change: boolean;
     milestones: number[];
+    admin_broadcasts: boolean;
 };
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
     leader_change: true,
     milestones: [5, 10, 20],
+    admin_broadcasts: true,
 };
 
 export type EventRole = 'owner' | 'admin' | 'member' | 'viewer';
@@ -43,6 +45,7 @@ export type Event = {
     pass_type: 'free' | 'standard' | 'weekend';
     expires_at: string;
     created_at: string;
+    beer_price?: number; // Price per beer in CHF (default: 5.00)
 };
 
 export type EventMembership = {

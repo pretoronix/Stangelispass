@@ -18,6 +18,7 @@ export const labels = {
         addUser: { testID: 'settings.add_user', accessibilityLabel: 'Add user' },
         startEvent: { testID: 'settings.start_event', accessibilityLabel: 'Start new event' },
         resetEvent: { testID: 'settings.reset_event', accessibilityLabel: 'Reset event data' },
+        pourAnimation: { testID: 'settings.pour_animation', accessibilityLabel: 'Toggle pour animation' },
     },
     comments: {
         list: { testID: 'comments.list', accessibilityLabel: 'Comments list' },
@@ -26,5 +27,11 @@ export const labels = {
         deleteButton: { testID: 'comments.delete_button', accessibilityLabel: 'Delete comment' },
         commentItem: { testID: 'comments.comment_item', accessibilityLabel: 'Comment' },
         toggleButton: { testID: 'comments.toggle_button', accessibilityLabel: 'Toggle comments' },
+    },
+    profile: {
+        costSummary: { testID: 'profile.cost_summary', accessibilityLabel: 'Cost summary card' },
+        totalCost: { testID: 'profile.total_cost', accessibilityLabel: 'Total cost' },
+        beerCount: { testID: 'profile.beer_count', accessibilityLabel: 'Beer count' },
+        pricePerBeer: { testID: 'profile.price_per_beer', accessibilityLabel: 'Price per beer' },
     },
 };

@@ -1,0 +1,27 @@
+{
+  "name": "stangelispass-agents",
+  "version": "1.0.0",
+  "description": "Agentic AI workflow system for Stängelispass",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "agent": "tsx agents/scripts/agent-runner.ts",
+    "agent:pre-commit": "tsx agents/scripts/agent-runner.ts pre_commit",
+    "agent:daily": "tsx agents/scripts/agent-runner.ts daily_cron",
+    "agent:pr": "tsx agents/scripts/agent-runner.ts pr_opened",
+    "agent:manual": "tsx agents/scripts/agent-runner.ts manual",
+    "agent:dry-run": "tsx agents/scripts/agent-runner.ts"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.5",
+    "ajv": "^8.12.0",
+    "glob": "^10.3.10",
+    "js-yaml": "^4.1.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "ajv-formats": "^3.0.1"
+  }
+}

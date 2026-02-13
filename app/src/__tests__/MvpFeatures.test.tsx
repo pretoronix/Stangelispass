@@ -58,14 +58,24 @@ describe('MVP Features Smoke Test', () => {
         expect(beerCounts.length).toBeGreaterThan(0);
     });
 
-    test('Feature 3: Cost Tracker', () => {
-        // Logic test: total beers * price
+    test('Feature 3: Cost Tracker - Default Price', () => {
+        // Logic test: total beers * default price
         const totalBeers = 15;
         const pricePerBeer = 5.00;
         const totalBill = totalBeers * pricePerBeer;
 
         expect(totalBill).toBe(75.00);
         expect(totalBill.toFixed(2)).toBe('75.00');
+    });
+
+    test('Feature 3: Cost Tracker - Custom Price', () => {
+        // Logic test: total beers * custom price
+        const totalBeers = 10;
+        const customPrice = 6.50;
+        const totalBill = totalBeers * customPrice;
+
+        expect(totalBill).toBe(65.00);
+        expect(totalBill.toFixed(2)).toBe('65.00');
     });
 
     test('Feature 4: Export Data (CSV)', async () => {

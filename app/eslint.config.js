@@ -1,9 +1,21 @@
-import eslintConfigExpo from 'eslint-config-expo';
+import { FlatCompat } from '@eslint/eslintrc';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const compat = new FlatCompat({
+    baseDirectory: __dirname,
+});
 
 export default [
-    ...eslintConfigExpo,
+    ...compat.extends('expo', 'plugin:@typescript-eslint/recommended'),
+    {
+        ignores: ['tmp_*.js', 'tmp_*.ts', '.expo/', 'node_modules/', 'jest_tmp/', '.jest_tmp/'],
+    },
     {
         files: ['**/*.ts', '**/*.tsx'],
         languageOptions: {
@@ -23,6 +35,25 @@ export default [
             '@typescript-eslint/no-require-imports': 'off',
             'import/first': 'off',
             'prefer-const': 'off',
+        },
+    },
+    {
+        files: ['jest-setup.js', 'jest/**/*.js', '**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx', '**/*.test.ts', '**/*.test.tsx'],
+        languageOptions: {
+            globals: {
+                jest: 'readonly',
+                describe: 'readonly',
+                it: 'readonly',
+                test: 'readonly',
+                expect: 'readonly',
+                beforeEach: 'readonly',
+                afterEach: 'readonly',
+                beforeAll: 'readonly',
+                afterAll: 'readonly',
+            },
+        },
+        rules: {
+            '@typescript-eslint/no-require-imports': 'off',
         },
     },
 ];

@@ -1,0 +1,127 @@
+import { Alert } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { addBeer, joinEvent, redeemBeerStamp } from '@/services/supabase';
+import { parseScanPayload } from '@/utils/scanPayload';
+import { BADGES } from '@/services/achievements';
+import { audioService } from '@/services/audio';
+
+interface User {
+    id: string;
+}
+
+interface Event {
+    id: string;
+}
+
+interface EventPermissions {
+    canManageLogs: boolean;
+}
+
+export function useScanHandler(
+    currentUser: User | null,
+    activeEvent: Event | null,
+    eventPermissions: EventPermissions,
+    openNamePrompt: (action: 'start_round' | 'join_event', eventName?: string, eventId?: string) => void,
+    setScanning: (value: boolean) => void,
+    refresh: () => void
+) {
+    const handleScan = async (data: string) => {
+        try {
+            const payload = parseScanPayload(data);
+            if (payload.type === 'unknown') {
+                Alert.alert('Invalid QR', 'This code is not recognized by Stangelispass.');
+                return;
+            }
+
+            if (payload.type === 'join_event') {
+                if (currentUser) {
+                    if (payload.eventId) {
+                        await joinEvent(payload.eventId, currentUser.id).catch((e) => {
+                            console.warn('Failed to join event membership:', e);
+                        });
+                    }
+                    Alert.alert('Joined!', `You are now part of ${payload.eventName || 'the round'}.`);
+                    setScanning(false);
+                    return;
+                }
+
+                openNamePrompt('join_event', payload.eventName || 'the round', payload.eventId);
+                setScanning(false);
+                return;
+            }
+
+            if (payload.type === 'stamp_redeem') {
+                if (!currentUser) {
+                    Alert.alert('Select User', 'Please select a user in Settings before redeeming stamps.');
+                    return;
+                }
+                const redemption = await redeemBeerStamp(payload.stampId, currentUser.id);
+                if (!redemption.ok) {
+                    const reasonMessage = {
+                        invalid_stamp: 'This stamp is invalid.',
+                        already_redeemed: 'This stamp has already been redeemed.',
+                        expired_stamp: 'This stamp has expired.',
+                        stamps_unavailable: 'Stamp feature is not available in the database yet.',
+                    } as Record<string, string>;
+                    Alert.alert('Stamp', reasonMessage[redemption.reason] || 'Could not redeem stamp.');
+                    setScanning(false);
+                    return;
+                }
+
+                audioService.playPsst();
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
+                if (redemption.newBadges.length > 0) {
+                    const badgeNames = redemption.newBadges.map(b => BADGES[b].name).join(', ');
+                    Alert.alert('Stamp Redeemed', `+1 beer added.\nNew badges: ${badgeNames}`);
+                } else {
+                    Alert.alert('Stamp Redeemed', '+1 beer added successfully.');
+                }
+                setScanning(false);
+                refresh();
+                return;
+            }
+
+            if (!currentUser) {
+                Alert.alert('Select User', 'Please select a user in Settings before scanning beer QR codes.');
+                return;
+            }
+            const effectiveEventId = payload.eventId || activeEvent?.id;
+            if (!effectiveEventId) {
+                Alert.alert('No Active Round', 'This QR code is not linked to an active round.');
+                return;
+            }
+            if (activeEvent?.id && payload.eventId && payload.eventId !== activeEvent.id) {
+                Alert.alert('Wrong Round', 'This QR code belongs to a different event.');
+                return;
+            }
+            if (!eventPermissions.canManageLogs && payload.userId !== currentUser.id) {
+                Alert.alert('Not Authorized', 'Only admins can log beers for other users.');
+                return;
+            }
+
+            const { newBadges } = await addBeer(payload.userId, currentUser.id, effectiveEventId);
+
+            // Audio & Haptic feedback
+            audioService.playPsst();
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
+
+            if (newBadges.length > 0) {
+                const badgeNames = newBadges.map(b => BADGES[b].name).join(', ');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
+                Alert.alert(
+                    '🏆 Achievement Unlocked!',
+                    `You earned: ${badgeNames}\n\nBeer logged via scan!`,
+                    [{ text: 'Woohoo!' }]
+                );
+            }
+
+            setScanning(false);
+            refresh();
+        } catch (e) {
+            console.error('Failed to add beer via scan:', e);
+            Alert.alert('Error', 'Failed to log beer. Please try again.');
+        }
+    };
+
+    return { handleScan };
+}

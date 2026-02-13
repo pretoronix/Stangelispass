@@ -7,8 +7,11 @@ import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/lib/theme';
+import { useNotificationHandler } from '@/hooks/useNotificationHandler';
 
 export default function RootLayout() {
+    useNotificationHandler();
+
     return (
         <SafeAreaProvider>
             <AppErrorBoundary>

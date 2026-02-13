@@ -22,11 +22,13 @@ const createWrapper = () => {
     },
   });
   
-  return ({ children }: { children: React.ReactNode }) => (
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
   );
+  
+  return Wrapper;
 };
 
 describe('useWallOfFame', () => {
@@ -40,7 +42,7 @@ describe('useWallOfFame', () => {
         id: '1',
         event_id: 'event1',
         winner_id: 'user1',
-        total_stangeli: 10,
+        total_stängeli: 10,
         created_at: new Date().toISOString(),
         winner_name: 'John',
         event_name: 'Friday Night',

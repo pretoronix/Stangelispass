@@ -7,6 +7,56 @@
 - Typecheck: `cd app && npm run typecheck`
 - Start dev: `cd app && npm run start`
 
+## Agent System (NEW - Phase 1 Complete)
+
+The Stängelispass project now includes an agentic AI workflow system for automating development tasks.
+
+### Quick Start
+
+```bash
+# Install agent dependencies
+npm install
+
+# Run code quality checks (safe - dry run first)
+npm run agent:pre-commit --dry-run
+
+# Run actual fixes
+npm run agent:pre-commit
+
+# Manual trigger
+npm run agent manual
+
+# Daily quality report
+npm run agent:daily
+```
+
+### Available Agents
+
+1. **Code Quality Guardian** 🛡️
+   - Auto-fixes ESLint errors
+   - Formats code with Prettier
+   - Replaces console.* with reportError()
+   - Generates quality reports
+
+### Documentation
+
+- [Architecture](./agents/docs/AGENTS_ARCHITECTURE.md) - System design and components
+- [Development Guide](./agents/docs/AGENT_DEVELOPMENT.md) - Creating new agents
+- [Agent Configurations](./agents/config/) - YAML manifest files
+
+### Agent CLI
+
+```bash
+# General format
+npm run agent <trigger> [--dry-run] [--skip-approval]
+
+# Examples
+npm run agent pre_commit          # Run pre-commit agents
+npm run agent daily_cron          # Run daily agents
+npm run agent pr_opened           # Run PR analysis
+npm run agent manual --dry-run    # Test without changes
+```
+
 ## Runbook
 1. Check Supabase config via `.env` in `app/` or Expo extras.
 2. If Supabase is unavailable, the app uses fallback/noop clients.

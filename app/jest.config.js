@@ -11,4 +11,9 @@ module.exports = {
         '^expo(/.*)?$': '<rootDir>/jest/expoMock.js',
     },
     testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
+    testPathIgnorePatterns: [
+        '/node_modules/',
+        '/__tests__/helpers/',
+        '/__tests__/fixtures/',
+    ],
 };

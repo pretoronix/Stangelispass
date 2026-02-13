@@ -1,0 +1,162 @@
+name: Agent Workflows
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    types: [opened, synchronize]
+  schedule:
+    # Daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: 'Trigger event to execute'
+        required: true
+        type: choice
+        options:
+          - manual
+          - pre_commit
+          - daily_cron
+          - pr_opened
+
+jobs:
+  # Pre-commit quality checks
+  pre-commit:
+    name: Pre-commit Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          
+      - name: Install agent dependencies
+        run: |
+          npm install -g ts-node typescript
+          npm install --no-save js-yaml ajv glob
+      
+      - name: Run code quality guardian
+        run: |
+          npx ts-node agents/scripts/agent-runner.ts pre_commit
+        continue-on-error: true
+
+      - name: Commit auto-fixes
+        if: success()
+        run: |
+          git config --local user.email "agents@stangelispass.app"
+          git config --local user.name "Code Quality Guardian"
+          git add -A
+          git diff --staged --quiet || git commit -m "chore: auto-fix code quality issues [skip ci]"
+          git push || true
+
+  # Daily quality report
+  daily-quality-check:
+    name: Daily Code Quality Report
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.trigger == 'daily_cron')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          
+      - name: Install agent dependencies
+        run: |
+          npm install -g ts-node typescript
+          npm install --no-save js-yaml ajv glob
+      
+      - name: Run daily agents
+        run: |
+          npx ts-node agents/scripts/agent-runner.ts daily_cron
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: agents/agent.log
+
+  # PR analysis
+  pr-analysis:
+    name: Pull Request Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          
+      - name: Install agent dependencies
+        run: |
+          npm install -g ts-node typescript
+          npm install --no-save js-yaml ajv glob
+      
+      - name: Run PR agents
+        run: |
+          npx ts-node agents/scripts/agent-runner.ts pr_opened
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+  # Manual trigger
+  manual-execution:
+    name: Manual Agent Execution
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install dependencies
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          
+      - name: Install agent dependencies
+        run: |
+          npm install -g ts-node typescript
+          npm install --no-save js-yaml ajv glob
+      
+      - name: Execute requested trigger
+        run: |
+          npx ts-node agents/scripts/agent-runner.ts ${{ github.event.inputs.trigger }}

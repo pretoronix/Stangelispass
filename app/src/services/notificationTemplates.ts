@@ -63,4 +63,16 @@ export const NotificationTemplates = {
       hoursLeft,
     },
   }),
+
+  adminBroadcast: (message: string, senderName: string, eventId?: string): NotificationTemplate => ({
+    title: `📢 ${senderName}`,
+    body: message,
+    sound: 'default',
+    priority: 'high',
+    data: {
+      type: 'admin_broadcast',
+      eventId,
+      sender: senderName,
+    },
+  }),
 };

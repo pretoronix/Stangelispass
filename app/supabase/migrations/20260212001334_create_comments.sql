@@ -1,9 +1,15 @@
 -- Comments System Migration
 -- Enables social commenting on beer logs
 
+-- Enable UUID extension if not already enabled (using pgcrypto which is standard in Supabase)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- Drop existing table if it has errors
+DROP TABLE IF EXISTS comments CASCADE;
+
 -- Create comments table
-CREATE TABLE IF NOT EXISTS comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+CREATE TABLE comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     beer_id UUID NOT NULL REFERENCES beers(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     text TEXT NOT NULL,

@@ -1,0 +1,105 @@
+name: code-quality-guardian
+version: 1.0.0
+description: Maintains code quality and consistency across the codebase by auto-fixing linting issues and identifying code smells
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: pre_commit
+    actions:
+      - auto_fix_lint
+      - format_code
+    enabled: true
+
+  - event: daily_cron
+    schedule: "0 0 * * *"
+    actions:
+      - generate_quality_report
+      - analyze_complexity
+    enabled: true
+
+  - event: pr_opened
+    actions:
+      - analyze_code
+      - comment_suggestions
+    enabled: true
+
+actions:
+  auto_fix_lint:
+    type: autonomous
+    command: cd app && npm run lint -- --fix
+    rollback_on_failure: true
+    timeout_seconds: 120
+
+  format_code:
+    type: autonomous
+    command: cd app && npx prettier --write "src/**/*.{ts,tsx}"
+    rollback_on_failure: true
+    timeout_seconds: 60
+
+  replace_console:
+    type: autonomous
+    script: scripts/replace-console.ts
+    rollback_on_failure: true
+    timeout_seconds: 180
+
+  generate_quality_report:
+    type: advisory
+    script: scripts/analyze-quality.ts
+    approval_required: false
+    timeout_seconds: 300
+
+  analyze_complexity:
+    type: advisory
+    script: scripts/analyze-complexity.ts
+    approval_required: false
+    timeout_seconds: 180
+
+  analyze_code:
+    type: advisory
+    script: scripts/analyze-pr.ts
+    approval_required: false
+    timeout_seconds: 300
+
+  comment_suggestions:
+    type: advisory
+    script: scripts/comment-pr.ts
+    approval_required: true
+    timeout_seconds: 120
+
+  suggest_refactoring:
+    type: advisory
+    script: scripts/suggest-refactoring.ts
+    approval_required: true
+    timeout_seconds: 600
+
+permissions:
+  - read:code
+  - write:code
+  - commit:auto_fix
+  - create:pr_comment
+  - run:tests
+
+monitoring:
+  log_level: info
+  metrics:
+    - lint_errors_fixed
+    - files_formatted
+    - console_statements_replaced
+    - code_complexity_score
+    - type_coverage_percentage
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-13T18:00:00Z"
+  updated_at: "2026-02-13T18:00:00Z"
+  tags:
+    - code-quality
+    - linting
+    - formatting
+    - autonomous

@@ -19,7 +19,7 @@ interface WallOfFameItem {
     event: {
         name: string;
     };
-    toasts?: Array<{ count: number }>;
+    toasts?: { count: number }[];
 }
 
 interface WallOfFameProps {

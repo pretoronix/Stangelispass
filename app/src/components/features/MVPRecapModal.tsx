@@ -22,11 +22,11 @@ export interface MVPRecapData {
     beerCount: number;
     avatar?: string;
   };
-  participants: Array<{
+  participants: {
     id: string;
     name: string;
     beerCount: number;
-  }>;
+  }[];
   endedAt: Date;
 }
 

@@ -7,9 +7,9 @@ import { Alert } from 'react-native';
 jest.mock('expo-media-library');
 jest.mock('expo-sharing');
 jest.mock('react-native-view-shot');
-jest.mock('react-native/Libraries/Alert/Alert', () => ({
-  alert: jest.fn(),
-}));
+
+// Spy on Alert.alert
+const mockAlert = jest.spyOn(Alert, 'alert');
 
 describe('shareImage', () => {
   const mockViewRef = {
@@ -62,7 +62,7 @@ describe('shareImage', () => {
       expect(result.success).toBe(true);
       expect(MediaLibrary.requestPermissionsAsync).toHaveBeenCalled();
       expect(MediaLibrary.saveToLibraryAsync).toHaveBeenCalledWith(mockUri);
-      expect(Alert.alert).toHaveBeenCalledWith(
+      expect(mockAlert).toHaveBeenCalledWith(
         'Saved!',
         'Your Brewmaster card has been saved to your photos.',
         [{ text: 'OK' }]
@@ -84,7 +84,7 @@ describe('shareImage', () => {
 
       expect(result.success).toBe(true);
       expect(MediaLibrary.saveToLibraryAsync).not.toHaveBeenCalled();
-      expect(Alert.alert).toHaveBeenCalledWith(
+      expect(mockAlert).toHaveBeenCalledWith(
         'Permission Denied',
         expect.any(String),
         [{ text: 'OK' }]
@@ -100,7 +100,7 @@ describe('shareImage', () => {
 
       expect(result.success).toBe(false);
       expect(result.uri).toBeUndefined();
-      expect(Alert.alert).toHaveBeenCalledWith('Error', expect.any(String));
+      expect(mockAlert).toHaveBeenCalledWith('Error', expect.any(String));
     });
 
     it('should handle sharing not available', async () => {
@@ -115,7 +115,7 @@ describe('shareImage', () => {
 
       expect(result.success).toBe(true);
       expect(Sharing.shareAsync).not.toHaveBeenCalled();
-      expect(Alert.alert).toHaveBeenCalledWith(
+      expect(mockAlert).toHaveBeenCalledWith(
         'Sharing Not Available',
         expect.any(String),
         [{ text: 'OK' }]
@@ -130,7 +130,7 @@ describe('shareImage', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(Alert.alert).toHaveBeenCalledWith('Error', expect.any(String));
+      expect(mockAlert).toHaveBeenCalledWith('Error', expect.any(String));
     });
   });
 

@@ -5,10 +5,20 @@ import { colors, borderRadius, spacing } from '@/lib/theme';
 interface CardProps {
     children: ReactNode;
     style?: StyleProp<ViewStyle>;
+    testID?: string;
+    accessibilityLabel?: string;
 }
 
-export const Card = ({ children, style }: CardProps) => {
-    return <View style={[styles.card, style]}>{children}</View>;
+export const Card = ({ children, style, testID, accessibilityLabel }: CardProps) => {
+    return (
+        <View
+            style={[styles.card, style]}
+            testID={testID}
+            accessibilityLabel={accessibilityLabel}
+        >
+            {children}
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({

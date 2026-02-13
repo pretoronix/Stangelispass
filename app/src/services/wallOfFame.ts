@@ -4,7 +4,7 @@ export interface WallOfFameEntry {
   id: string;
   event_id: string;
   winner_id: string;
-  total_stangeli: number;
+  total_stängeli: number;
   image_url: string | null;
   created_at: string;
   winner_name?: string;
@@ -38,7 +38,7 @@ export async function getWallOfFame(): Promise<WallOfFameEntry[]> {
       id: entry.id,
       event_id: entry.event_id,
       winner_id: entry.winner_id,
-      total_stangeli: entry.total_stängeli || 0,
+      total_stängeli: entry.total_stängeli || 0,
       image_url: entry.image_url,
       created_at: entry.created_at,
       winner_name: entry.winner?.name || 'Unknown',
@@ -54,13 +54,13 @@ export async function getWallOfFame(): Promise<WallOfFameEntry[]> {
 export async function createWallOfFameEntry(entry: {
   event_id: string;
   winner_id: string;
-  total_stangeli: number;
+  total_stängeli: number;
   image_url?: string;
 }): Promise<WallOfFameEntry | null> {
   try {
     const { data, error } = await supabase
       .from('wall_of_fame')
-      .insert([entry])
+      .insert([entry] as any)
       .select()
       .single();
 
@@ -76,7 +76,7 @@ export async function addToast(wallId: string, userId: string): Promise<boolean>
   try {
     const { error } = await supabase
       .from('toasts')
-      .insert([{ wall_id: wallId, user_id: userId }]);
+      .insert([{ wall_id: wallId, user_id: userId }] as any);
 
     if (error) {
       // Check if it's a unique constraint violation (already toasted)

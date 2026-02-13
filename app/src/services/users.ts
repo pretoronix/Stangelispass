@@ -95,8 +95,13 @@ export const normalizeNotificationPrefs = (input: any): NotificationPrefs => {
             .filter((n: number) => Number.isFinite(n) && n > 0)
         : [...DEFAULT_NOTIFICATION_PREFS.milestones];
 
+    const adminBroadcasts = typeof prefs.admin_broadcasts === 'boolean'
+        ? prefs.admin_broadcasts
+        : DEFAULT_NOTIFICATION_PREFS.admin_broadcasts;
+
     return {
         leader_change,
         milestones: [...new Set<number>(milestones)].sort((a, b) => a - b),
+        admin_broadcasts: adminBroadcasts,
     };
 };

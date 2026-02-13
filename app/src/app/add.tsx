@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -22,6 +22,9 @@ import * as Sharing from 'expo-sharing';
 import { QRGenerator } from '@/components/features/QRGenerator';
 import { BADGES } from '@/services/achievements';
 import { labels } from '@/ui/labels';
+import { PourAnimation } from '@/components/animations/PourAnimation';
+import { SimplePourFeedback } from '@/components/animations/SimplePourFeedback';
+import { shouldShowAnimations } from '@/utils/deviceInfo';
 
 export default function AddBeerScreen() {
     const { currentUser, users, activeEvent, eventPermissions } = useApp();
@@ -33,6 +36,13 @@ export default function AddBeerScreen() {
     const [qrMode, setQrMode] = useState<'stamp' | 'log'>('stamp');
     const [shareLoading, setShareLoading] = useState(false);
     const qrRef = useRef<any>(null);
+    const [showAnimation, setShowAnimation] = useState(false);
+    const [useFullAnimation, setUseFullAnimation] = useState(true);
+    
+    // Check device capability on mount
+    useEffect(() => {
+        shouldShowAnimations().then(setUseFullAnimation);
+    }, []);
 
     const handleShareQr = async () => {
         if (!selectedUser) return;
@@ -87,36 +97,46 @@ export default function AddBeerScreen() {
         }
 
         setLoading(true);
+        
+        // Show animation immediately (optimistic)
+        setShowAnimation(true);
+        
         try {
             const { beer, newBadges } = await addBeer(selectedUser.id, currentUser.id, activeEvent.id);
             if (!beer) {
+                setShowAnimation(false);
                 Alert.alert('Unavailable', 'Beer logging is unavailable until the database is ready.');
                 return;
             }
 
-            // Heavy haptic impact for viscerel logging feel
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
-
+            // Animation will handle haptics, no manual haptic needed
+            
+            // After animation completes, show achievements if any
             if (newBadges.length > 0) {
                 const badgeNames = newBadges.map(b => BADGES[b].name).join(', ');
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
-                Alert.alert(
-                    '🏆 Achievement Unlocked!',
-                    `You earned: ${badgeNames}\n\nAdded a beer for ${selectedUser.name}!`,
-                    [{ text: 'Awesome!' }]
-                );
-            } else {
-                Alert.alert(' Prost!', `Added a beer for ${selectedUser.name}!`);
+                // Delay alert until after animation
+                setTimeout(() => {
+                    Alert.alert(
+                        '🏆 Achievement Unlocked!',
+                        `You earned: ${badgeNames}\n\nAdded a beer for ${selectedUser.name}!`,
+                        [{ text: 'Awesome!' }]
+                    );
+                }, 500);
             }
 
             setSelectedUser(null);
         } catch (e) {
+            setShowAnimation(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => null);
             Alert.alert('Error', 'Failed to add beer. Please try again.');
             console.error(e);
         } finally {
             setLoading(false);
         }
+    };
+    
+    const handleAnimationComplete = () => {
+        setShowAnimation(false);
     };
 
     return (
@@ -283,6 +303,19 @@ export default function AddBeerScreen() {
                         </View>
                     </View>
                 </Modal>
+                
+                {/* Pour Animation */}
+                {useFullAnimation ? (
+                    <PourAnimation
+                        visible={showAnimation}
+                        onComplete={handleAnimationComplete}
+                    />
+                ) : (
+                    <SimplePourFeedback
+                        visible={showAnimation}
+                        onComplete={handleAnimationComplete}
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
