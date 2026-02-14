@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Swarm Agent System is a multi-agent AI collaboration framework for managing roadmaps, planning features, and maintaining documentation consistency in the Stängelispass project.
+The Swarm Agent System is a multi-agent workflow runner that coordinates planning, documentation, and maintainability tasks. You trigger a workflow from the CLI, agents analyze the codebase and docs, then a consensus step decides what to apply. By default it runs in dry-run mode (no file changes) unless you pass `--no-dry-run`.
 
 ## Architecture
 
 ### Multi-Agent Collaboration
 
-Four specialized agents work together through structured workflows:
+Core strategic agents:
 
 1. **🎯 Strategy Agent**
    - Analyzes roadmap vs. actual implementation
@@ -33,6 +33,28 @@ Four specialized agents work together through structured workflows:
    - Checks version/date consistency
    - Enforces documentation standards
    - Ensures completeness
+
+Maintainability swarm agents:
+
+5. **🏗️ Refactor Agent**
+   - Proposes behavior-preserving refactors
+   - Decomposes large modules
+   - Simplifies control flow
+
+6. **🧭 Maintainability Auditor**
+   - Identifies hotspots and code smells
+   - Scores maintainability risk
+   - Prioritizes refactor candidates
+
+7. **📦 Dependency Curator**
+   - Detects circular imports
+   - Flags unused dependencies
+   - Suggests consolidation
+
+8. **🧪 Regression Guard**
+   - Identifies test gaps for refactors
+   - Defines safety checks
+   - Verifies behavior preservation
 
 ### Collaboration Protocol
 
@@ -96,7 +118,37 @@ Agents follow a structured workflow:
 
 **Output**: Synchronized documentation
 
+### 4. Maintainability Refactor (`maintainability_refactor`)
+
+**Purpose**: Identify, prioritize, and implement refactors that improve maintainability without behavior changes
+
+**Phases**:
+1. **Audit**: Detect hotspots, smells, dependency risks
+2. **Proposal**: Define refactor candidates and metrics
+3. **Safety**: Add/identify tests to protect changes
+4. **Consensus**: Vote and prioritize
+5. **Execution**: Apply refactors and document results
+
+**Output**: Refactor plan and applied changes
+
+### 5. Baseline Maintenance (`baseline_maintenance`)
+
+**Purpose**: Run the baseline agents (Technical, Documentation, Regression Guard) in a single pass.
+
+**Phases**:
+1. **Technical Audit**: Hotspots, code smells, dependency risks
+2. **Documentation Audit**: Roadmap vs. codebase drift
+3. **Safety Guidance**: Test and verification suggestions
+
+**Output**: Audit notes and safety guidance (no automatic code changes)
+
 ## Usage
+
+### Quick Start
+
+1. Pick a workflow based on what you want to accomplish.
+2. Run it in dry-run first to see the proposed changes.
+3. Re-run with `--no-dry-run` to apply changes.
 
 ### CLI Commands
 
@@ -130,6 +182,35 @@ npm run swarm:analyze -- --no-dry-run
 npm run swarm:analyze roadmap_update
 npm run swarm:analyze feature_brainstorm
 npm run swarm:analyze documentation_sync
+npm run swarm:analyze maintainability_refactor
+npm run swarm:analyze baseline_maintenance
+```
+
+### When To Use Which Workflow
+
+- `roadmap_update`: reconcile roadmap with what is actually in code.
+- `feature_brainstorm`: propose new features and draft specs.
+- `documentation_sync`: clean up and align docs with reality.
+- `maintainability_refactor`: identify and apply refactors (behavior-preserving).
+- `baseline_maintenance`: run baseline checks across technical risk, docs drift, and safety.
+
+### Output And Artifacts
+
+- Dry-run: logs only, no file changes.
+- Non-dry-run: applies changes and writes a report.
+- Maintainability refactor report: `docs/refactoring/refactor-swarm-report.md`.
+
+### Common Runs
+
+```bash
+# Baseline health check (no file changes)
+npm run swarm:analyze baseline_maintenance
+
+# Inspect maintainability refactors without changing files
+npm run swarm:analyze maintainability_refactor
+
+# Apply maintainability refactors after review
+npm run swarm:analyze maintainability_refactor -- --no-dry-run
 ```
 
 ## Configuration
@@ -151,6 +232,10 @@ Voting weights determine influence:
 - Technical Agent: 2.0
 - Product Agent: 1.5
 - Documentation Agent: 1.5
+- Refactor Agent: 1.75
+- Maintainability Auditor: 1.75
+- Dependency Curator: 1.25
+- Regression Guard: 1.5
 
 ### Safety Rules
 

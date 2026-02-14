@@ -204,7 +204,7 @@ npm run swarm:analyze -- --no-dry-run
 ### Documentation
 
 - **[Quality Maintenance Guide](./QUALITY_MAINTENANCE.md)** - How to use quality agents
-- **[Swarm Agents Guide](./agents/docs/SWARM_AGENTS.md)** ✨ NEW - Multi-agent system
+- **[Swarm Agents Guide](../../agents/docs/SWARM_AGENTS.md)** ✨ NEW - Multi-agent system
 - **[Architecture](./agents/docs/AGENTS_ARCHITECTURE.md)** - System design
 - **[Development Guide](./agents/docs/AGENT_DEVELOPMENT.md)** - Create new agents
 - **[Agent README](./agents/README.md)** - Configuration reference

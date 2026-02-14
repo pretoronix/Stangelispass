@@ -29,7 +29,9 @@ export function SimplePourFeedback({ visible, onComplete }: SimplePourFeedbackPr
             // Haptic feedback
             Haptics.notificationAsync(
                 Haptics.NotificationFeedbackType.Success
-            );
+            ).catch(() => {
+                // Ignore haptic errors
+            });
             
             // Scale and fade in animation
             scale.value = withSequence(

@@ -24,7 +24,12 @@ class AudioService {
             );
             this.sound = sound;
         } catch (e) {
-            reportError(new Error('Failed to load sound:', e), { scope: 'audio', action: 'replace_console' });
+            const err = e instanceof Error ? e : new Error(String(e));
+            reportError(new Error('Failed to load sound'), {
+                scope: 'audio',
+                action: 'load_sound',
+                metadata: { cause: err.message },
+            });
         }
     }
 

@@ -11,6 +11,8 @@ import {
     useCacheManagement,
     useAnimationPreferences,
     useEventManagement,
+    useLifetimePasses,
+    useLiveBeerLogPreference,
 } from '@/hooks/settings';
 import {
     CurrentUserCard,
@@ -20,7 +22,9 @@ import {
     PhysiologySection,
     SensorySection,
     CacheManagementSection,
+    LiveBeerLogSection,
     NotificationsSection,
+    LifetimePassSection,
     UserSelectionGrid,
     StartEventModal,
 } from '@/components/settings';
@@ -50,6 +54,7 @@ export default function SettingsScreen() {
         setCurrentUser,
         notificationPrefs,
     });
+    const liveBeerLogPreference = useLiveBeerLogPreference();
     const eventManagement = useEventManagement({
         currentUser,
         isAdmin,
@@ -59,6 +64,11 @@ export default function SettingsScreen() {
         eventMembers,
         refreshEventMembers,
         users,
+    });
+    const lifetimePasses = useLifetimePasses({
+        currentUser,
+        setCurrentUser,
+        refreshUsers,
     });
 
     const [showUserModal, setShowUserModal] = React.useState(false);
@@ -128,7 +138,28 @@ export default function SettingsScreen() {
                 )}
 
                 <View style={styles.section}>
-                    <PremiumTierCard subscriptionTier={currentUser?.subscription_tier} />
+                    <PremiumTierCard
+                        subscriptionTier={currentUser?.subscription_tier}
+                        lifetimePass={currentUser?.lifetime_pass}
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>Lifetime Pass</Text>
+                    <LifetimePassSection
+                        isAdmin={isAdmin}
+                        currentUser={currentUser}
+                        users={users}
+                        codes={lifetimePasses.codes}
+                        loading={lifetimePasses.loading}
+                        generating={lifetimePasses.generating}
+                        redeeming={lifetimePasses.redeeming}
+                        redeemCode={lifetimePasses.redeemCode}
+                        setRedeemCode={lifetimePasses.setRedeemCode}
+                        onGenerateCode={lifetimePasses.handleGenerateCode}
+                        onRedeemCode={lifetimePasses.handleRedeemCode}
+                        onRefresh={lifetimePasses.refreshCodes}
+                    />
                 </View>
 
                 {currentUser && (
@@ -157,6 +188,14 @@ export default function SettingsScreen() {
                     <CacheManagementSection
                         cacheStats={cacheManagement.cacheStats}
                         onClearCache={cacheManagement.handleClearCache}
+                    />
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionLabel}>Live Updates</Text>
+                    <LiveBeerLogSection
+                        enabled={liveBeerLogPreference.enabled}
+                        onToggle={liveBeerLogPreference.toggle}
                     />
                 </View>
 

@@ -51,7 +51,7 @@ export function useEventActions(
                     Alert.alert('Invalid Price', 'Beer price must be greater than 0.');
                     return;
                 }
-                await startEvent('Night Out', 'standard', price);
+                await startEvent('Night Out', 'day', price);
             } else {
                 if (pendingJoinEventId) {
                     await joinEventService(pendingJoinEventId, user.id).catch((e) => {

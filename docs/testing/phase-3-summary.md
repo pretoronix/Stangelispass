@@ -3,6 +3,9 @@
 ## Summary
 Successfully implemented 30 comprehensive integration tests for QR code scanning and offline synchronization. All tests pass. This phase ensures the app works reliably even with spotty WiFi and concurrent user activity.
 
+**Last Verified:** 2026-02-13  
+**Test Command:** `cd app && npm test -- qrScanningOffline`
+
 ## What Was Built
 
 ### Test Categories (30 Tests)
@@ -63,12 +66,12 @@ Successfully implemented 30 comprehensive integration tests for QR code scanning
 
 **Key Finding**: End-to-end flow works seamlessly.
 
-## Test Results
+## Test Results (Latest Run)
 
 ```
 Test Suites: 1 passed, 1 total
 Tests:       30 passed, 30 total
-Time:        2.0 seconds
+Time:        2.061 s
 ```
 
 ## QR Payload Formats Tested
@@ -98,14 +101,14 @@ userId|                  // No event (uses active)
 - ❌ Short IDs rejected (e.g., "abc")
 - ❌ Invalid characters rejected
 
-## Concurrent Scanning Performance
+## Concurrent Scanning Performance (Latest Run)
 
 | Users | Time | Result |
 |-------|------|--------|
-| 5 users join | < 100ms | ✅ All successful |
-| 10 users scan beers | < 1000ms | ✅ All logged |
-| 3 rapid scans (admin) | < 20ms | ✅ All processed |
-| 2 join + 1 log beer | < 30ms | ✅ No conflicts |
+| 5 users join | 47ms | ✅ All successful |
+| 10 users scan beers | 973ms | ✅ All logged |
+| 3 rapid scans (admin) | 16ms | ✅ All processed |
+| 2 join + 1 log beer | 24ms | ✅ No conflicts |
 
 ## Offline Queue Behavior
 

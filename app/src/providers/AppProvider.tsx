@@ -10,12 +10,25 @@ import {
     getPermissionsForRole,
     getEventMembership,
     getEventMembers,
+    isMissingTableError,
+    createLeaderEventSnapshot,
 } from '@/services/supabase';
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
 import { reportError } from '@/utils/logger';
 import { assertSupabaseConfigured } from '@/utils/preflight';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useOfflineMutations, OfflineMutation } from '@/hooks/useOfflineMutations';
+import { useOfflineQueueProcessor } from '@/hooks/useOfflineQueueProcessor';
+import { enqueueNewRoundNotifications } from '@/services/notifications';
+import {
+    buildLocalEvent,
+    getPassExpiresAt,
+    persistStoredUser,
+} from '@/providers/appProviderUtils';
+import {
+    bootstrapAppProvider,
+    subscribeEventMemberships,
+    subscribeUsersAndEvents,
+} from '@/providers/appProviderLifecycle';
 
 interface AppContextType {
     currentUser: User | null;
@@ -36,11 +49,12 @@ interface AppContextType {
     eventPermissions: EventPermissions;
     eventMembers: EventMembership[];
     refreshEventMembers: () => Promise<void>;
+    offlineQueue: OfflineMutation[];
+    addOfflineMutation: (mutation: Omit<OfflineMutation, 'id' | 'timestamp'>) => Promise<void>;
+    offlineQueueProcessing: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
-
-const CURRENT_USER_KEY = 'stangelispass_current_user';
 
 export function AppProvider({ children }: { children: ReactNode }) {
     const [currentUser, setCurrentUserState] = useState<User | null>(null);
@@ -53,30 +67,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [currentEventRole, setCurrentEventRole] = useState<EventRole | null>(null);
     const [eventPermissions, setEventPermissions] = useState<EventPermissions>(getPermissionsForRole(null, false));
     const [eventMembers, setEventMembers] = useState<EventMembership[]>([]);
+    const offlineMutations = useOfflineMutations();
+
+    useOfflineQueueProcessor(offlineMutations);
 
     // Register device for push notifications when user is set
-    const { token: pushToken, isRegistered: isPushRegistered } = useNotifications(currentUser?.id || null);
-
-    const handleError = useCallback((error: any, context: string) => {
-        reportError(error, { scope: 'app_provider', action: context });
-        // In a real app, this would show a toast or alert
-    }, []);
+    useNotifications(currentUser?.id || null);
 
     const setCurrentUser = useCallback(async (user: User | null) => {
         try {
             setCurrentUserState(user);
-            if (Platform.OS === 'web') {
-                if (typeof window !== 'undefined') {
-                    if (user) window.localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-                    else window.localStorage.removeItem(CURRENT_USER_KEY);
-                }
-                return;
-            }
-            if (user) {
-                await SecureStore.setItemAsync(CURRENT_USER_KEY, JSON.stringify(user));
-            } else {
-                await SecureStore.deleteItemAsync(CURRENT_USER_KEY);
-            }
+            await persistStoredUser(user);
         } catch (e) {
             reportError(e, { scope: 'app_provider', action: 'Failed to save user' });
         }
@@ -138,16 +139,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             const from = (supabase as any).from && (supabase as any).from('events');
             if (!from || typeof from.select !== 'function') {
                 // noop client or incompatible client — provide local fallback without hard error
-                const localEvent: Event = {
-                    id: 'local',
-                    name: 'Local Round',
-                    created_by: 'local',
-                    is_active: true,
-                    pass_type: 'free',
-                    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                    created_at: new Date().toISOString(),
-                };
-                setActiveEvent(localEvent);
+                setActiveEvent(buildLocalEvent());
                 setRemoteAvailable(false);
                 return;
             }
@@ -168,16 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             if (err?.code === 'PGRST205') {
                 console.log('[AppProvider] Supabase schema missing: events table not found — using local fallback event (expected)');
                 // create a lightweight local active event so the UI can operate in offline mode
-                const localEvent: Event = {
-                    id: 'local',
-                    name: 'Local Round',
-                    created_by: 'local',
-                    is_active: true,
-                    pass_type: 'free',
-                    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                    created_at: new Date().toISOString(),
-                };
-                setActiveEvent(localEvent);
+                setActiveEvent(buildLocalEvent());
                 setRemoteAvailable(false);
             } else {
                 reportError(e, { scope: 'app_provider', action: 'Failed to fetch active event' });
@@ -197,20 +180,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         try {
+            let resolvedPassType: Event['pass_type'] = passType;
+            if (passType !== 'free') {
+                try {
+                    const { count, error: countError } = await (supabase.from('events') as any)
+                        .select('*', { count: 'exact', head: true });
+                    if (countError) {
+                        if (!isMissingTableError(countError)) {
+                            throw countError;
+                        }
+                    } else if ((count as number) === 0) {
+                        resolvedPassType = 'free';
+                    }
+                } catch (countErr) {
+                    reportError(countErr as Error, { scope: 'app_provider', action: 'resolve_pass_type' });
+                }
+            }
+
             const { data, error } = await (supabase.from('events') as any)
                 .insert({
                     name,
                     created_by: currentUser.id,
                     is_active: true,
-                    pass_type: passType,
+                    pass_type: resolvedPassType,
                     beer_price: beerPrice ?? 5.00,
-                    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                    expires_at: getPassExpiresAt(resolvedPassType)
                 })
                 .select()
                 .single();
 
             if (error) throw error;
             setActiveEvent(data);
+            enqueueNewRoundNotifications(data.id, data.name, currentUser.id).catch(() => null);
         } catch (e) {
             reportError(e, { scope: 'app_provider', action: 'Failed to start event' });
             throw e;
@@ -253,6 +254,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 }
             }
 
+            try {
+                await createLeaderEventSnapshot(activeEvent.id);
+            } catch (snapshotError) {
+                reportError(snapshotError as Error, { scope: 'app_provider', action: 'leader_snapshot' });
+            }
+
             const { error } = await (supabase
                 .from('events') as any)
                 .update({ is_active: false } as Partial<Event>)
@@ -267,66 +274,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }, [activeEvent, eventPermissions.canCloseEvent]);
 
     useEffect(() => {
-        const configured = assertSupabaseConfigured();
+        let configured = false;
+        try {
+            configured = assertSupabaseConfigured();
+        } catch (e) {
+            reportError(e, { scope: 'app_provider', action: 'supabase_config' });
+        }
         setSupabaseConfigured(configured);
-        const init = async () => {
-            try {
-                let savedUser = null;
-                if (Platform.OS === 'web') {
-                    if (typeof window !== 'undefined') {
-                        savedUser = window.localStorage.getItem(CURRENT_USER_KEY);
-                    }
-                } else {
-                    savedUser = await SecureStore.getItemAsync(CURRENT_USER_KEY);
-                }
+        void bootstrapAppProvider({
+            setCurrentUserState,
+            refreshUsers,
+            fetchActiveEvent,
+            setLoading,
+        });
 
-                if (savedUser) {
-                    try {
-                        setCurrentUserState(JSON.parse(savedUser));
-                    } catch (parseError) {
-                        reportError(parseError, { scope: 'app_provider', action: 'Invalid saved user payload' });
-                        if (Platform.OS === 'web') {
-                            if (typeof window !== 'undefined') {
-                                window.localStorage.removeItem(CURRENT_USER_KEY);
-                            }
-                        } else {
-                            await SecureStore.deleteItemAsync(CURRENT_USER_KEY);
-                        }
-                    }
-                }
-
-                await Promise.all([
-                    refreshUsers(),
-                    fetchActiveEvent()
-                ]);
-            } catch (e) {
-                reportError(e, { scope: 'app_provider', action: 'Init error' });
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        init();
-
-        const usersChannel = supabase
-            .channel('app_users')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => {
-                refreshUsers();
-            })
-            .subscribe();
-
-        const eventsChannel = supabase
-            .channel('app_events')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
-                // Always refetch to avoid stale closure/state edge cases.
-                fetchActiveEvent();
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(usersChannel);
-            supabase.removeChannel(eventsChannel);
-        };
+        return subscribeUsersAndEvents(refreshUsers, fetchActiveEvent);
     }, [refreshUsers, fetchActiveEvent]);
 
     useEffect(() => {
@@ -336,17 +298,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (!activeEvent?.id) return;
-        const channel = supabase
-            .channel(`event_memberships_${activeEvent.id}`)
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'event_memberships' }, () => {
-                refreshEventMembers();
-                refreshEventAccess();
-            })
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
+        return subscribeEventMemberships(activeEvent.id, refreshEventMembers, refreshEventAccess);
     }, [activeEvent?.id, refreshEventMembers, refreshEventAccess]);
 
     const value = React.useMemo(() => ({
@@ -367,6 +319,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         eventPermissions,
         eventMembers,
         refreshEventMembers,
+        offlineQueue: offlineMutations.queue,
+        addOfflineMutation: offlineMutations.addToQueue,
+        offlineQueueProcessing: offlineMutations.isProcessing,
     }), [
         currentUser,
         setCurrentUser,
@@ -384,6 +339,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         eventPermissions,
         eventMembers,
         refreshEventMembers,
+        offlineMutations.queue,
+        offlineMutations.addToQueue,
+        offlineMutations.isProcessing,
     ]);
 
     return React.createElement(AppContext.Provider, { value },

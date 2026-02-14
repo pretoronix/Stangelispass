@@ -34,6 +34,7 @@ export function PourAnimation({ visible, onComplete }: PourAnimationProps) {
     const isMounted = useRef(true);
     const hapticsTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
     const completionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const playTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [dimensions, setDimensions] = useState(() => Dimensions.get('window'));
     
     // Update dimensions on change (handles rotation)
@@ -65,43 +66,60 @@ export function PourAnimation({ visible, onComplete }: PourAnimationProps) {
                 clearTimeout(completionTimer.current);
                 completionTimer.current = null;
             }
+            if (playTimer.current) {
+                clearTimeout(playTimer.current);
+                playTimer.current = null;
+            }
         };
     }, []);
     
     useEffect(() => {
-        if (visible) {
-            try {
-                // Fade in
-                opacity.value = withTiming(1, {
-                    duration: 300,
-                    easing: Easing.ease,
-                });
-                
-                // Start Lottie animation with delay to ensure mount
-                setTimeout(() => {
-                    if (isMounted.current) {
-                        animationRef.current?.play();
-                    }
-                }, 100);
-                
-                // Haptic feedback sequence
-                startHapticSequence();
-                
-                // Auto-complete after animation duration
-                completionTimer.current = setTimeout(() => {
-                    if (isMounted.current) {
-                        handleComplete();
-                    }
-                }, 2800); // Slightly longer than animation
-            } catch (error) {
-                reportError(error as Error, { 
-                    scope: 'PourAnimation', 
-                    action: 'init'
-                });
-                // Fallback: just complete immediately on error
+        if (!visible) {
+            opacity.value = 0;
+            hapticsTimers.current.forEach(clearTimeout);
+            hapticsTimers.current = [];
+            if (completionTimer.current) {
+                clearTimeout(completionTimer.current);
+                completionTimer.current = null;
+            }
+            if (playTimer.current) {
+                clearTimeout(playTimer.current);
+                playTimer.current = null;
+            }
+            return;
+        }
+
+        try {
+            // Fade in
+            opacity.value = withTiming(1, {
+                duration: 300,
+                easing: Easing.ease,
+            });
+            
+            // Start Lottie animation with delay to ensure mount
+            playTimer.current = setTimeout(() => {
+                if (isMounted.current) {
+                    animationRef.current?.play();
+                }
+            }, 100);
+            
+            // Haptic feedback sequence
+            startHapticSequence();
+            
+            // Auto-complete after animation duration
+            completionTimer.current = setTimeout(() => {
                 if (isMounted.current) {
                     handleComplete();
                 }
+            }, 2800); // Slightly longer than animation
+        } catch (error) {
+            reportError(error as Error, { 
+                scope: 'PourAnimation', 
+                action: 'init'
+            });
+            // Fallback: just complete immediately on error
+            if (isMounted.current) {
+                handleComplete();
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

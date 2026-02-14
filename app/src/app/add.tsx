@@ -1,34 +1,29 @@
-import React, { useRef, useState, useEffect } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    FlatList,
-    Alert,
-    Pressable,
-    Modal,
-    Platform,
-} from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, addBeer, createBeerStamp } from '@/services/supabase';
 import { useApp } from '@/providers/AppProvider';
-import { Avatar } from '@/components/ui/Avatar';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { SyncIndicator } from '@/components/ui/SyncIndicator';
 import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { QRGenerator } from '@/components/features/QRGenerator';
 import { BADGES } from '@/services/achievements';
 import { labels } from '@/ui/labels';
 import { PourAnimation } from '@/components/animations/PourAnimation';
 import { SimplePourFeedback } from '@/components/animations/SimplePourFeedback';
 import { shouldShowAnimations } from '@/utils/deviceInfo';
 import { reportError } from '@/utils/logger';
+import { AddUserGrid } from '@/components/add/AddUserGrid';
+import { AddQrModal } from '@/components/add/AddQrModal';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function AddBeerScreen() {
-    const { currentUser, users, activeEvent, eventPermissions } = useApp();
+    const { currentUser, users, activeEvent, eventPermissions, addOfflineMutation } = useApp();
+    const { isOnline } = useNetworkStatus();
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(false);
     const [showQR, setShowQR] = useState(false);
@@ -45,31 +40,45 @@ export default function AddBeerScreen() {
         shouldShowAnimations().then(setUseFullAnimation);
     }, []);
 
-    const handleShareQr = async () => {
-        if (!selectedUser) return;
+    const openQrModal = useCallback(() => setShowQR(true), []);
+    const closeQrModal = useCallback(() => {
+        setShowQR(false);
+        setStampId(undefined);
+    }, []);
+
+    const validateShareQr = useCallback(() => {
+        if (!selectedUser) return false;
         if (Platform.OS === 'web') {
             Alert.alert('Unavailable', 'Sharing QR codes is not supported on web.');
-            return;
+            return false;
         }
         if (!qrRef.current || typeof qrRef.current.toDataURL !== 'function') {
             Alert.alert('Unavailable', 'QR code image is not ready yet.');
-            return;
+            return false;
         }
+        return true;
+    }, [selectedUser]);
 
+    const buildQrImageUri = useCallback(async (userId: string) => {
+        const base64 = await new Promise<string>((resolve) => {
+            qrRef.current.toDataURL((data: string) => resolve(data));
+        });
+        const cacheDirectory = (FileSystem as any).cacheDirectory;
+        if (!cacheDirectory) {
+            Alert.alert('Unavailable', 'File system is not available on this device.');
+            return null;
+        }
+        const fileUri = `${cacheDirectory}qr-${userId}-${Date.now()}.png`;
+        await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: 'base64' });
+        return fileUri;
+    }, []);
+
+    const handleShareQr = useCallback(async () => {
+        if (!validateShareQr() || !selectedUser) return;
         setShareLoading(true);
         try {
-            const base64 = await new Promise<string>((resolve) => {
-                qrRef.current.toDataURL((data: string) => resolve(data));
-            });
-            const cacheDirectory = (FileSystem as any).cacheDirectory;
-            if (!cacheDirectory) {
-                Alert.alert('Unavailable', 'File system is not available on this device.');
-                return;
-            }
-            const fileUri = `${cacheDirectory}qr-${selectedUser.id}-${Date.now()}.png`;
-            await FileSystem.writeAsStringAsync(fileUri, base64, {
-                encoding: 'base64',
-            });
+            const fileUri = await buildQrImageUri(selectedUser.id);
+            if (!fileUri) return;
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(fileUri);
             } else {
@@ -81,9 +90,9 @@ export default function AddBeerScreen() {
         } finally {
             setShareLoading(false);
         }
-    };
+    }, [buildQrImageUri, selectedUser, validateShareQr]);
 
-    const handleAddBeer = async () => {
+    const handleAddBeer = useCallback(async () => {
         if (!selectedUser || !currentUser) return;
 
         if (!activeEvent) {
@@ -97,13 +106,33 @@ export default function AddBeerScreen() {
             return;
         }
 
+        const mutationPayload = {
+            userId: selectedUser.id,
+            addedBy: currentUser.id,
+            eventId: activeEvent.id,
+        };
+
         setLoading(true);
-        
+
         // Show animation immediately (optimistic)
         setShowAnimation(true);
-        
+
         try {
-            const { beer, newBadges } = await addBeer(selectedUser.id, currentUser.id, activeEvent.id);
+            if (!isOnline) {
+                await addOfflineMutation({
+                    type: 'addBeer',
+                    data: mutationPayload,
+                });
+                Alert.alert('Queued', 'Beer will be logged when you reconnect.');
+                setSelectedUser(null);
+                return;
+            }
+
+            const { beer, newBadges } = await addBeer(
+                mutationPayload.userId,
+                mutationPayload.addedBy,
+                mutationPayload.eventId
+            );
             if (!beer) {
                 setShowAnimation(false);
                 Alert.alert('Unavailable', 'Beer logging is unavailable until the database is ready.');
@@ -134,45 +163,79 @@ export default function AddBeerScreen() {
         } finally {
             setLoading(false);
         }
-    };
-    
-    const handleAnimationComplete = () => {
+    }, [activeEvent, addOfflineMutation, currentUser, eventPermissions.canManageLogs, isOnline, selectedUser]);
+
+    const handleAnimationComplete = useCallback(() => {
         setShowAnimation(false);
-    };
+    }, []);
+
+    const handleSelectUser = useCallback((user: User) => {
+        Haptics.selectionAsync().catch(() => null);
+        setSelectedUser(user);
+    }, []);
+
+    const handleStampQr = useCallback(async () => {
+        setQrMode('stamp');
+        if (!eventPermissions.canIssueStamps) {
+            Alert.alert('Not Authorized', 'Only admins can issue stamp QR codes.');
+            return;
+        }
+        if (!activeEvent) {
+            Alert.alert('No Active Round', 'Start a round before issuing stamp QR codes.');
+            return;
+        }
+        if (!selectedUser || !currentUser) return;
+        setStampLoading(true);
+        try {
+            const result = await createBeerStamp(selectedUser.id, activeEvent.id, currentUser.id);
+            if (result.fallbackLegacy) {
+                Alert.alert(
+                    'Legacy QR',
+                    'Stamp table is not available yet. A legacy QR will be generated (not one-time).'
+                );
+                setStampId(undefined);
+            } else if (!result.stamp) {
+                Alert.alert('Unavailable', 'Stamp issuance is unavailable until the database is ready.');
+                return;
+            } else {
+                setStampId(result.stamp.id);
+            }
+        } catch (e) {
+            reportError(new Error('Failed to create stamp:', e), { scope: 'add', action: 'replace_console' });
+            Alert.alert('Error', 'Could not create stamp QR.');
+            return;
+        } finally {
+            setStampLoading(false);
+        }
+        openQrModal();
+    }, [activeEvent, currentUser, eventPermissions.canIssueStamps, openQrModal, selectedUser]);
+
+    const handleUserQr = useCallback(() => {
+        setQrMode('log');
+        if (!activeEvent) {
+            Alert.alert('No Active Round', 'Start a round before sharing user QR codes.');
+            return;
+        }
+        if (!selectedUser) return;
+        setStampId(undefined);
+        openQrModal();
+    }, [activeEvent, openQrModal, selectedUser]);
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top']}>
             <View style={styles.container}>
                 <Text style={styles.title}>Who's drinking?</Text>
+                <SyncIndicator />
+                {!isOnline && (
+                    <Text style={styles.offlineWarning}>
+                        Offline - changes will sync when you reconnect.
+                    </Text>
+                )}
 
-                <FlatList
-                    data={users}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <Pressable
-                            style={[
-                                styles.userCard,
-                                selectedUser?.id === item.id && styles.selectedUserCard,
-                            ]}
-                            onPress={() => {
-                                Haptics.selectionAsync().catch(() => null);
-                                setSelectedUser(item);
-                            }}
-                        >
-                            <Avatar name={item.name} size={50} />
-                            <Text style={[
-                                styles.userName,
-                                selectedUser?.id === item.id && styles.selectedText
-                            ]}>
-                                {item.name}
-                            </Text>
-                        </Pressable>
-                    )}
-                    {...{ contentContainerStyle: styles.listContent }}
-                    numColumns={2}
-                    ListEmptyComponent={
-                        <Text style={styles.emptyText}>No users found. Add some in Settings!</Text>
-                    }
+                <AddUserGrid
+                    users={users}
+                    selectedUserId={selectedUser?.id}
+                    onSelectUser={handleSelectUser}
                 />
 
                 {selectedUser && (
@@ -201,41 +264,7 @@ export default function AddBeerScreen() {
                                 variant="ghost"
                                 testID={labels.add.stampQr.testID}
                                 accessibilityLabel={labels.add.stampQr.accessibilityLabel}
-                                onPress={async () => {
-                                    setQrMode('stamp');
-                                    if (!eventPermissions.canIssueStamps) {
-                                        Alert.alert('Not Authorized', 'Only admins can issue stamp QR codes.');
-                                        return;
-                                    }
-                                    if (!activeEvent) {
-                                        Alert.alert('No Active Round', 'Start a round before issuing stamp QR codes.');
-                                        return;
-                                    }
-                                    if (!selectedUser || !currentUser) return;
-                                    setStampLoading(true);
-                                    try {
-                                        const result = await createBeerStamp(selectedUser.id, activeEvent.id, currentUser.id);
-                                        if (result.fallbackLegacy) {
-                                            Alert.alert(
-                                                'Legacy QR',
-                                                'Stamp table is not available yet. A legacy QR will be generated (not one-time).'
-                                            );
-                                            setStampId(undefined);
-                                        } else if (!result.stamp) {
-                                            Alert.alert('Unavailable', 'Stamp issuance is unavailable until the database is ready.');
-                                            return;
-                                        } else {
-                                            setStampId(result.stamp.id);
-                                        }
-                                    } catch (e) {
-                                        reportError(new Error('Failed to create stamp:', e), { scope: 'add', action: 'replace_console' });
-                                        Alert.alert('Error', 'Could not create stamp QR.');
-                                        return;
-                                    } finally {
-                                        setStampLoading(false);
-                                    }
-                                    setShowQR(true);
-                                }}
+                                onPress={handleStampQr}
                                 disabled={!eventPermissions.canIssueStamps || stampLoading}
                                 style={styles.actionButton}
                             />
@@ -245,16 +274,7 @@ export default function AddBeerScreen() {
                                 variant="secondary"
                                 testID={labels.add.userQr.testID}
                                 accessibilityLabel={labels.add.userQr.accessibilityLabel}
-                                onPress={() => {
-                                    setQrMode('log');
-                                    if (!activeEvent) {
-                                        Alert.alert('No Active Round', 'Start a round before sharing user QR codes.');
-                                        return;
-                                    }
-                                    if (!selectedUser) return;
-                                    setStampId(undefined);
-                                    setShowQR(true);
-                                }}
+                                onPress={handleUserQr}
                                 disabled={!activeEvent}
                                 style={styles.actionButton}
                             />
@@ -262,48 +282,19 @@ export default function AddBeerScreen() {
                     </Card>
                 )}
 
-                <Modal
+                <AddQrModal
                     visible={showQR}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setShowQR(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                        <View style={styles.modalContent}>
-                            {selectedUser && (
-                                <QRGenerator
-                                    userId={selectedUser.id}
-                                    userName={selectedUser.name}
-                                    eventId={activeEvent?.id}
-                                    stampId={stampId}
-                                    mode={qrMode}
-                                    onQrRef={(ref) => {
-                                        qrRef.current = ref;
-                                    }}
-                                />
-                            )}
-                            <Button
-                                title="Share QR"
-                                icon="share-social"
-                                variant="secondary"
-                                testID={labels.add.shareQr.testID}
-                                accessibilityLabel={labels.add.shareQr.accessibilityLabel}
-                                onPress={handleShareQr}
-                                disabled={shareLoading}
-                                style={styles.modalActionButton}
-                            />
-                            <Button
-                                title="Close"
-                                variant="ghost"
-                                onPress={() => {
-                                    setShowQR(false);
-                                    setStampId(undefined);
-                                }}
-                                style={styles.modalCloseButton}
-                            />
-                        </View>
-                    </View>
-                </Modal>
+                    onClose={closeQrModal}
+                    selectedUser={selectedUser}
+                    eventId={activeEvent?.id}
+                    stampId={stampId}
+                    mode={qrMode}
+                    onShareQr={handleShareQr}
+                    shareLoading={shareLoading}
+                    onQrRef={(ref) => {
+                        qrRef.current = ref;
+                    }}
+                />
                 
                 {/* Pour Animation */}
                 {useFullAnimation ? (
@@ -336,37 +327,10 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
         marginTop: spacing.sm,
     },
-    listContent: {
-        paddingBottom: spacing.xxl,
-    },
-    userCard: {
-        flex: 1,
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.lg,
-        padding: spacing.md,
-        margin: spacing.xs,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: 'transparent',
-    },
-    selectedUserCard: {
-        borderColor: colors.primary,
-        backgroundColor: colors.surfaceLight,
-    },
-    userName: {
-        ...typography.headline,
-        marginTop: spacing.sm,
-        textAlign: 'center',
-    },
-    selectedText: {
-        color: colors.primary,
-    },
-    emptyText: {
-        ...typography.body,
+    offlineWarning: {
+        ...typography.caption,
         color: colors.textMuted,
-        textAlign: 'center',
-        marginTop: spacing.xl,
+        marginBottom: spacing.md,
     },
     selectedCard: {
         position: 'absolute',
@@ -402,27 +366,5 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         flex: 1,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: spacing.xl,
-    },
-    modalContent: {
-        width: '100%',
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.xl,
-        padding: spacing.lg,
-        alignItems: 'center',
-    },
-    modalActionButton: {
-        marginTop: spacing.lg,
-        width: '100%',
-    },
-    modalCloseButton: {
-        marginTop: spacing.xl,
-        width: '100%',
     },
 });

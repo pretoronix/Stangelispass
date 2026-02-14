@@ -4,6 +4,7 @@ import {
     addBeer,
     removeBeer,
     getBeers,
+    getBeerCountByUser,
     createBeerStamp,
     joinEvent,
     getPermissionsForRole,
@@ -113,6 +114,21 @@ describe('Supabase Service Helpers', () => {
 
         expect(result).toEqual({ stamp: null, fallbackLegacy: true });
         expect(supabase.from).toHaveBeenCalledWith('beer_stamps');
+    });
+
+    test('getBeerCountByUser returns zero counts when beers table is missing', async () => {
+        const users = [{ id: 'u1', name: 'Alice', is_admin: false }];
+        const usersSelect = jest.fn().mockResolvedValue({ data: users, error: null });
+        const beersEq = jest.fn().mockResolvedValue({ data: null, error: { code: 'PGRST205' } });
+        const beersSelect = jest.fn().mockReturnValue({ eq: beersEq });
+
+        mockFrom
+            .mockReturnValueOnce({ select: usersSelect } as any)
+            .mockReturnValueOnce({ select: beersSelect } as any);
+
+        const result = await getBeerCountByUser('event1');
+        expect(result).toEqual([{ userId: 'u1', name: 'Alice', count: 0, isAdmin: false }]);
+        expect(beersEq).toHaveBeenCalledWith('event_id', 'event1');
     });
 
     test('joinEvent falls back gracefully when event_memberships table is missing', async () => {

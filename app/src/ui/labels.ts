@@ -19,6 +19,9 @@ export const labels = {
         startEvent: { testID: 'settings.start_event', accessibilityLabel: 'Start new event' },
         resetEvent: { testID: 'settings.reset_event', accessibilityLabel: 'Reset event data' },
         pourAnimation: { testID: 'settings.pour_animation', accessibilityLabel: 'Toggle pour animation' },
+        lifetimeGenerate: { testID: 'settings.lifetime_generate', accessibilityLabel: 'Generate lifetime code' },
+        lifetimeRedeem: { testID: 'settings.lifetime_redeem', accessibilityLabel: 'Redeem lifetime code' },
+        liveBeerLog: { testID: 'settings.live_beer_log', accessibilityLabel: 'Toggle live beer log updates' },
     },
     comments: {
         list: { testID: 'comments.list', accessibilityLabel: 'Comments list' },

@@ -1,27 +1,26 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomeScreen from '@/app/index';
 import AddBeerScreen from '@/app/add';
 import SettingsScreen from '@/app/settings';
 import { labels } from '@/ui/labels';
 
-// Create a query client for tests
-const queryClient = new QueryClient({
-    defaultOptions: {
-        queries: { retry: false },
-        mutations: { retry: false },
-    },
-});
-
-// Wrapper component
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-        {children}
-    </QueryClientProvider>
-);
+const createTestQueryClient = () =>
+    new QueryClient({
+        defaultOptions: {
+            queries: { retry: false },
+            mutations: { retry: false },
+        },
+    });
 
 const renderWithProviders = (ui: React.ReactElement) => {
+    const queryClient = createTestQueryClient();
+    const AllTheProviders = ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+            {children}
+        </QueryClientProvider>
+    );
     return render(ui, { wrapper: AllTheProviders });
 };
 
@@ -30,7 +29,7 @@ const activeEvent = {
     name: 'Round 1',
     created_by: 'u1',
     is_active: true,
-    pass_type: 'free' as const,
+    pass_type: 'day' as const,
     expires_at: null,
     created_at: '2026-01-01T00:00:00.000Z',
 };
@@ -60,6 +59,9 @@ const mockUseAppState = {
     },
     eventMembers: [],
     refreshEventMembers: jest.fn(),
+    offlineQueue: [],
+    addOfflineMutation: jest.fn(),
+    offlineQueueProcessing: false,
 };
 
 jest.mock('@/hooks/useBeers', () => ({
@@ -91,6 +93,10 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/providers/AppProvider', () => ({
     useApp: () => mockUseAppState,
+}));
+
+jest.mock('@/hooks/useNetworkStatus', () => ({
+    useNetworkStatus: () => ({ isOnline: true, isReconnecting: false }),
 }));
 
 jest.mock('@/components/features/InviteModal', () => ({
@@ -168,38 +174,54 @@ jest.mock('@/services/notifications', () => ({
 describe('UI labels', () => {
     beforeEach(() => {
         mockUseAppState.activeEvent = activeEvent;
-        queryClient.clear();
     });
 
-    test('home labels exist', () => {
+    test('home labels exist', async () => {
         mockUseAppState.activeEvent = null;
         const noEvent = renderWithProviders(<HomeScreen />);
+        await act(async () => {});
         expect(noEvent.getByTestId(labels.home.startRound.testID)).toBeTruthy();
 
         mockUseAppState.activeEvent = activeEvent;
         const withEvent = renderWithProviders(<HomeScreen />);
-        expect(withEvent.getByTestId(labels.home.scan.testID)).toBeTruthy();
-        expect(withEvent.getByTestId(labels.home.export.testID)).toBeTruthy();
-        expect(withEvent.getByTestId(labels.home.invite.testID)).toBeTruthy();
-        expect(withEvent.getByTestId(labels.home.whoPays.testID)).toBeTruthy();
-        expect(withEvent.getByTestId(labels.home.endRound.testID)).toBeTruthy();
+        await act(async () => {});
+        await waitFor(() => {
+            expect(withEvent.getByTestId(labels.home.scan.testID)).toBeTruthy();
+            expect(withEvent.getByTestId(labels.home.export.testID)).toBeTruthy();
+            expect(withEvent.getByTestId(labels.home.invite.testID)).toBeTruthy();
+            expect(withEvent.getByTestId(labels.home.whoPays.testID)).toBeTruthy();
+            expect(withEvent.getByTestId(labels.home.endRound.testID)).toBeTruthy();
+        });
     });
 
-    test('add screen labels exist', () => {
+    test('add screen labels exist', async () => {
         const { getByTestId, getByText } = renderWithProviders(<AddBeerScreen />);
-        fireEvent.press(getByText('Test'));
-        fireEvent.press(getByText('User QR (Admin Log)'));
-        expect(getByTestId(labels.add.addBeer.testID)).toBeTruthy();
-        expect(getByTestId(labels.add.stampQr.testID)).toBeTruthy();
-        expect(getByTestId(labels.add.userQr.testID)).toBeTruthy();
-        expect(getByTestId(labels.add.shareQr.testID)).toBeTruthy();
+        await act(async () => {
+            fireEvent.press(getByText('Test'));
+        });
+        await waitFor(() => {
+            expect(getByTestId(labels.add.addBeer.testID)).toBeTruthy();
+            expect(getByTestId(labels.add.stampQr.testID)).toBeTruthy();
+            expect(getByTestId(labels.add.userQr.testID)).toBeTruthy();
+        });
+
+        await act(async () => {
+            fireEvent.press(getByTestId(labels.add.userQr.testID));
+        });
+
+        await waitFor(() => {
+            expect(getByTestId(labels.add.shareQr.testID)).toBeTruthy();
+        });
     });
 
-    test('settings labels exist', () => {
+    test('settings labels exist', async () => {
         const { getByTestId } = renderWithProviders(<SettingsScreen />);
-        expect(getByTestId(labels.settings.switchUser.testID)).toBeTruthy();
-        expect(getByTestId(labels.settings.addUser.testID)).toBeTruthy();
-        expect(getByTestId(labels.settings.startEvent.testID)).toBeTruthy();
-        expect(getByTestId(labels.settings.resetEvent.testID)).toBeTruthy();
+        await act(async () => {});
+        await waitFor(() => {
+            expect(getByTestId(labels.settings.switchUser.testID)).toBeTruthy();
+            expect(getByTestId(labels.settings.addUser.testID)).toBeTruthy();
+            expect(getByTestId(labels.settings.startEvent.testID)).toBeTruthy();
+            expect(getByTestId(labels.settings.resetEvent.testID)).toBeTruthy();
+        });
     });
 });

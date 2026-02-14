@@ -1,135 +1,131 @@
 # GitHub Readiness & Public Publishing Status
 
-Prepare the Stängelispass repository for a safe and professional launch on GitHub.
+Prepare the Stängelispass repository for a safe and professional public launch on GitHub.
 
-**Last Updated:** 2026-02-11  
-**Status:** 🟡 In Progress (80% Complete)
+**Last Updated:** 2026-02-13  
+**Status:** 🟡 In Progress (90% Complete)
 
 ## Scope
 
-- **In**: Secret masking, `.gitignore` audit, `README.md` creation, License, documentation cleanup
-- **Out**: GitHub Actions CI (Future phase), Private Repo hosting (Assuming Public)
+- **In**: Secret masking, `.gitignore` audit, `README.md`, License, documentation cleanup
+- **Out**: GitHub Actions CI (future phase), private repo hosting (assuming public)
 
 ## Completed Items ✅
 
-- [x] **Mask Secrets**: Supabase keys moved to environment variables via `expo-constants`
+- [x] **Mask Secrets**: Supabase keys moved to environment variables
   - Implementation: `app/src/services/client.ts` uses `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
   - Fallback to noop client when unconfigured (offline-first design)
-  - Date completed: Prior to Feb 2026
-  
+  - Preflight guard in `app/src/utils/preflight.ts`
+
 - [x] **Legal Prep**: MIT License added to repository root
-  - File: `LICENSE` (1084 bytes)
-  - Date completed: 2025-02-08
+  - File: `LICENSE`
+
+- [x] **Root README.md**: Project overview, features, and quick start
+  - File: `README.md`
+  - Date completed: 2026-02-13
 
 - [x] **Feature Documentation**: Comprehensive documentation created
-  - `docs/PUSH_NOTIFICATIONS_README.md` - Push notification system (9.9 KB)
-  - `docs/CONNECTION_MONITORING_README.md` - Offline detection (11.1 KB)
-  - `docs/VIRAL_UX_README.md` - Social sharing & Wall of Fame (10.5 KB)
-  - `docs/AGENTS.md` - Developer runbook
+  - `docs/PUSH_NOTIFICATIONS_README.md` - Push notifications
+  - `docs/CONNECTION_MONITORING_README.md` - Offline detection
+  - `docs/VIRAL_UX_README.md` - Social sharing & Wall of Fame
   - `docs/DEPLOYMENT_CHECKLIST_NOTIFICATIONS.md` - Deployment guide
-  - Date completed: 2026-02-11
+  - `docs/development/agents.md` - Developer runbook (new location)
 
-- [x] **Code Quality**: All tests passing, typecheck clean
-  - Tests: 114/114 passing (excluding 1 pre-existing failure)
-  - TypeScript: 1 pre-existing error unrelated to core features
-  - ESLint: No errors, 2 pre-existing warnings
-  - Date completed: 2026-02-11
+- [x] **Code Quality (tests)**: All tests passing with open-handle detection
+  - Tests: 225/225 passing
+  - Command: `npm test -- --detectOpenHandles`
+  - Date completed: 2026-02-13
+
+- [x] **Documentation Cleanup**: Completed plans archived under `docs/implementation-plans/completed/`
+  - Cross-references updated to new plan locations
+  - Date completed: 2026-02-13
 
 ## Remaining Action Items 🚧
 
-- [ ] **Clean .env.example**: Remove real Supabase keys from example file
-  - **CRITICAL**: `app/.env.example` currently contains real keys
-  - Replace with placeholder values: `https://YOUR_PROJECT.supabase.co`
+- [ ] **Clean `.env.example` (CRITICAL)**
+  - `app/.env.example` still contains real Supabase keys
+  - Replace with placeholder values (`https://YOUR_PROJECT_ID.supabase.co`)
   - Estimated effort: 5 minutes
 
-- [ ] **Create Root README.md**: Professional project overview
-  - Project description and features
-  - Screenshots/demo
-  - Setup instructions with environment variables
-  - Architecture overview
-  - Contributing guidelines
-  - Link to documentation
-  - Estimated effort: 1-2 hours
-
-- [ ] **Git Audit**: Verify `.gitignore` completeness
-  - Ensure `.env`, `.expo/`, `node_modules/`, `ios/`, `android/` excluded
-  - Check for sensitive files in git history
-  - Estimated effort: 15 minutes
-
-- [ ] **Documentation Cleanup**: Organize implementation plans
-  - Move completed plans to `docs/implementation-plans/completed/`
-  - Archive deprecated/obsolete documentation
-  - Update cross-references
-  - Estimated effort: 30 minutes
-
-- [ ] **Git History Scrub**: Ensure no secrets in commit history
-  - Search entire git history for hardcoded keys
+- [ ] **Git History Scrub (CRITICAL)**
+  - Search full git history for keys/tokens
   - Use `git-filter-repo` or BFG Repo-Cleaner if needed
-  - **CRITICAL** before public push
   - Estimated effort: 30 minutes
 
-- [ ] **Final Push**: Publish to GitHub
-  - Verify remote repository settings
+- [ ] **Git Ignore Audit**
+  - Verify `.env`, `.expo/`, `node_modules/` ignored (partially verified)
+  - Ensure `ios/` and `android/` are ignored if generated
+  - Estimated effort: 10 minutes
+
+- [x] **Documentation Cleanup**
+  - Completed plans moved to `docs/implementation-plans/completed/`
+  - Deprecated/obsolete docs remain under `docs/archive/`
+  - Cross-references updated
+
+- [ ] **Contributor Metadata**
+  - Add `CONTRIBUTING.md`
+  - Add issue templates (bug + feature)
+  - Estimated effort: 30-45 minutes
+
+- [ ] **Final Push**
+  - Verify GitHub remote settings
   - Push main branch
   - Create initial release/tag
   - Estimated effort: 15 minutes
 
 ## Recent Implementation Summary (Feb 2026)
 
+### Access Passes ✅
+- Pass tiers added (day, week, year) with pricing/duration logic
+- First round remains free on all tiers
+- Lifetime pass codes for colleagues (admin-generated, single-use)
+
 ### Push Notifications ✅
 - Device token registration with automatic cleanup
 - Database triggers for leader changes and milestones (5, 10, 20, 50, 100 beers)
 - Template-based notification messages
-- Leverages existing edge functions (`processNotifications`, `notifyLeadChange`)
-- **Status:** Production-ready, pending Expo push certificate upload
+- **Status:** Production-ready, pending Expo push credentials
 
 ### Connection Monitoring ✅
 - Real-time network status detection via `@react-native-community/netinfo`
-- Visual offline banner (red) and reconnection banner (green)
+- Offline banner (red) and reconnection banner (green)
 - Offline mutation queue with AsyncStorage persistence
-- React Query integration for automatic retry/refetch
-- Sync indicator showing pending changes count
 - **Status:** Production-ready, integrated into root layout
 
-### Viral UX Features ✅
-- MVP Recap Modal: Celebration screen with gradient, leaderboard, share button
-- Social Sharing: Capture components as images, native share sheet, camera roll save
-- Wall of Fame: Persistent winner board with beer clinks (social reactions)
-- Optimistic UI updates with automatic rollback on error
-- **Status:** Production-ready, pending integration into event close flow
+### Refactors ✅
+- AppProvider lifecycle extracted for clarity and testability
+- `events.ts` and `beers.ts` split into modular services
 
 ## Validation Checklist
 
-### Security ✅
-- [x] No hardcoded Supabase keys in source code
-- [ ] No secrets in `.env.example`
-- [ ] `.env` file ignored by git
-- [ ] No API keys in git history
+### Security
+- [ ] `.env.example` contains no real keys (CRITICAL)
+- [x] `.env` file ignored by git
+- [ ] No secrets in git history
+- [ ] No hardcoded keys in source code
 
-### Documentation ✅
+### Documentation
+- [x] Root `README.md`
 - [x] Feature documentation complete
-- [ ] Root README.md created
-- [x] Architecture diagrams/guides
-- [x] Deployment checklists
 - [ ] Contributing guidelines
+- [ ] Implementation plans organized
 
-### Code Quality ✅
-- [x] All critical tests passing
-- [x] TypeScript typecheck clean (excluding pre-existing issues)
-- [x] ESLint passing
-- [x] No console.log statements in production code (using logger utility)
+### Code Quality
+- [x] Tests passing (225/225) with `--detectOpenHandles` on 2026-02-13
+- [ ] TypeScript typecheck re-validated (not run in this pass)
+- [ ] ESLint re-validated (not run in this pass)
 
-### Repository Structure ✅
+### Repository Structure
 - [x] Clear directory organization
 - [x] Separated concerns (app/, docs/, supabase/)
 - [ ] Archived old/completed documentation
-- [ ] Clear file naming conventions
+- [ ] File naming conventions reviewed
 
 ## Commands for Final Validation
 
 ```bash
-# 1. Search for hardcoded secrets (should return ONLY .env.example)
-grep -r "rsduijvlwlyspilrjalm" . --exclude-dir=node_modules --exclude-dir=.expo
+# 1. Search for hardcoded secrets in the working tree
+rg -n "sb_publishable_|supabase_anon|supabase_url|EXPO_PUBLIC_SUPABASE" . --glob '!**/node_modules/**' --glob '!**/.expo/**'
 
 # 2. Verify .env is ignored
 git check-ignore app/.env
@@ -138,109 +134,81 @@ git check-ignore app/.env
 cd app && npx expo config
 
 # 4. Run full test suite
-cd app && npm test
+cd app && npm test -- --detectOpenHandles
 
-# 5. Check for secrets in git history
-git log -p | grep -i "supabase_anon_key"
+# 5. Check git history for secrets
+git log --all -S "sb_publishable_" -p
 
 # 6. Verify .gitignore coverage
-git status --ignored
+cd .. && git status --ignored
 ```
 
 ## Recommended Pre-Publish Actions
 
-1. **Create Root README.md Template:**
-   ```markdown
-   # 🍺 Stängelispass - Beer Tracking Made Social
-   
-   [Brief description]
-   
-   ## Features
-   - Event-based beer tracking
-   - Real-time leaderboards
-   - Push notifications for achievements
-   - Offline-first architecture
-   - Social sharing & Wall of Fame
-   
-   ## Quick Start
-   [Setup instructions]
-   
-   ## Documentation
-   - [Architecture Overview](docs/)
-   - [Push Notifications](docs/PUSH_NOTIFICATIONS_README.md)
-   - [Offline Support](docs/CONNECTION_MONITORING_README.md)
-   - [Viral Features](docs/VIRAL_UX_README.md)
-   
-   ## License
-   MIT
-   ```
-
-2. **Clean .env.example:**
+1. **Clean `.env.example`:**
    ```bash
    # BEFORE (current - UNSAFE):
    EXPO_PUBLIC_SUPABASE_URL=https://rsduijvlwlyspilrjalm.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_mQW_fSMYmlY6rpaTmE6YUg__Xo-2Klt
-   
+
    # AFTER (recommended):
    EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
    EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
    ```
 
-3. **Archive Completed Plans:**
+2. **Verify Documentation Links:**
    ```bash
-   mkdir -p docs/implementation-plans/completed
-   mv docs/implementation-plans/03-persist-query-cache-COMPLETED.md docs/implementation-plans/completed/
-   mv docs/implementation-plans/05-comments-system-SUMMARY.md docs/implementation-plans/completed/
+   rg -n "implementation-plans" docs
    ```
+
+3. **Add Contributor Metadata:**
+   - `CONTRIBUTING.md`
+   - Issue templates in `.github/ISSUE_TEMPLATE/`
 
 ## Risk Assessment
 
 ### 🔴 High Priority (Blocking)
-- `.env.example` contains real Supabase keys - **Must fix before public push**
-- Git history may contain hardcoded secrets - **Must audit before public push**
+- `.env.example` contains real Supabase keys
+- Git history may contain secrets
 
 ### 🟡 Medium Priority (Recommended)
-- Missing root README.md - Reduces discoverability and professionalism
-- Documentation not organized - May confuse contributors
+- Documentation not fully organized
+- Contributing guidelines missing
 
 ### 🟢 Low Priority (Nice to Have)
-- No GitHub Actions CI - Can add later
-- No contributing guidelines - Can add later
-- No issue templates - Can add later
+- GitHub Actions CI
+- Issue templates and project roadmap
 
 ## Timeline to Public Launch
 
-**Estimated Time to Complete:** 3-4 hours
+**Estimated Time to Complete:** 2-3 hours (assuming no secrets found in history)
 
 1. **Immediate (30 min):**
    - Clean `.env.example`
    - Git history audit for secrets
    - Verify `.gitignore`
 
-2. **Same Day (2 hours):**
-   - Create root `README.md`
+2. **Same Day (1-2 hours):**
    - Organize documentation
-   - Final testing
+   - Add contributor metadata
+   - Final test run
 
-3. **Ready to Push (30 min):**
+3. **Ready to Push (15 min):**
    - Create GitHub repository
    - Push code
    - Create initial release tag
 
 ## Post-Launch Recommendations
 
-- [ ] Add GitHub Actions for CI/CD
-- [ ] Set up automated testing
-- [ ] Create issue templates
-- [ ] Add contributing guidelines
+- [ ] Add GitHub Actions for CI
+- [ ] Add automated release notes
+- [ ] Create issue templates and labels
 - [ ] Enable GitHub Discussions
-- [ ] Create project roadmap
 - [ ] Add badges (tests, license, etc.)
-- [ ] Consider GitHub Sponsors or Ko-fi link
 
 ## References
 
 - [LICENSE](../../LICENSE) - MIT License
-- [AGENTS.md](../../AGENTS.md) - Developer runbook
-- [Feature Documentation](../) - Complete implementation guides
-- [Supabase Client](../../app/src/services/client.ts) - Environment variable implementation
+- [Agents Runbook](../../docs/development/agents.md)
+- [Feature Documentation](../) - Implementation guides
+- [Supabase Client](../../app/src/services/client.ts) - Env var usage

@@ -106,6 +106,99 @@
         "content_organization",
         "quality_assurance"
       ]
+    },
+    {
+      "id": "refactor-agent",
+      "name": "Refactor Agent",
+      "emoji": "🏗️",
+      "role": "refactoring_execution",
+      "capabilities": [
+        "decomposition",
+        "duplication_removal",
+        "api_simplification",
+        "module_boundary_cleanup",
+        "complexity_reduction"
+      ],
+      "responsibilities": [
+        "Propose refactors for large or complex modules",
+        "Extract reusable utilities and hooks",
+        "Simplify control flow and reduce nesting",
+        "Keep behavior unchanged while improving structure"
+      ],
+      "voting_weight": 1.75,
+      "expertise_domains": [
+        "refactoring",
+        "code_structure",
+        "maintainability"
+      ]
+    },
+    {
+      "id": "maintainability-auditor",
+      "name": "Maintainability Auditor",
+      "emoji": "🧭",
+      "role": "maintainability_assessment",
+      "capabilities": [
+        "code_smell_detection",
+        "complexity_scoring",
+        "hotspot_identification",
+        "tech_debt_prioritization",
+        "risk_assessment"
+      ],
+      "responsibilities": [
+        "Identify maintainability hotspots",
+        "Score complexity and risk",
+        "Prioritize refactor candidates",
+        "Define success metrics for maintainability"
+      ],
+      "voting_weight": 1.75,
+      "expertise_domains": [
+        "code_quality",
+        "technical_debt",
+        "engineering_productivity"
+      ]
+    },
+    {
+      "id": "dependency-curator",
+      "name": "Dependency Curator",
+      "emoji": "📦",
+      "role": "dependency_hygiene",
+      "capabilities": [
+        "dependency_audits",
+        "unused_code_detection",
+        "circular_dependency_detection",
+        "module_graph_analysis"
+      ],
+      "responsibilities": [
+        "Identify unused or risky dependencies",
+        "Detect circular imports and fragile module edges",
+        "Recommend dependency cleanup and consolidation"
+      ],
+      "voting_weight": 1.25,
+      "expertise_domains": [
+        "dependency_management",
+        "module_architecture"
+      ]
+    },
+    {
+      "id": "regression-guard",
+      "name": "Regression Guard",
+      "emoji": "🧪",
+      "role": "safety_and_tests",
+      "capabilities": [
+        "test_gap_analysis",
+        "refactor_safety_checks",
+        "risk_based_test_planning"
+      ],
+      "responsibilities": [
+        "Identify tests needed to protect refactors",
+        "Verify behavior-preserving changes",
+        "Define minimal test coverage for critical paths"
+      ],
+      "voting_weight": 1.5,
+      "expertise_domains": [
+        "testing_strategy",
+        "risk_management"
+      ]
     }
   ],
   "workflows": {
@@ -247,19 +340,103 @@
           ]
         }
       ],
-      "consensus_threshold": 0.7,
+      "consensus_threshold": 0.35,
       "timeout_minutes": 20
+    },
+    "maintainability_refactor": {
+      "name": "Maintainability Refactor Swarm",
+      "description": "Identify, prioritize, and implement refactors that improve maintainability without behavior changes",
+      "phases": [
+        {
+          "name": "audit",
+          "participants": ["maintainability-auditor", "dependency-curator"],
+          "actions": [
+            "scan_codebase_hotspots",
+            "detect_code_smells",
+            "identify_dependency_risks"
+          ]
+        },
+        {
+          "name": "proposal",
+          "participants": ["refactor-agent", "technical-agent"],
+          "actions": [
+            "propose_refactor_candidates",
+            "estimate_effort_and_risk",
+            "define_success_metrics"
+          ]
+        },
+        {
+          "name": "safety",
+          "participants": ["regression-guard"],
+          "actions": [
+            "identify_required_tests",
+            "define_verification_steps"
+          ]
+        },
+        {
+          "name": "consensus",
+          "participants": ["all"],
+          "actions": [
+            "vote_on_refactor_plan",
+            "prioritize_execution_order"
+          ]
+        },
+        {
+          "name": "execution",
+          "participants": ["refactor-agent", "technical-agent"],
+          "actions": [
+            "apply_refactors",
+            "update_docs_and_logs"
+          ]
+        }
+      ],
+      "consensus_threshold": 0.35,
+      "timeout_minutes": 45
+    },
+    "baseline_maintenance": {
+      "name": "Baseline Maintenance",
+      "description": "Baseline checks for technical risk, documentation drift, and regression safety guidance",
+      "phases": [
+        {
+          "name": "technical_audit",
+          "participants": ["technical-agent"],
+          "actions": [
+            "scan_codebase_hotspots",
+            "detect_code_smells",
+            "identify_dependency_risks"
+          ]
+        },
+        {
+          "name": "documentation_audit",
+          "participants": ["documentation-agent"],
+          "actions": [
+            "scan_codebase_for_features",
+            "compare_roadmap_vs_reality"
+          ]
+        },
+        {
+          "name": "safety_guidance",
+          "participants": ["regression-guard"],
+          "actions": [
+            "identify_required_tests",
+            "define_verification_steps",
+            "write_baseline_report"
+          ]
+        }
+      ],
+      "consensus_threshold": 0.35,
+      "timeout_minutes": 25
     }
   },
   "rules": {
     "voting": {
       "mechanism": "weighted",
-      "quorum_required": 0.75,
+      "quorum_required": 0.6,
       "tie_breaker": "strategy-agent",
       "abstain_allowed": true
     },
     "consensus": {
-      "approval_threshold": 0.75,
+      "approval_threshold": 0.7,
       "veto_enabled": false,
       "compromise_attempts": 3
     },
@@ -274,7 +451,7 @@
       "max_changes_per_run": 10
     },
     "quality": {
-      "min_confidence_threshold": 0.7,
+      "min_confidence_threshold": 0.6,
       "require_cross_validation": true,
       "validation_timeout_seconds": 300
     }

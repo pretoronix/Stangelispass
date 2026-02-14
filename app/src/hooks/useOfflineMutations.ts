@@ -34,13 +34,14 @@ export function useOfflineMutations() {
     }
   }, []);
   
-  const saveQueue = useCallback(async (newQueue: OfflineMutation[]) => {
-    try {
-      await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(newQueue));
-      setQueue(newQueue);
-    } catch (error) {
-      reportError(new Error('Failed to save offline queue:', error), { scope: 'useOfflineMutations', action: 'replace_console' });
-    }
+  const persistQueue = useCallback((updater: (prev: OfflineMutation[]) => OfflineMutation[]) => {
+    setQueue((prev) => {
+      const next = updater(prev);
+      AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(next)).catch((error) => {
+        reportError(new Error('Failed to save offline queue:', error), { scope: 'useOfflineMutations', action: 'replace_console' });
+      });
+      return next;
+    });
   }, []);
   
   const addToQueue = useCallback(async (mutation: Omit<OfflineMutation, 'id' | 'timestamp'>) => {
@@ -50,18 +51,16 @@ export function useOfflineMutations() {
       timestamp: Date.now(),
     };
     
-    const newQueue = [...queue, newMutation];
-    await saveQueue(newQueue);
-  }, [queue, saveQueue]);
+    persistQueue((prev) => [...prev, newMutation]);
+  }, [persistQueue]);
   
   const removeFromQueue = useCallback(async (mutationId: string) => {
-    const newQueue = queue.filter(m => m.id !== mutationId);
-    await saveQueue(newQueue);
-  }, [queue, saveQueue]);
+    persistQueue((prev) => prev.filter(m => m.id !== mutationId));
+  }, [persistQueue]);
   
   const clearQueue = useCallback(async () => {
-    await saveQueue([]);
-  }, [saveQueue]);
+    persistQueue(() => []);
+  }, [persistQueue]);
   
   const processQueue = useCallback(async (executor: (mutation: OfflineMutation) => Promise<void>) => {
     if (queue.length === 0 || isProcessing) return;

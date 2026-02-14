@@ -54,7 +54,7 @@ npm run swarm:brainstorm   # Feature ideation
    - Enhanced strategic planning section
    - Updated with latest architectural improvements
 
-3. **`docs/strategy/feature_roadmap.md`** ✅ UPDATED (Feb 13, 2026)
+3. **`docs/planning/strategy/feature_roadmap.md`** ✅ UPDATED (Feb 13, 2026)
    - Added Phase 14: Swarm Agent System
    - Updated completion metrics  
    - Enhanced with AI-driven planning capabilities
@@ -123,7 +123,7 @@ npm run swarm:brainstorm   # Feature ideation
 ### For Product/Business
 1. Read `Description.md` - Value propositions + AI capabilities
 2. Review `PROJECT_STATUS.md` - Deliveries & metrics
-3. Check `docs/strategy/feature_roadmap.md` - Complete roadmap
+3. Check `docs/planning/strategy/feature_roadmap.md` - Complete roadmap
 
 ### For Strategic Planning
 1. Read `agents/docs/SWARM_AGENTS.md` - How agents work

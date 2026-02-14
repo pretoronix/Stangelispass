@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { BroadcastModal } from '../BroadcastModal';
 import { useSendBroadcast } from '@/hooks/useNotificationsQuery';
@@ -40,7 +40,7 @@ describe('BroadcastModal', () => {
         expect(getByTestId('broadcast-cancel-button')).toBeTruthy();
     });
 
-    it('updates character counter as user types', () => {
+    it('updates character counter as user types', async () => {
         const { getByPlaceholderText, getByText } = render(
             <BroadcastModal
                 visible={true}
@@ -52,7 +52,9 @@ describe('BroadcastModal', () => {
         );
 
         const input = getByPlaceholderText('Type your message...');
-        fireEvent.changeText(input, 'Hello everyone!');
+        await act(async () => {
+            fireEvent.changeText(input, 'Hello everyone!');
+        });
 
         // Check for "X characters left" instead of "X / 100"
         expect(getByText('85 characters left')).toBeTruthy();
@@ -73,7 +75,7 @@ describe('BroadcastModal', () => {
         expect(sendButton.props.accessibilityState?.disabled).toBe(true);
     });
 
-    it('enables send button when message is valid', () => {
+    it('enables send button when message is valid', async () => {
         const { getByPlaceholderText, getByTestId } = render(
             <BroadcastModal
                 visible={true}
@@ -85,7 +87,9 @@ describe('BroadcastModal', () => {
         );
 
         const input = getByPlaceholderText('Type your message...');
-        fireEvent.changeText(input, 'Valid message');
+        await act(async () => {
+            fireEvent.changeText(input, 'Valid message');
+        });
 
         const sendButton = getByTestId('broadcast-send-button');
         expect(sendButton.props.accessibilityState?.disabled).toBe(false);

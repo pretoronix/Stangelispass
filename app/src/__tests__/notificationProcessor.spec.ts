@@ -104,6 +104,41 @@ describe('processNotificationsBatch', () => {
     expect(calls.some(c => c.url.includes('/rest/v1/device_tokens'))).toBe(false);
   });
 
+  test('new_round disabled by admin_broadcasts pref -> skip send and mark processed', async () => {
+    const notif = [{
+      id: 'n5',
+      event_id: 'e5',
+      target_user: 'u5',
+      payload: { type: 'new_round', event_name: 'Friday Night' },
+      attempts: 0,
+    }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (url.includes('/rest/v1/users?id=eq.u5')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [5], admin_broadcasts: false } }],
+          text: async (): Promise<string> => '[]',
+        };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n5')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(true);
+    expect(res.results[0].reason).toBe('disabled by preference');
+    expect(calls.some(c => c.url.includes('/rest/v1/device_tokens'))).toBe(false);
+  });
+
   test('sends pushes and marks processed', async () => {
     const notif = [{ id: 'n3', new_leader: 'u3', event_id: 'e3', attempts: 0 }];
     const tokens = [{ token: 't1' }, { token: 't2' }];

@@ -403,6 +403,6 @@ If you see type errors for wall_of_fame or toasts tables:
 - `@tanstack/react-query`: Server state management
 
 ## Related Documentation
-- [Push Notifications](./PUSH_NOTIFICATIONS_README.md)
-- [Connection Monitoring](./CONNECTION_MONITORING_README.md)
-- [Implementation Plan](./implementation-plans/08-viral-ux-features.md)
+- [Push Notifications](../PUSH_NOTIFICATIONS_README.md)
+- [Connection Monitoring](../CONNECTION_MONITORING_README.md)
+- [Implementation Plan](../implementation-plans/completed/08-viral-ux-features.md)

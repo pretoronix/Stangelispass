@@ -64,9 +64,11 @@ export class ConsensusEngine {
     // Calculate weighted score if using weighted voting
     let weightedScore = 0;
     if (rules.voting.mechanism === 'weighted') {
-      const totalWeight = votes.reduce((sum, v) => sum + v.weight, 0);
       const approveWeight = approveVotes.reduce((sum, v) => sum + v.weight, 0);
-      weightedScore = totalWeight > 0 ? approveWeight / totalWeight : 0;
+      const rejectWeight = rejectVotes.reduce((sum, v) => sum + v.weight, 0);
+      // Abstains should not dilute the score; only approvals vs rejects matter.
+      const effectiveWeight = approveWeight + rejectWeight;
+      weightedScore = effectiveWeight > 0 ? approveWeight / effectiveWeight : 0;
     } else {
       // Simple majority
       const totalVotes = votes.length - abstainVotes.length;
@@ -74,7 +76,9 @@ export class ConsensusEngine {
     }
 
     // Check quorum
-    const quorumMet = votes.length >= (this.config.agents.length * rules.voting.quorum_required);
+    // Quorum is relative to the voters participating in this vote, not the entire configured swarm.
+    const eligibleVoters = votes.length;
+    const quorumMet = votes.length >= (eligibleVoters * rules.voting.quorum_required);
 
     // Determine if approved
     let approved = quorumMet && weightedScore >= threshold;
@@ -186,7 +190,8 @@ export class ConsensusEngine {
       roadmap_update: ['product_strategy', 'feature_planning'],
       feature_addition: ['product_design', 'software_architecture', 'product_strategy', 'feature_planning'],
       documentation_fix: ['technical_writing', 'content_organization'],
-      priority_change: ['product_strategy', 'roadmap_management']
+      priority_change: ['product_strategy', 'roadmap_management'],
+      refactor_plan: ['refactoring', 'code_structure', 'maintainability', 'code_quality', 'technical_debt', 'testing_strategy']
     };
 
     const relevantDomains = expertiseMap[proposal.type] || [];

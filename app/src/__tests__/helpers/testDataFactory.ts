@@ -68,15 +68,24 @@ export function createTestEvent(overrides?: Partial<MockEvent>): MockEvent {
 export function createTestBeer(
     userId: string,
     eventId: string,
-    timestamp?: string
+    timestampOrOverrides?: string | Date | Partial<MockBeer>
 ): MockBeer {
     beerIdCounter++;
+    const overrides = typeof timestampOrOverrides === 'string'
+        ? { created_at: timestampOrOverrides }
+        : timestampOrOverrides instanceof Date
+            ? { created_at: timestampOrOverrides.toISOString() }
+            : (timestampOrOverrides || {});
+    const createdAt = overrides.created_at || new Date().toISOString();
+    const addedBy = overrides.added_by || overrides.added_by_user_id || userId;
+
     return {
         id: `beer_${beerIdCounter}`,
         user_id: userId,
         event_id: eventId,
-        added_by_user_id: userId,
-        created_at: timestamp || new Date().toISOString(),
+        added_by: addedBy,
+        added_by_user_id: overrides.added_by_user_id || userId,
+        created_at: createdAt,
     };
 }
 

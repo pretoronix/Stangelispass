@@ -256,7 +256,7 @@ The following features have been successfully implemented and verified.
 
 ## 🎯 Recommended Next Steps (Q1-Q2 2026)
 
-> 📋 **Detailed implementation plans available in** `/docs/implementation-plans/`
+> 📋 **Detailed implementation plans available in** `/docs/implementation-plans/` (completed plans in `/docs/implementation-plans/completed/`)
 > Each feature has time estimates, complexity ratings, and step-by-step guides.
 
 ### Immediate Opportunities (High ROI)
@@ -265,19 +265,19 @@ The following features have been successfully implemented and verified.
    - **Complexity**: Medium
    - Infrastructure 80% complete, high user value
    - Leader change notifications, round start alerts
-   - 📄 [Implementation Plan](../implementation-plans/01-push-notifications.md)
+   - 📄 [Implementation Plan](../implementation-plans/push-notifications-plan.md)
 
 2. **Migrate Components to React Query** ⭐⭐⭐⭐⭐  
    - **Complexity**: Low-Medium
    - Leverage new hooks in existing screens
    - Simplify AppProvider by removing manual state
-   - 📄 [Implementation Plan](../implementation-plans/02-migrate-to-react-query.md)
+   - 📄 [Implementation Plan](../implementation-plans/completed/02-migrate-to-react-query.md)
 
 3. **Connection Monitoring** ⭐⭐⭐⭐  
    - **Complexity**: Low-Medium
    - NetInfo integration for offline detection
    - User-friendly offline indicators
-   - 📄 [Implementation Plan](../implementation-plans/06-connection-monitoring.md)
+   - 📄 [Implementation Plan](../implementation-plans/completed/06-connection-monitoring.md)
 
 ### Polish & UX Enhancements
 
@@ -286,7 +286,7 @@ The following features have been successfully implemented and verified.
    - Share beer logs to social media
    - Invite friends to events
    - Customizable beer log cards
-   - 📄 [Implementation Plan](../implementation-plans/08-viral-ux-features.md)
+   - 📄 [Implementation Plan](../implementation-plans/completed/08-viral-ux-features.md)
 
 5. **Advanced Animations** ⭐⭐⭐  
    - **Complexity**: Medium
@@ -301,13 +301,13 @@ The following features have been successfully implemented and verified.
    - **Complexity**: High
    - When scaling beyond friend groups
    - Supabase Auth with OTP
-   - 📄 [Implementation Plan](../implementation-plans/08-user-authentication.md)
+   - 📄 [Implementation Plan](../implementation-plans/completed/08-user-authentication.md)
 
 7. **Advanced Analytics** ⭐⭐⭐  
    - **Complexity**: Very High
    - ML-based insights and predictions
    - Drinking pattern analysis
-   - 📄 [Implementation Plan](../implementation-plans/09-advanced-analytics.md)
+   - 📄 [Implementation Plan](../implementation-plans/completed/09-advanced-analytics.md)
 
 ---
 
@@ -408,6 +408,12 @@ The following features have been successfully implemented and verified.
 ---
 
 ## 🧠 Swarm Feature Backlog (Proposed)
+- [ ] Viral Features: Wall of Fame filters (by month, by user, by event type) — Found as TODO in docs/features/viral-features.md
+- [ ] Viral Features: Custom share message templates — Found as TODO in docs/features/viral-features.md
+- [ ] Viral Features: Refer-a-friend bonus beers — Found as TODO in docs/features/viral-features.md
+- [ ] Viral Features: Leaderboard streaks and badges — Found as TODO in docs/features/viral-features.md
+- [ ] Viral Features: Export wall of fame as PDF — Found as TODO in docs/features/viral-features.md
+- [ ] Viral Features: Video celebrations instead of static images — Found as TODO in docs/features/viral-features.md
 - [ ] Broadcast Notifications: Complete remaining TODOs — Found as TODO in docs/features/broadcast-notifications.md
 - [ ] Notifications: Device tokens registered in database — Found as TODO in docs/features/notifications.md
 - [ ] Notifications: Notifications being created (check table) — Found as TODO in docs/features/notifications.md
@@ -456,3 +462,15 @@ The following features have been successfully implemented and verified.
   - Viral Features: Deep linking for shared images
   - Viral Features: Beer Stamps (QR code generation for +1 beer rewards)
   - Viral Features: Confetti animation on modal appearance
+
+- 2026-02-13: Applied 5 swarm-approved roadmap suggestions
+  - Update roadmap status for: Offline First Architecture  (COMPLETE)
+  - Viral Features: Refer-a-friend bonus beers
+  - Viral Features: Leaderboard streaks and badges
+  - Viral Features: Export wall of fame as PDF
+  - Viral Features: Video celebrations instead of static images
+
+- 2026-02-13: Applied 3 swarm-approved roadmap suggestions
+  - Update roadmap status for: Offline First Architecture  (COMPLETE)
+  - Viral Features: Wall of Fame filters (by month, by user, by event type)
+  - Viral Features: Custom share message templates

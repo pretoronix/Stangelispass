@@ -163,9 +163,9 @@ reportError(error, {
    - Sent to the user who hit the milestone
    - Users can enable/disable specific milestones in settings
 
-3. **New Round** 🍺 (Ready for implementation)
-   - Template exists, trigger needs to be added
-   - Would notify all users when a new event starts
+3. **New Round** 🍺 (Implemented)
+   - Enqueued when a new event starts
+   - Uses the same opt-in surface as admin broadcasts
 
 4. **Badge Unlocked** 🏆 (Ready for implementation)
    - Template exists, trigger needs to be added
@@ -184,6 +184,10 @@ Users can control their notification preferences in Settings:
 - **20 Beers Milestone** - Toggle on/off
 
 Additional milestones (50, 100) are defined in the database triggers but not yet exposed in the UI.
+
+## Vibration Feedback
+
+Foreground notifications trigger haptic feedback via `expo-haptics` to ensure users feel alerts even when sounds are muted.
 
 ## Testing
 
@@ -728,13 +732,13 @@ EXPO_PUSH_ENDPOINT=https://exp.host/--/api/v2/push/send
 ## Related Documentation
 
 - **Feature Documentation:**
-  - [Connection Monitoring](./CONNECTION_MONITORING_README.md) - Offline detection and sync
-  - [Viral UX Features](./VIRAL_UX_README.md) - Social sharing and Wall of Fame
-  - [Deployment Checklist](./DEPLOYMENT_CHECKLIST_NOTIFICATIONS.md) - Step-by-step deployment
+  - [Connection Monitoring](../CONNECTION_MONITORING_README.md) - Offline detection and sync
+  - [Viral UX Features](../VIRAL_UX_README.md) - Social sharing and Wall of Fame
+  - [Deployment Checklist](../DEPLOYMENT_CHECKLIST_NOTIFICATIONS.md) - Step-by-step deployment
 
 - **Implementation Plans:**
-  - [Original Plan](./implementation-plans/01-push-notifications.md) - Detailed implementation plan
-  - [Architecture Overview](../AGENTS.md) - Developer runbook
+  - [Original Plan](../implementation-plans/completed/01-push-notifications.md) - Detailed implementation plan
+  - [Architecture Overview](../development/agents.md) - Developer runbook
 
 - **External Resources:**
   - [Expo Push Notifications Guide](https://docs.expo.dev/push-notifications/overview/)

@@ -2,6 +2,13 @@ module.exports = {
     preset: 'jest-expo',
     setupFiles: ['<rootDir>/jest/setupEnv.js'],
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
+    coverageReporters: ['text', 'json-summary', 'lcov'],
+    collectCoverageFrom: [
+        'src/**/*.{ts,tsx}',
+        '!src/**/__tests__/**',
+        '!src/**/?(*.)+(spec|test).[jt]s?(x)',
+        '!src/**/jest/**',
+    ],
     transformIgnorePatterns: [
         'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-qrcode-svg)',
     ],
@@ -16,4 +23,14 @@ module.exports = {
         '/__tests__/helpers/',
         '/__tests__/fixtures/',
     ],
+    coverageThreshold: {
+        global: {
+            // Ratchet baseline: prevent coverage regressions without blocking the current state.
+            // "Changed-files" enforcement is implemented in `scripts/coverageRatchet.mjs`.
+            branches: 40,
+            functions: 50,
+            lines: 50,
+            statements: 50,
+        },
+    },
 };

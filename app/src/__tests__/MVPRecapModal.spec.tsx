@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { MVPRecapModal, MVPRecapData } from '@/components/features/MVPRecapModal';
 import * as Haptics from 'expo-haptics';
 
@@ -83,6 +83,7 @@ describe('MVPRecapModal', () => {
       />
     );
 
+    await act(async () => {});
     await waitFor(() => {
       expect(Haptics.notificationAsync).toHaveBeenCalledWith(
         Haptics.NotificationFeedbackType.Success
@@ -105,7 +106,7 @@ describe('MVPRecapModal', () => {
     expect(getByText('Bob Johnson')).toBeTruthy();
   });
 
-  it('should call onShare when share button is pressed', () => {
+  it('should call onShare when share button is pressed', async () => {
     const { getByText } = render(
       <MVPRecapModal
         visible={true}
@@ -116,13 +117,15 @@ describe('MVPRecapModal', () => {
     );
 
     const shareButton = getByText('Share');
-    fireEvent.press(shareButton);
+    await act(async () => {
+      fireEvent.press(shareButton);
+    });
 
     expect(mockOnShare).toHaveBeenCalled();
     expect(Haptics.impactAsync).toHaveBeenCalled();
   });
 
-  it('should call onClose when close button is pressed', () => {
+  it('should call onClose when close button is pressed', async () => {
     const { getByText } = render(
       <MVPRecapModal
         visible={true}
@@ -133,7 +136,9 @@ describe('MVPRecapModal', () => {
     );
 
     const closeButton = getByText('Close');
-    fireEvent.press(closeButton);
+    await act(async () => {
+      fireEvent.press(closeButton);
+    });
 
     expect(mockOnClose).toHaveBeenCalled();
     expect(Haptics.selectionAsync).toHaveBeenCalled();

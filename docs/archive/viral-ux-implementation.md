@@ -261,7 +261,7 @@ import { WallOfFame } from '@/components/features/WallOfFame';
   - Troubleshooting section
 
 ### Related Documentation
-- `docs/implementation-plans/08-viral-ux-features.md` - Original implementation plan
+- `docs/implementation-plans/completed/08-viral-ux-features.md` - Original implementation plan
 - `docs/PUSH_NOTIFICATIONS_README.md` - Push notifications guide
 - `docs/CONNECTION_MONITORING_README.md` - Offline detection guide
 

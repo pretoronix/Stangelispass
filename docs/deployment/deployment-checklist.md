@@ -41,7 +41,7 @@
    - Added currentUser from context
 
 ### New Files
-1. `COMMENTS_INTEGRATION_SUMMARY.md` - Detailed implementation documentation
+1. `../archive/comments-integration-summary.md` - Detailed implementation documentation
 
 ## Deployment Steps
 
@@ -115,7 +115,7 @@ Monitor these metrics after deployment:
 
 ## Future Enhancements
 
-See `COMMENTS_INTEGRATION_SUMMARY.md` for detailed roadmap:
+See `../archive/comments-integration-summary.md` for detailed roadmap:
 - Comment reactions
 - Comment notifications
 - @mentions

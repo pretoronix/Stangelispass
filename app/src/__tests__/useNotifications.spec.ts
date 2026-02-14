@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as notifications from '@/services/notifications';
 
@@ -63,7 +63,9 @@ describe('useNotifications', () => {
     });
 
     // Change user to null
-    rerender({ userId: null });
+    await act(async () => {
+      rerender({ userId: null });
+    });
 
     await waitFor(() => {
       expect(result.current.isRegistered).toBe(false);
@@ -84,7 +86,9 @@ describe('useNotifications', () => {
     });
 
     // Manually unregister
-    await result.current.unregister();
+    await act(async () => {
+      await result.current.unregister();
+    });
 
     await waitFor(() => {
       expect(result.current.token).toBeNull();

@@ -12,7 +12,11 @@ export type SwarmAgentRole =
   | 'strategic_planning'
   | 'product_management'
   | 'technical_assessment'
-  | 'documentation_quality';
+  | 'documentation_quality'
+  | 'refactoring_execution'
+  | 'maintainability_assessment'
+  | 'dependency_hygiene'
+  | 'safety_and_tests';
 
 /**
  * Swarm collaboration mode
@@ -29,7 +33,7 @@ export type CollaborationMode =
 export interface AgentProposal {
   id: string;
   agent_id: string;
-  type: 'roadmap_update' | 'feature_addition' | 'documentation_fix' | 'priority_change';
+  type: 'roadmap_update' | 'feature_addition' | 'documentation_fix' | 'priority_change' | 'refactor_plan';
   title: string;
   description: string;
   rationale: string;

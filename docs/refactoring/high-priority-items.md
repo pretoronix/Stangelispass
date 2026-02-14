@@ -13,6 +13,26 @@ Successfully completed all three high-priority refactoring tasks plus additional
 6. ✅ Integrated comments system with real-time updates
 7. ✅ Added React Query DevTools for development
 
+## Project Status Update (Feb 13, 2026)
+
+### ✅ Completed
+- Service modularization (`services/*` split + `services/supabase.ts` re-export)
+- React Query integration + QueryProvider
+- Custom hooks (permissions, current user, query hooks)
+- Optimistic updates (beer add/remove)
+- Comments system with real-time updates
+- AppProvider lifecycle extraction for maintainability
+- Connection monitoring (NetInfo + OfflineBanner)
+
+### 🟡 In Progress
+- Migrate AppProvider data flows to React Query hooks
+- Remove/retire legacy hooks (`useBeers`, `useUsers`)
+
+### 🟢 Planned
+- Query prefetching for top screens
+- Pagination/infinite scroll for large lists
+- Offline persistence of React Query cache
+
 ## Changes Summary
 
 ### 1. Service Modularization
@@ -211,30 +231,29 @@ app/src/
 
 ## Testing & Validation
 
-All changes tested and validated:
+Latest verification:
 
 ```bash
-✅ TypeScript: No errors (pour animation code)
-✅ ESLint: No errors, 0 new warnings  
-✅ Tests: 126/126 passing (9 new animation tests)
+✅ Tests: 225/225 passing (last run: 2026-02-13)
 ✅ Backward Compatibility: 100%
+⚠️ TypeScript/ESLint: Not re-validated in this pass
 ```
 
 ### Recent Additions (2026-02-11)
 
-**React Query DevTools** (`docs/developer/react-query-devtools.md`):
+**React Query DevTools** (`docs/development/developer/react-query-devtools.md`):
 - Web-only integration for better React Native compatibility
 - Development-mode guard for production safety
 - Comprehensive developer documentation
 
-**Optimistic Updates** (`docs/developer/optimistic-updates.md`):
+**Optimistic Updates** (`docs/development/developer/optimistic-updates.md`):
 - Implemented for `useAddBeer()` and `useRemoveBeer()`
 - Cache snapshots with automatic rollback on error
 - Visual feedback with `OptimisticItem` component
 - Consistent error handling with `useOptimisticError` hook
 - Full test coverage in `optimisticUpdates.spec.tsx`
 
-**Pour Animation** (`docs/developer/pour-animation.md`):
+**Pour Animation** (`docs/development/developer/pour-animation.md`):
 - Full Lottie-based animation (2.5s with haptics)
 - Simple fallback for low-end devices (1.5s)
 - Smart device detection (`deviceInfo.ts`)
@@ -269,16 +288,65 @@ All changes tested and validated:
 2. ✅ **Optimistic updates** - Implemented for beer add/remove mutations
 3. ✅ **Pour Animation** - Added delightful visual feedback for beer logging
 
-### Immediate Opportunities
-1. **Migrate AppProvider** to use React Query hooks instead of manual state
-2. **Remove old useBeers/useUsers** hooks in favor of new query hooks
+### Enhancement Implementation Plans
 
-### Future Enhancements
-1. Add query prefetching for better UX
-2. Implement pagination for large lists
-3. Add infinite scroll with React Query
-4. Set up background sync strategies
-5. Add offline support with persistence
+#### 1. Migrate AppProvider to React Query hooks (Immediate)
+**Goal**: Replace manual refresh flows with query hooks to reduce state duplication.  
+**Files**: `app/src/providers/AppProvider.tsx`, `app/src/providers/appProviderLifecycle.ts`, `app/src/hooks/useUsersQuery.ts`, `app/src/hooks/useEventsQuery.ts`  
+**Plan**:
+1. Replace `refreshUsers`/`refreshEventMembers` with `useUsers()`/`useEventMembers()` data.
+2. Remove local state that duplicates query data (keep only UI/selection state).
+3. Use `queryClient.invalidateQueries` where refresh was required.
+4. Keep subscriptions, but route updates to cache invalidation instead of local state setters.
+5. Update context shape to expose query data + loading states.
+6. Add/update tests for AppProvider data flows (use existing `appProviderLifecycle.spec.ts` and add AppProvider unit coverage if needed).
+**Acceptance**:
+- No manual data fetching left in AppProvider.
+- Subscriptions still trigger fresh data via query invalidation.
+
+#### 2. Deprecate legacy hooks (Immediate)
+**Goal**: Remove duplicate data access patterns to reduce confusion.  
+**Files**: `app/src/hooks/useBeers.ts`, `app/src/hooks/useUsers.ts`, call sites across app  
+**Plan**:
+1. Inventory remaining imports of `useBeers`/`useUsers` with `rg`.
+2. Replace usage with `useBeersQuery`/`useUsers` from query hooks.
+3. Mark legacy hooks as deprecated (or remove if no usage).
+4. Update documentation to reference query hooks only.
+**Acceptance**:
+- No production files import the legacy hooks.
+
+#### 3. Query prefetching for top screens (Planned)
+**Goal**: Reduce perceived load time when navigating between tabs.  
+**Files**: `app/src/app/_layout.tsx`, `app/src/hooks/home/*`, `app/src/providers/AppProvider.tsx`  
+**Plan**:
+1. Identify top navigation flows (Home → Add → History).
+2. Prefetch `useBeerCounts`, `useEventMembers`, and history list on tab focus.
+3. Use `queryClient.prefetchQuery` with conservative stale times.
+4. Add a small metrics log (dev-only) to validate prefetch effectiveness.
+**Acceptance**:
+- Tab switches show cached data in < 100ms for repeated visits.
+
+#### 4. Pagination / infinite scroll (Planned)
+**Goal**: Handle large history lists without heavy memory usage.  
+**Files**: `app/src/hooks/useBeersQuery.ts`, `app/src/app/history.tsx`  
+**Plan**:
+1. Add `useInfiniteQuery` for beer history with cursor-based paging.
+2. Update UI to append pages and show a loading footer.
+3. Add server-side ordering and limit in `getBeers` service.
+4. Add tests for paging behavior.
+**Acceptance**:
+- History screen handles 1000+ entries without slowdowns.
+
+#### 5. Offline persistence for React Query cache (Planned)
+**Goal**: Keep cached data across app restarts and improve offline UX.  
+**Files**: `app/src/providers/QueryProvider.tsx`, `app/src/utils/cacheManager.ts`  
+**Plan**:
+1. Add `persistQueryClient` with AsyncStorage persister.
+2. Define cache TTLs per query type (fast-changing vs static).
+3. Provide a manual “Clear Cache” action in settings.
+4. Add tests for hydration + cache clearing.
+**Acceptance**:
+- Cached data restores on app restart without network.
 
 ## Breaking Changes
 
@@ -349,15 +417,15 @@ Fully integrated comments system with real-time updates. Users can now comment o
 - 126 tests passing with comprehensive coverage
 
 See:
-- `COMMENTS_INTEGRATION_SUMMARY.md` - Integration details
-- `docs/implementation-plans/05-comments-system-SUMMARY.md` - Implementation summary
-- `DEPLOYMENT_CHECKLIST.md` - Deployment verification
+- `docs/archive/comments-integration-summary.md` - Integration details
+- `docs/implementation-plans/completed/05-comments-system-SUMMARY.md` - Implementation summary
+- `docs/deployment/deployment-checklist.md` - Deployment verification
 
 ### React Query DevTools (February 11, 2026) ✅
-Added development debugging tools with web-only deployment for better React Native compatibility. See `docs/developer/react-query-devtools.md`.
+Added development debugging tools with web-only deployment for better React Native compatibility. See `docs/development/developer/react-query-devtools.md`.
 
 ### Optimistic Updates (February 11, 2026) ✅
-Implemented instant UI feedback for beer mutations with automatic rollback on error. Includes reusable `OptimisticItem` component and `useOptimisticError` hook. See `docs/developer/optimistic-updates.md`.
+Implemented instant UI feedback for beer mutations with automatic rollback on error. Includes reusable `OptimisticItem` component and `useOptimisticError` hook. See `docs/development/developer/optimistic-updates.md`.
 
 ### Pour Animation (February 11, 2026) ✅
 Added delightful beer pour animation with:
@@ -368,10 +436,10 @@ Added delightful beer pour animation with:
 - 9 comprehensive tests
 
 See:
-- `docs/developer/pour-animation.md` - Full documentation
-- `docs/developer/POUR_ANIMATION_QUICKREF.md` - Quick reference
-- `docs/developer/POUR_ANIMATION_FLOW.md` - Flow diagrams
-- `POUR_ANIMATION_SUMMARY.md` - Implementation summary
+- `docs/development/developer/pour-animation.md` - Full documentation
+- `docs/development/developer/POUR_ANIMATION_QUICKREF.md` - Quick reference
+- `docs/development/developer/POUR_ANIMATION_FLOW.md` - Flow diagrams
+- `docs/archive/pour-animation-summary.md` - Implementation summary
 
 ## Conclusion
 

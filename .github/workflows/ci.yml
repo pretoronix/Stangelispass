@@ -30,3 +30,7 @@ jobs:
         run: |
           cd app
           npm test
+      - name: Coverage Ratchet
+        run: |
+          cd app
+          node scripts/coverageRatchet.mjs

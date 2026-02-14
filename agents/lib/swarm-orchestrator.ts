@@ -5,6 +5,7 @@
 
 import fs from 'fs/promises';
 import path from 'path';
+import { glob } from 'glob';
 import {
   SwarmConfiguration,
   SwarmWorkflowExecution,
@@ -160,6 +161,9 @@ export class SwarmOrchestrator {
 
       case 'vote_on_features':
         return await this.conductVoting(execution, agents, consensusThreshold);
+
+      case 'vote_on_refactor_plan':
+        return await this.conductVoting(execution, agents, consensusThreshold);
       
       case 'update_feature_roadmap':
         return await this.updateFeatureRoadmap(execution);
@@ -189,6 +193,53 @@ export class SwarmOrchestrator {
       case 'create_implementation_plan':
         return await this.createImplementationPlan(agents, execution);
 
+      // Maintainability refactor workflow
+      case 'scan_codebase_hotspots':
+        return await this.scanCodebaseHotspots(agents, execution);
+      case 'detect_code_smells':
+        return await this.detectCodeSmells(agents, execution);
+      case 'identify_dependency_risks':
+        return await this.identifyDependencyRisks(agents, execution);
+      case 'propose_refactor_candidates':
+        return await this.proposeRefactorCandidates(agents, execution);
+      case 'estimate_effort_and_risk':
+        return await this.estimateEffortAndRisk(agents, execution);
+      case 'define_success_metrics':
+        return await this.defineSuccessMetrics(agents, execution);
+      case 'identify_required_tests':
+        return await this.identifyRequiredTests(agents, execution);
+      case 'define_verification_steps':
+        return await this.defineVerificationSteps(agents, execution);
+      case 'write_baseline_report':
+        return await this.writeBaselineReport(execution);
+      case 'prioritize_execution_order':
+        return await this.prioritizeExecutionOrder(execution);
+      case 'apply_refactors':
+        return await this.applyRefactorPlan(execution);
+      case 'update_docs_and_logs':
+        return await this.updateRefactorDocs(execution);
+
+      // Documentation sync workflow (minimal viable implementation)
+      case 'scan_all_documentation':
+        return await this.scanAllDocumentation(execution);
+      case 'validate_cross_references':
+        return await this.validateCrossReferences(execution);
+      case 'check_version_consistency':
+        return await this.checkVersionConsistency(execution);
+      case 'identify_outdated_content':
+        return await this.identifyOutdatedContent(execution);
+      case 'verify_roadmap_accuracy':
+        return await this.compareRoadmapVsReality(execution);
+      case 'validate_technical_claims':
+        return await this.validateTechnicalClaims(execution);
+      case 'check_feature_status':
+        return await this.scanCodebaseForFeatures(execution);
+      case 'fix_inconsistencies':
+      case 'update_dates_versions':
+      case 'refresh_content':
+      case 'improve_clarity':
+        return await this.writeDocumentationSyncReport(execution);
+
       // No-op actions (configured in swarm-agents.json but not yet implemented)
       case 'identify_completion_status':
       case 'check_documentation_impact':
@@ -202,6 +253,200 @@ export class SwarmOrchestrator {
         logger.warn(`Unknown action: ${action}`);
         return null;
     }
+  }
+
+  private async listDocumentationFiles(): Promise<string[]> {
+    const files = await glob('{docs/**/*.md,README.md,Description.md,AGENTS.md,TEST_COVERAGE_REPORT.md,TEST_COVERAGE_DRY_RUN.md}', {
+      cwd: this.projectRoot,
+      nodir: true,
+      ignore: ['**/node_modules/**', '**/.git/**']
+    });
+    return files;
+  }
+
+  private async scanAllDocumentation(execution: SwarmWorkflowExecution): Promise<any> {
+    const files = await this.listDocumentationFiles();
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: 'documentation-agent',
+      message: `Documentation audit: found ${files.length} markdown file(s) to scan.`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+    return { files };
+  }
+
+  private async validateCrossReferences(execution: SwarmWorkflowExecution): Promise<any> {
+    const files = await this.listDocumentationFiles();
+    const broken: Array<{ from: string; to: string }> = [];
+
+    const linkRe = /\[[^\]]+\]\(([^)]+)\)/g;
+    for (const file of files) {
+      const abs = path.join(this.projectRoot, file);
+      const content = await fs.readFile(abs, 'utf-8');
+      for (const m of content.matchAll(linkRe)) {
+        const targetRaw = (m[1] || '').trim();
+        if (!targetRaw) continue;
+        if (targetRaw.startsWith('http:') || targetRaw.startsWith('https:') || targetRaw.startsWith('mailto:')) continue;
+        if (targetRaw.startsWith('#')) continue;
+
+        const targetNoAnchor = targetRaw.split('#')[0] || '';
+        if (!targetNoAnchor) continue;
+
+        const resolved = targetNoAnchor.startsWith('/')
+          ? path.join(this.projectRoot, targetNoAnchor.replace(/^\//, ''))
+          : path.resolve(path.dirname(abs), targetNoAnchor);
+
+        try {
+          await fs.stat(resolved);
+        } catch {
+          broken.push({ from: file, to: targetRaw });
+        }
+      }
+    }
+
+    const sample = broken.slice(0, 5).map(b => `${b.from} -> ${b.to}`).join('; ');
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: 'documentation-agent',
+      message: `Cross-reference check: ${broken.length} broken link(s) detected${sample ? ` (sample: ${sample})` : ''}.`,
+      type: broken.length > 0 ? 'concern' : 'comment',
+      timestamp: new Date()
+    });
+    return { broken };
+  }
+
+  private async checkVersionConsistency(execution: SwarmWorkflowExecution): Promise<any> {
+    const keyDocs = [
+      'docs/planning/project-status.md',
+      'docs/planning/strategy/feature_roadmap.md',
+      'docs/implementation-plans/push-notifications-plan.md',
+    ];
+    const issues: string[] = [];
+
+    const dateRe = /Last Updated[:\s]+(.+?)\s*$/gim;
+    const now = new Date();
+
+    for (const doc of keyDocs) {
+      const abs = path.join(this.projectRoot, doc);
+      let content = '';
+      try {
+        content = await fs.readFile(abs, 'utf-8');
+      } catch {
+        issues.push(`${doc}: missing file`);
+        continue;
+      }
+
+      const matches = [...content.matchAll(dateRe)];
+      if (matches.length === 0) {
+        issues.push(`${doc}: missing "Last Updated" marker`);
+        continue;
+      }
+
+      const raw = String(matches[0][1] || '').trim();
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) {
+        issues.push(`${doc}: unparseable Last Updated "${raw}"`);
+        continue;
+      }
+      if (d.getTime() > now.getTime() + 24 * 60 * 60 * 1000) {
+        issues.push(`${doc}: Last Updated is in the future (${raw})`);
+      }
+    }
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: 'documentation-agent',
+      message: issues.length > 0
+        ? `Version/date consistency: ${issues.length} issue(s) (${issues.slice(0, 3).join('; ')})`
+        : 'Version/date consistency: no issues found in key docs.',
+      type: issues.length > 0 ? 'concern' : 'comment',
+      timestamp: new Date()
+    });
+    return { issues };
+  }
+
+  private async identifyOutdatedContent(execution: SwarmWorkflowExecution): Promise<any> {
+    const findings: string[] = [];
+    const statusDoc = path.join(this.projectRoot, 'docs/planning/project-status.md');
+    const coverageSummary = path.join(this.projectRoot, 'app/coverage/coverage-summary.json');
+
+    try {
+      const content = await fs.readFile(statusDoc, 'utf-8');
+      const claim = content.match(/Code Coverage:\s*~?(\d+)%/i);
+      if (claim) {
+        findings.push(`project-status.md claims code coverage ~${claim[1]}%`);
+      }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const raw = await fs.readFile(coverageSummary, 'utf-8');
+      const json = JSON.parse(raw);
+      const total = json?.total;
+      if (total?.statements?.pct != null) {
+        findings.push(`latest jest coverage (statements) is ${total.statements.pct}%`);
+      }
+      if (total?.branches?.pct != null) {
+        findings.push(`latest jest coverage (branches) is ${total.branches.pct}%`);
+      }
+    } catch {
+      findings.push('no local jest coverage summary found (run app tests with --coverage to generate)');
+    }
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: 'documentation-agent',
+      message: `Outdated-content scan: ${findings.join(' | ')}`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+    return { findings };
+  }
+
+  private async validateTechnicalClaims(execution: SwarmWorkflowExecution): Promise<any> {
+    // Minimal implementation: record that claims are not validated automatically.
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: 'technical-agent',
+      message: 'Technical-claims validation: minimal checker active (link + date + roadmap drift only).',
+      type: 'comment',
+      timestamp: new Date()
+    });
+    return { ok: true };
+  }
+
+  private async writeDocumentationSyncReport(execution: SwarmWorkflowExecution): Promise<any> {
+    // Dry-run: emit a summary to stdout via discussions, but do not write files.
+    if (execution.dry_run) {
+      execution.discussions.push({
+        id: this.generateId(),
+        agent_id: 'documentation-agent',
+        message: 'Documentation sync: dry-run mode (no files written).',
+        type: 'comment',
+        timestamp: new Date()
+      });
+      return null;
+    }
+
+    const reportPath = path.join(this.projectRoot, 'docs/quality/documentation-sync-report.md');
+    await fs.mkdir(path.dirname(reportPath), { recursive: true });
+
+    const lines = [
+      '# Documentation Sync Report',
+      '',
+      `Date: ${new Date().toISOString().slice(0, 10)}`,
+      `Workflow: ${execution.workflow_name}`,
+      '',
+      '## Notes',
+      ...execution.discussions.map(d => `- [${d.agent_id}] ${d.message}`),
+      ''
+    ];
+
+    await fs.writeFile(reportPath, lines.join('\n'), 'utf-8');
+    execution.changes_applied = [...(execution.changes_applied || []), 'docs/quality/documentation-sync-report.md'];
+    return { report: 'docs/quality/documentation-sync-report.md' };
   }
 
   /**
@@ -483,6 +728,315 @@ export class SwarmOrchestrator {
         timestamp: new Date()
       });
     }
+  }
+
+  private async scanCodebaseHotspots(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<any> {
+    const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
+    const files = await glob('app/src/**/*.{ts,tsx}', {
+      cwd: this.projectRoot,
+      nodir: true,
+      ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
+    });
+
+    const stats = await Promise.all(files.map(async (file) => {
+      const content = await fs.readFile(path.join(this.projectRoot, file), 'utf-8');
+      const lines = content.split('\n').length;
+      const decisionPoints = (content.match(/\bif\b|\belse if\b|\bfor\b|\bwhile\b|\bcase\b|\?\s*[^:]+:|&&|\|\|/g) || []).length;
+      return { file, lines, decisionPoints };
+    }));
+
+    const byLines = [...stats].sort((a, b) => b.lines - a.lines).slice(0, 10);
+    const byComplexity = [...stats].sort((a, b) => b.decisionPoints - a.decisionPoints).slice(0, 10);
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: auditor?.id ?? 'maintainability-auditor',
+      message: `Hotspot scan complete. Top by size: ${byLines[0]?.file ?? 'n/a'} (${byLines[0]?.lines ?? 0} lines). Top by complexity: ${byComplexity[0]?.file ?? 'n/a'} (${byComplexity[0]?.decisionPoints ?? 0} decision points).`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+
+    return { byLines, byComplexity };
+  }
+
+  private async detectCodeSmells(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<any> {
+    const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
+    const files = await glob('app/src/**/*.{ts,tsx}', {
+      cwd: this.projectRoot,
+      nodir: true,
+      ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
+    });
+
+    let anyCount = 0;
+    let todoCount = 0;
+    let consoleCount = 0;
+    let deepNestingCount = 0;
+
+    for (const file of files) {
+      const content = await fs.readFile(path.join(this.projectRoot, file), 'utf-8');
+      anyCount += (content.match(/:\s*any\b/g) || []).length;
+      todoCount += (content.match(/\bTODO\b|\bFIXME\b/g) || []).length;
+      consoleCount += (content.match(/console\.(log|warn|error|debug)/g) || []).length;
+      deepNestingCount += content.split('\n').filter(line => line.search(/\S/) > 12).length;
+    }
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: auditor?.id ?? 'maintainability-auditor',
+      message: `Code smell summary: any=${anyCount}, todos=${todoCount}, console=${consoleCount}, deep_nesting_lines=${deepNestingCount}.`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+
+    return { anyCount, todoCount, consoleCount, deepNestingCount };
+  }
+
+  private async identifyDependencyRisks(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<any> {
+    const curator = agents.find(a => a.id === 'dependency-curator') ?? agents[0];
+    const files = await glob('app/src/**/*.{ts,tsx}', {
+      cwd: this.projectRoot,
+      nodir: true,
+      ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
+    });
+
+    const graph = new Map<string, Set<string>>();
+    for (const file of files) {
+      const content = await fs.readFile(path.join(this.projectRoot, file), 'utf-8');
+      const imports = content.match(/from\s+['"]([^'"]+)['"]/g) || [];
+      const deps = new Set<string>();
+      for (const imp of imports) {
+        const m = imp.match(/from\s+['"]([^'"]+)['"]/);
+        if (!m) continue;
+        const spec = m[1];
+        if (!spec.startsWith('.')) continue;
+        const resolved = path.normalize(path.join(path.dirname(file), spec));
+        deps.add(resolved);
+      }
+      graph.set(file, deps);
+    }
+
+    const cycles: string[][] = [];
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+
+    const visit = (node: string, stack: string[]) => {
+      if (visiting.has(node)) {
+        const idx = stack.indexOf(node);
+        if (idx !== -1) cycles.push(stack.slice(idx));
+        return;
+      }
+      if (visited.has(node)) return;
+      visiting.add(node);
+      stack.push(node);
+      for (const dep of graph.get(node) || []) {
+        const key = dep.endsWith('.ts') || dep.endsWith('.tsx') ? dep : `${dep}.ts`;
+        const target = graph.has(key) ? key : graph.has(`${dep}.tsx`) ? `${dep}.tsx` : dep;
+        if (graph.has(target)) visit(target, stack);
+      }
+      stack.pop();
+      visiting.delete(node);
+      visited.add(node);
+    };
+
+    for (const file of files) visit(file, []);
+
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: curator?.id ?? 'dependency-curator',
+      message: `Dependency scan complete: ${cycles.length} potential cycle(s) detected.`,
+      type: 'comment',
+      timestamp: new Date()
+    });
+
+    return { cycles: cycles.slice(0, 5) };
+  }
+
+  private async proposeRefactorCandidates(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const refactorAgent = agents.find(a => a.id === 'refactor-agent') ?? agents[0];
+    const hotspots = execution.phases.find(p => p.name === 'audit')?.outputs?.scan_codebase_hotspots as any;
+    const byLines = hotspots?.byLines ?? [];
+
+    const candidates = byLines.slice(0, 3);
+    for (const candidate of candidates) {
+      const title = `Refactor: Reduce complexity in ${candidate.file}`;
+      execution.proposals.push({
+        id: this.generateId(),
+        agent_id: refactorAgent?.id ?? 'refactor-agent',
+        type: 'refactor_plan',
+        title,
+        description: `File has ${candidate.lines} lines and ${candidate.decisionPoints} decision points.`,
+        rationale: 'Large file and high branching reduce maintainability.',
+        changes: [{
+          file: candidate.file,
+          operation: 'update',
+          preview: 'Split into smaller modules/functions and reduce nesting.'
+        }],
+        impact: candidate.lines > 400 ? 'high' : 'medium',
+        confidence: 0.75,
+        created_at: new Date()
+      });
+    }
+  }
+
+  private async estimateEffortAndRisk(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const tech = agents.find(a => a.role === 'technical_assessment') ?? agents[0];
+    for (const proposal of execution.proposals) {
+      execution.discussions.push({
+        id: this.generateId(),
+        agent_id: tech?.id ?? 'technical-agent',
+        proposal_id: proposal.id,
+        message: `Effort estimate: ${proposal.impact === 'high' ? '5-8 days' : '2-4 days'}. Risk: ${proposal.impact === 'high' ? 'medium' : 'low'}.`,
+        type: 'comment',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  private async defineSuccessMetrics(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: auditor?.id ?? 'maintainability-auditor',
+      message: 'Success metrics: reduce file size by 30%, reduce decision points by 25%, keep tests green, no API changes.',
+      type: 'suggestion',
+      timestamp: new Date()
+    });
+  }
+
+  private async identifyRequiredTests(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const guard = agents.find(a => a.id === 'regression-guard') ?? agents[0];
+    for (const proposal of execution.proposals) {
+      execution.discussions.push({
+        id: this.generateId(),
+        agent_id: guard?.id ?? 'regression-guard',
+        proposal_id: proposal.id,
+        message: 'Add or update unit tests around core flows touched by this refactor (providers, hooks, services).',
+        type: 'suggestion',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  private async defineVerificationSteps(
+    agents: SwarmAgent[],
+    execution: SwarmWorkflowExecution
+  ): Promise<void> {
+    const guard = agents.find(a => a.id === 'regression-guard') ?? agents[0];
+    execution.discussions.push({
+      id: this.generateId(),
+      agent_id: guard?.id ?? 'regression-guard',
+      message: 'Verification: run npm test, smoke test add beer flow, verify no runtime warnings in console.',
+      type: 'comment',
+      timestamp: new Date()
+    });
+  }
+
+  private async prioritizeExecutionOrder(execution: SwarmWorkflowExecution): Promise<void> {
+    const score = (p: AgentProposal) => (p.impact === 'high' ? 3 : p.impact === 'medium' ? 2 : 1) * p.confidence;
+    execution.proposals.sort((a, b) => score(b) - score(a));
+  }
+
+  private async applyRefactorPlan(execution: SwarmWorkflowExecution): Promise<void> {
+    if (execution.dry_run) return;
+    await this.writeRefactorReport(execution);
+  }
+
+  private async updateRefactorDocs(execution: SwarmWorkflowExecution): Promise<void> {
+    if (execution.dry_run) return;
+    await this.writeRefactorReport(execution);
+  }
+
+  private async writeRefactorReport(execution: SwarmWorkflowExecution): Promise<void> {
+    const reportPath = path.join(this.projectRoot, 'docs/refactoring/refactor-swarm-report.md');
+    const lines = [
+      '# Maintainability Refactor Swarm Report',
+      '',
+      `Date: ${new Date().toISOString().slice(0, 10)}`,
+      `Workflow: ${execution.workflow_name}`,
+      '',
+      '## Proposals',
+      ...execution.proposals.map(p => `- ${p.title} (${p.impact}, confidence ${p.confidence})`),
+      '',
+      '## Discussions',
+      ...execution.discussions.map(d => `- [${d.agent_id}] ${d.message}`),
+      ''
+    ];
+    await fs.writeFile(reportPath, lines.join('\n'), 'utf-8');
+  }
+
+  private async writeBaselineReport(execution: SwarmWorkflowExecution): Promise<void> {
+    if (execution.dry_run) return;
+    const reportPath = path.join(this.projectRoot, 'docs/quality/baseline-maintenance-report.md');
+    await fs.mkdir(path.dirname(reportPath), { recursive: true });
+    const hotspotNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('hotspot'));
+    const codeSmellNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('code smell'));
+    const dependencyNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('dependency'));
+    const roadmapNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('roadmap'));
+    const verificationNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('verification'));
+    const testNotes = execution.discussions.filter(d => d.message.toLowerCase().includes('test'));
+
+    const lines = [
+      '# Baseline Maintenance Report',
+      '',
+      `Date: ${new Date().toISOString().slice(0, 10)}`,
+      `Workflow: ${execution.workflow_name}`,
+      '',
+      '## Hotspots',
+      ...(hotspotNotes.length > 0
+        ? hotspotNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## Code Smells',
+      ...(codeSmellNotes.length > 0
+        ? codeSmellNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## Dependency Risks',
+      ...(dependencyNotes.length > 0
+        ? dependencyNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## Roadmap Drift',
+      ...(roadmapNotes.length > 0
+        ? roadmapNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## Required Tests',
+      ...(testNotes.length > 0
+        ? testNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## Verification Steps',
+      ...(verificationNotes.length > 0
+        ? verificationNotes.map(d => `- [${d.agent_id}] ${d.message}`)
+        : ['- None noted.']),
+      '',
+      '## All Notes',
+      ...execution.discussions.map(d => `- [${d.agent_id}] ${d.message}`),
+      ''
+    ];
+    await fs.writeFile(reportPath, lines.join('\n'), 'utf-8');
   }
 
   /**

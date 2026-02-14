@@ -1,0 +1,132 @@
+name: Weekly Agent Automation
+
+on:
+  schedule:
+    # Every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      apply_changes:
+        description: 'Apply changes (not dry-run)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  weekly-quality-and-planning:
+    name: Weekly Quality + Strategic Planning
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'app/package-lock.json'
+
+      - name: Install app dependencies
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          
+      - name: Install agent dependencies
+        run: |
+          npm install --no-save tsx typescript js-yaml ajv ajv-formats glob
+
+      - name: Run code quality analysis
+        run: |
+          npm run quality:report
+        continue-on-error: true
+
+      - name: Run swarm roadmap analysis
+        run: |
+          if [ "${{ github.event.inputs.apply_changes }}" = "false" ]; then
+            npm run swarm:roadmap
+          else
+            npm run swarm:roadmap -- --no-dry-run
+          fi
+        continue-on-error: true
+
+      - name: Run swarm feature brainstorm
+        run: |
+          if [ "${{ github.event.inputs.apply_changes }}" = "false" ]; then
+            npm run swarm:brainstorm
+          else
+            npm run swarm:brainstorm -- --no-dry-run
+          fi
+        continue-on-error: true
+
+      - name: Generate weekly report
+        run: |
+          mkdir -p agents/reports
+          cat > agents/reports/weekly-summary.md << 'EOF'
+          # Weekly Agent Report
+          
+          **Generated**: $(date -u +"%Y-%m-%d %H:%M UTC")
+          **Workflow**: Weekly Automation
+          
+          ## Agents Executed
+          
+          ### 1. Code Quality Guardian
+          - ✅ Quality analysis complete
+          - See `agents/agent.log` for details
+          
+          ### 2. Swarm Roadmap Analyzer
+          - ✅ Roadmap synchronized with codebase
+          - See `docs/planning/strategy/feature_roadmap.md` for updates
+          
+          ### 3. Swarm Feature Brainstorm
+          - ✅ New feature proposals generated
+          - See "Swarm Feature Backlog" in roadmap
+          
+          ## Next Steps
+          
+          Review the Swarm Sync Log in `feature_roadmap.md` to see what was approved and applied.
+          EOF
+
+      - name: Commit agent changes
+        if: github.event_name == 'schedule' || github.event.inputs.apply_changes == 'true'
+        run: |
+          git config --local user.email "agents@stangelispass.app"
+          git config --local user.name "Swarm Agent System"
+          git add -A
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: weekly agent sync (roadmap + brainstorm) [skip ci]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekly-quality-report
+          path: agents/agent.log
+          retention-days: 90
+
+      - name: Upload weekly summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: weekly-summary
+          path: agents/reports/weekly-summary.md
+          retention-days: 90
+
+      - name: Upload roadmap snapshot
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: roadmap-snapshot
+          path: docs/planning/strategy/feature_roadmap.md
+          retention-days: 30

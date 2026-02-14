@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
+import * as Haptics from 'expo-haptics';
 
 /**
  * Hook to handle incoming notifications (foreground and tapped)
@@ -33,6 +34,7 @@ export const useNotificationHandler = () => {
         // Handle notifications received while app is in foreground
         notificationListener.current = Notifications.addNotificationReceivedListener((notification) => {
             const { title, body } = notification.request.content;
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
 
             // Show alert for foreground notifications
             Alert.alert(
@@ -55,6 +57,8 @@ export const useNotificationHandler = () => {
             // Navigate based on notification type
             if (data?.type === 'admin_broadcast') {
                 // Navigate to home screen for broadcasts
+                router.push('/');
+            } else if (data?.type === 'new_round') {
                 router.push('/');
             } else if (data?.type === 'leader_change') {
                 // Navigate to home screen for leader changes

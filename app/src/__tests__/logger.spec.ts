@@ -1,4 +1,4 @@
-import { reportError } from '@/utils/logger';
+const { reportError } = jest.requireActual('@/utils/logger');
 
 describe('logger', () => {
     test('reportError returns normalized payload', () => {

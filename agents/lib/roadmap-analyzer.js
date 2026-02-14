@@ -74,10 +74,24 @@ export class RoadmapAnalyzer {
             const featureRegex = /(?:^|\n)#{3,4}\s+\d+\.\s+(.+?)(?=\n|$)/g;
             const featureMatches = phaseContent.matchAll(featureRegex);
             for (const featureMatch of featureMatches) {
+                const raw = featureMatch[1] || '';
+                const rawLower = raw.toLowerCase();
+                // Determine status from the feature line itself first (don't inherit phase "COMPLETE"
+                // into items explicitly marked PLANNED).
+                let itemStatus = status;
+                if (raw.includes('✅') || rawLower.includes('(complete') || rawLower.includes('shipped') || rawLower.includes('implemented')) {
+                    itemStatus = 'complete';
+                }
+                else if (raw.includes('⏳') || raw.includes('🔄') || rawLower.includes('in progress') || rawLower.includes('(progress') || rawLower.includes('wip')) {
+                    itemStatus = 'in_progress';
+                }
+                else if (rawLower.includes('(planned') || rawLower.includes('planned')) {
+                    itemStatus = 'planned';
+                }
                 features.push({
-                    name: featureMatch[1].replace(/✅|⏳|🔄/g, '').trim(),
+                    name: raw.replace(/✅|⏳|🔄/g, '').trim(),
                     phase: phaseSection.split(':')[0].trim(),
-                    status,
+                    status: itemStatus,
                     description: ''
                 });
             }
@@ -106,17 +120,22 @@ export class RoadmapAnalyzer {
         const featureKeywords = {
             Comments: ['CommentsSection', 'useComments', 'services/comments', 'addComment'],
             'Pour Animation': ['Lottie', 'pour', 'Haptics'],
-            'Cost Tracker': ['CostSummaryCard', 'costCalculator', 'beer_price'],
+            'Cost Tracker': ['CostSummaryCard', 'costCalculator', 'beer_price', 'beer_price_to_events'],
             'Push Notifications': ['expo-notifications', 'device_tokens', 'notificationProcessor', 'notifications.ts'],
             Badges: ['BadgeIcon', 'achievements', 'checkAchievements', 'badge_type'],
             Velocity: ['VelocityMetricCard', 'calculateVelocity', 'statsCalculator'],
             Heatmap: ['prepareTrendData', 'gifted-charts', 'heatmap'],
-            'Enhanced UX': ['audio.ts', 'event_game_stats', 'MVP', 'streak'],
+            'Enhanced User Experience': ['audio.ts', 'event_game_stats', 'MVP', 'streak', 'SimplePourFeedback'],
             'Swarm Agents': ['SwarmOrchestrator', 'ConsensusEngine', 'swarm-agents.json'],
             'React Query': ['useQuery', 'QueryProvider', '@tanstack/react-query'],
             Offline: ['MMKV', 'persistQueryClient', 'persistQueryClientRestore']
         };
-        const filesToScan = await glob('{app/src/**/*.{ts,tsx,js,jsx},app/supabase/**/*.{sql},agents/**/*.{ts,js,mjs,json,yml,yaml}}', {
+        const appFilesToScan = await glob('{app/src/**/*.{ts,tsx,js,jsx},app/supabase/**/*.{sql}}', {
+            cwd: this.projectRoot,
+            nodir: true,
+            ignore: ['**/node_modules/**', '**/.git/**']
+        });
+        const agentFilesToScan = await glob('{agents/**/*.{ts,js,mjs,json,yml,yaml}}', {
             cwd: this.projectRoot,
             nodir: true,
             ignore: ['**/node_modules/**', '**/.git/**']
@@ -139,6 +158,9 @@ export class RoadmapAnalyzer {
         };
         for (const [featureName, keywords] of Object.entries(featureKeywords)) {
             const foundFiles = [];
+            const filesToScan = featureName === 'Swarm Agents'
+                ? [...appFilesToScan, ...agentFilesToScan]
+                : appFilesToScan;
             for (const file of filesToScan) {
                 // quick path check first
                 if (keywords.some(k => file.toLowerCase().includes(k.toLowerCase()))) {
@@ -158,6 +180,37 @@ export class RoadmapAnalyzer {
         }
         return evidence;
     }
+
+    normalizeName(input) {
+        return input
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim();
+    }
+
+    findMatchingEvidenceKey(featureName, evidenceKeys) {
+        const f = this.normalizeName(featureName);
+        const fTokens = new Set(f.split(' ').filter(Boolean));
+        let best = null;
+        for (const key of evidenceKeys) {
+            const k = this.normalizeName(key);
+            if (!k)
+                continue;
+            if (f.includes(k) || k.includes(f)) {
+                // Strong match.
+                return key;
+            }
+            const kTokens = new Set(k.split(' ').filter(Boolean));
+            let overlap = 0;
+            for (const t of kTokens)
+                if (fTokens.has(t))
+                    overlap++;
+            const score = overlap / Math.max(1, kTokens.size);
+            if (!best || score > best.score)
+                best = { key, score };
+        }
+        return best && best.score >= 0.6 ? best.key : null;
+    }
     /**
      * Detect gaps between roadmap and implementation
      */
@@ -165,16 +218,22 @@ export class RoadmapAnalyzer {
         const gaps = [];
         for (const feature of features) {
             const roadmapStatus = feature.status;
-            const hasEvidence = Array.from(evidence.keys()).some(key => feature.name.toLowerCase().includes(key.toLowerCase()));
+            const matchingKey = this.findMatchingEvidenceKey(feature.name, Array.from(evidence.keys()));
+            const hasEvidence = !!matchingKey;
             let actualStatus = 'not_started';
             let evidenceFiles = [];
             if (hasEvidence) {
-                const matchingKey = Array.from(evidence.keys()).find(key => feature.name.toLowerCase().includes(key.toLowerCase()));
                 evidenceFiles = matchingKey ? (evidence.get(matchingKey) || []) : [];
                 actualStatus = evidenceFiles.length > 3 ? 'complete' : 'partial';
             }
+            // Normalize roadmap statuses to the same shape as actualStatus for comparison.
+            const expectedActual = roadmapStatus === 'planned'
+                ? 'not_started'
+                : roadmapStatus === 'in_progress'
+                    ? 'partial'
+                    : 'complete';
             // Detect mismatch
-            if (roadmapStatus !== actualStatus) {
+            if (expectedActual !== actualStatus) {
                 const gapSeverity = this.calculateGapSeverity(roadmapStatus, actualStatus);
                 gaps.push({
                     feature_name: feature.name,

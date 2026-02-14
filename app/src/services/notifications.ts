@@ -4,19 +4,17 @@ import Constants from 'expo-constants';
 import { supabase } from './supabase';
 import { NotificationTemplates } from './notificationTemplates';
 import { getEventMembers } from './events';
-import { reportError, logWarn } from '@/utils/logger';
+import { reportError, logExpected } from '@/utils/logger';
 
 // Register the device for Expo push notifications and store the token in Supabase
 export async function registerForPushNotificationsAsync(userId: string) {
   try {
     if (Platform.OS === 'web') {
-      // Expected on web - just log as info, not error
-      console.log('[Notifications] Push notifications not supported on web (expected)');
+      logExpected('Push notifications not supported on web', 'Notifications');
       return null;
     }
     if (!Device.isDevice) {
-      // Expected on simulator - just log as info, not error
-      console.log('[Notifications] Push notifications require physical device (simulator detected - expected)');
+      logExpected('Push notifications require physical device (simulator detected)', 'Notifications');
       return null;
     }
 
@@ -53,15 +51,25 @@ export async function registerForPushNotificationsAsync(userId: string) {
       .select();
     if (error) {
       if ((error as any)?.code === 'PGRST205' || (error as any)?.code === '42P01') {
-        console.log('[Notifications] table `device_tokens` not found. Push token not persisted. (expected)');
+        logExpected('table `device_tokens` not found. Push token not persisted.', 'Notifications');
       } else {
-        reportError(new Error('Failed to save push token to Supabase:', error.message || error), { scope: 'notifications', action: 'replace_console' });
+        reportError(new Error('Failed to save push token to Supabase'), {
+          scope: 'notifications',
+          action: 'register_push_token',
+          userId,
+          metadata: { cause: (error as any)?.message || String(error) },
+        });
       }
     }
 
     return token;
   } catch (err) {
-    reportError(new Error('Error registering for push notifications:', err), { scope: 'notifications', action: 'replace_console' });
+    reportError(new Error('Error registering for push notifications'), {
+      scope: 'notifications',
+      action: 'register_push_token',
+      userId,
+      metadata: { cause: err instanceof Error ? err.message : String(err) },
+    });
     return null;
   }
 }
@@ -69,10 +77,22 @@ export async function registerForPushNotificationsAsync(userId: string) {
 export async function unregisterPushToken(userId: string, token: string) {
   try {
     const { error } = await supabase.from('device_tokens').delete().match({ user_id: userId, token });
-    if (error) reportError(new Error('Failed to remove push token:', error.message || error), { scope: 'notifications', action: 'replace_console' });
+    if (error) {
+      reportError(new Error('Failed to remove push token'), {
+        scope: 'notifications',
+        action: 'unregister_push_token',
+        userId,
+        metadata: { cause: (error as any)?.message || String(error) },
+      });
+    }
     return !error;
   } catch (err) {
-    reportError(new Error('Error removing push token:', err), { scope: 'notifications', action: 'replace_console' });
+    reportError(new Error('Error removing push token'), {
+      scope: 'notifications',
+      action: 'unregister_push_token',
+      userId,
+      metadata: { cause: err instanceof Error ? err.message : String(err) },
+    });
     return false;
   }
 }
@@ -162,13 +182,18 @@ export async function sendAdminBroadcast(
     );
 
     // 7. Enqueue notifications
-    const notifications = optedInUsers.map((user: any) => ({
-      user_id: user.id,
+    const payload = {
       type: 'admin_broadcast',
       title: template.title,
       body: template.body,
       data: template.data,
       priority: template.priority || 'normal',
+      sender_id: senderId,
+    };
+    const notifications = optedInUsers.map((user: any) => ({
+      event_id: eventId,
+      target_user: user.id,
+      payload,
     }));
 
     const { error: insertError } = await supabase
@@ -195,3 +220,70 @@ export async function sendAdminBroadcast(
   }
 }
 
+/**
+ * Enqueue "new round started" notifications for opted-in users.
+ * Uses admin_broadcasts preference for now (same opt-in surface).
+ */
+export async function enqueueNewRoundNotifications(
+  eventId: string,
+  eventName: string,
+  senderId: string
+): Promise<{ success: boolean; count: number; error?: string }> {
+  try {
+    const { data: users } = await (supabase
+      .from('users') as any)
+      .select('id, notification_prefs');
+
+    const optedInUsers = (users || []).filter((user: any) => {
+      if (user.id === senderId) return false;
+      const prefs = user.notification_prefs as any;
+      return prefs?.admin_broadcasts !== false;
+    });
+
+    if (optedInUsers.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    const template = NotificationTemplates.newRound(eventName, eventId);
+    const payload = {
+      type: 'new_round',
+      title: template.title,
+      body: template.body,
+      data: template.data,
+      event_name: eventName,
+      priority: template.priority || 'normal',
+      sender_id: senderId,
+    };
+
+    const notifications = optedInUsers.map((user: any) => ({
+      event_id: eventId,
+      target_user: user.id,
+      payload,
+    }));
+
+    const { error: insertError } = await supabase
+      .from('notifications')
+      .insert(notifications as any);
+
+    if (insertError) {
+      if ((insertError as any)?.code === 'PGRST205' || (insertError as any)?.code === '42P01') {
+        reportError(new Error('Cannot enqueue new round notifications: Supabase table `notifications` does not exist.'), {
+          scope: 'notifications',
+          action: 'enqueue_new_round',
+        });
+        return { success: false, count: 0, error: 'Notifications table not found' };
+      }
+      throw insertError;
+    }
+
+    return { success: true, count: optedInUsers.length };
+  } catch (err: any) {
+    reportError(err, {
+      scope: 'notifications',
+      action: 'enqueue_new_round',
+      userId: senderId,
+      metadata: { eventId },
+    });
+    return { success: false, count: 0, error: err.message || 'Failed to enqueue new round notifications' };
+  }
+}

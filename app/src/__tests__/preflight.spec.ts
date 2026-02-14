@@ -45,11 +45,9 @@ describe('preflight', () => {
         const { Platform } = require('react-native');
         const original = Platform.OS;
         Platform.OS = 'web';
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
         const ok = warnIfWebUnsupported('share');
         expect(ok).toBe(false);
         Platform.OS = original;
-        warnSpy.mockRestore();
     });
 
     test('assertSupabaseConfigured throws with scope/action in production', () => {
@@ -70,14 +68,14 @@ describe('preflight', () => {
 
     test('warnIfWebUnsupported logs once per feature', () => {
         jest.resetModules();
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        jest.clearAllMocks();
         jest.doMock('react-native', () => ({
             Platform: { OS: 'web' },
         }));
         const { warnIfWebUnsupported: warnOnce } = require('@/utils/preflight');
+        const { logWarn } = require('@/utils/logger');
         warnOnce('share');
         warnOnce('share');
-        expect(warnSpy).toHaveBeenCalledTimes(1);
-        warnSpy.mockRestore();
+        expect(logWarn).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { useOfflineMutations } from '@/hooks/useOfflineMutations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -45,9 +45,11 @@ describe('useOfflineMutations', () => {
   it('should add mutation to queue', async () => {
     const { result } = renderHook(() => useOfflineMutations());
 
-    await result.current.addToQueue({
-      type: 'addBeer',
-      data: { userId: 'user1', addedBy: 'user2', eventId: 'event1' },
+    await act(async () => {
+      await result.current.addToQueue({
+        type: 'addBeer',
+        data: { userId: 'user1', addedBy: 'user2', eventId: 'event1' },
+      });
     });
 
     await waitFor(() => {
@@ -83,7 +85,9 @@ describe('useOfflineMutations', () => {
       expect(result.current.queue).toHaveLength(2);
     });
 
-    await result.current.removeFromQueue('mutation-1');
+    await act(async () => {
+      await result.current.removeFromQueue('mutation-1');
+    });
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);
@@ -109,7 +113,9 @@ describe('useOfflineMutations', () => {
       expect(result.current.queue).toHaveLength(1);
     });
 
-    await result.current.clearQueue();
+    await act(async () => {
+      await result.current.clearQueue();
+    });
 
     await waitFor(() => {
       expect(result.current.queue).toEqual([]);
@@ -135,7 +141,9 @@ describe('useOfflineMutations', () => {
     });
 
     const mockExecutor = jest.fn().mockResolvedValue(undefined);
-    await result.current.processQueue(mockExecutor);
+    await act(async () => {
+      await result.current.processQueue(mockExecutor);
+    });
 
     await waitFor(() => {
       expect(mockExecutor).toHaveBeenCalledWith(expect.objectContaining({
@@ -168,7 +176,9 @@ describe('useOfflineMutations', () => {
     });
 
     const mockExecutor = jest.fn().mockRejectedValue(new Error('Network error'));
-    await result.current.processQueue(mockExecutor);
+    await act(async () => {
+      await result.current.processQueue(mockExecutor);
+    });
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);

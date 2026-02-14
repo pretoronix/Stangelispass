@@ -149,20 +149,20 @@ Stängelispass is a social beer tracking app that has evolved from MVP to a feat
 ## 📚 Documentation
 
 ### For Developers
-- `AGENTS.md` - Quick commands and runbook
-- `HIGH_PRIORITY_REFACTORING.md` - Architecture changes
-- `MIGRATION_GUIDE.md` - React Query migration guide
-- `docs/developer/` - Technical documentation
-- `docs/implementation-plans/` - Feature plans
+- `docs/development/agents.md` - Quick commands and runbook
+- `docs/refactoring/high-priority-items.md` - Architecture changes
+- `docs/refactoring/migration-guides.md` - React Query migration guide
+- `docs/development/developer/` - Technical documentation
+- `docs/implementation-plans/` - Feature plans (completed plans in `docs/implementation-plans/completed/`)
 
 ### For Deployment
-- `DEPLOYMENT_CHECKLIST.md` - Deployment verification
-- `COMMENTS_INTEGRATION_SUMMARY.md` - Latest feature docs
-- `POUR_ANIMATION_SUMMARY.md` - Animation implementation
+- `docs/deployment/deployment-checklist.md` - Deployment verification
+- `docs/archive/comments-integration-summary.md` - Latest feature docs
+- `docs/archive/pour-animation-summary.md` - Animation implementation
 
 ### For Product
-- `docs/strategy/feature_roadmap.md` - Complete roadmap
-- `docs/strategy/business_plan.md` - Business strategy
+- `docs/planning/strategy/feature_roadmap.md` - Complete roadmap
+- `docs/planning/strategy/business_plan.md` - Business strategy
 - `Description.md` - Project overview
 
 ## 🎮 Key Features
@@ -211,9 +211,28 @@ Stängelispass is a social beer tracking app that has evolved from MVP to a feat
    - Round start notifications
    - Achievement unlocks
 
-2. **Connection Monitoring** - NetInfo integration
+2. **Connection Monitoring** - NetInfo integration (Implemented)
    - Offline indicators
    - Automatic retry on reconnect
+
+   **Detailed Plan (executed)**
+   1. **Network status hook**
+      - Use `@react-native-community/netinfo` to track `isConnected`/`isInternetReachable`.
+      - Mirror status into React Query’s `onlineManager` so queries pause/resume automatically.
+   2. **User-facing offline indicators**
+      - Add a top-level `OfflineBanner` with offline + reconnect states.
+      - Animate slide-in/out and show “Back online” confirmation.
+   3. **Reconnect behavior**
+      - Trigger React Query automatic retry/refetch via `onlineManager`.
+      - Keep offline mutation queue in AsyncStorage to preserve user actions.
+   4. **Test coverage**
+      - Unit tests for initial status, offline transition, reconnection, and cleanup.
+
+   **Implementation**
+   - Hook: `app/src/hooks/useNetworkStatus.ts`
+   - UI: `app/src/components/ui/OfflineBanner.tsx`
+   - Root integration: `app/src/app/_layout.tsx`
+   - Tests: `app/src/__tests__/useNetworkStatus.spec.ts`
 
 3. **Viral UX Features** - Shareability
    - Share beer logs to social media
@@ -301,10 +320,10 @@ Everything. All core features are stable and tested.
 ## 🎓 Developer Onboarding
 
 New developers should read:
-1. `AGENTS.md` - Quick start guide
+1. `docs/development/agents.md` - Quick start guide
 2. `Description.md` - Project overview
-3. `HIGH_PRIORITY_REFACTORING.md` - Architecture
-4. `docs/strategy/feature_roadmap.md` - Feature map
+3. `docs/refactoring/high-priority-items.md` - Architecture
+4. `docs/planning/strategy/feature_roadmap.md` - Feature map
 
 Then run:
 ```bash

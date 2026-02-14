@@ -16,9 +16,11 @@ import { useApp } from '@/providers/AppProvider';
 import * as Haptics from 'expo-haptics';
 import { BeerLogItemWithComments } from '@/components/features/BeerLogItemWithComments';
 import { reportError } from '@/utils/logger';
+import { useLiveBeerLogPreference } from '@/hooks/settings';
 
 export default function HistoryScreen() {
     const { activeEvent, eventPermissions, currentUser } = useApp();
+    const liveBeerLogPreference = useLiveBeerLogPreference();
     const [beers, setBeers] = useState<Beer[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -38,6 +40,8 @@ export default function HistoryScreen() {
     useEffect(() => {
         fetchData();
 
+        if (!liveBeerLogPreference.enabled) return;
+
         const channel = supabase
             .channel('beers_history_changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'beers' }, () => {
@@ -48,7 +52,7 @@ export default function HistoryScreen() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchData]);
+    }, [fetchData, liveBeerLogPreference.enabled]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);

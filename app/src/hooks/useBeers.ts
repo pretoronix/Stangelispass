@@ -98,24 +98,21 @@ export const useBeers = () => {
                 }
             } else {
                 setGameStatsAvailable(false);
-                const counts = (await getBeerCountByUser()) as UserBeerCount[];
-                const sorted = counts.sort((a, b) => b.count - a.count);
-                setBeerCounts(sorted);
-                setTotalBeers(sorted.reduce((sum, u) => sum + u.count, 0));
-                setLeaderInfo(sorted[0] || null);
-                setLeaderLead(sorted[0]?.count || 0);
+                setBeerCounts([]);
+                setTotalBeers(0);
+                setLeaderInfo(null);
+                setLeaderLead(0);
                 setHotStreak(null);
+                setRawBeers([]);
             }
 
             // Fetch raw beers for velocity calculation if there's an active event
-            if (activeEvent) {
+            if (activeEvent?.id) {
                 const { data } = await supabase
                     .from('beers')
                     .select('created_at')
                     .eq('event_id', activeEvent.id);
                 setRawBeers(data || []);
-            } else {
-                setRawBeers([]);
             }
         } catch (e) {
             reportError(new Error('Failed to fetch beer data:', e), { scope: 'useBeers', action: 'replace_console' });
@@ -133,6 +130,8 @@ export const useBeers = () => {
     useEffect(() => {
         fetchData();
 
+        if (!activeEvent?.id) return;
+
         const channel = supabase
             .channel('beers_changes')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'beers' }, () => {
@@ -149,7 +148,7 @@ export const useBeers = () => {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchData]);
+    }, [activeEvent?.id, fetchData]);
 
     return { beerCounts, rawBeers, totalBeers, leaderInfo, leaderLead, hotStreak, gameStatsAvailable, loading, refreshing, refresh };
 };

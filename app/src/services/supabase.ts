@@ -25,6 +25,7 @@ export type {
     EventMembership,
     EventGameStats,
     EventLeaderState,
+    EventLeaderSnapshot,
     Beer,
     BeerStamp,
     BeerStampIssueResult,
@@ -69,6 +70,7 @@ export {
     getEventMembership,
     getEventGameStats,
     getEventLeaderState,
+    createLeaderEventSnapshot,
     getEventMembers,
     upsertEventMemberRole,
     removeEventMember,
@@ -77,3 +79,10 @@ export {
     addToWallOfFame,
     resetEventData,
 } from './events';
+
+// Lifetime pass codes
+export {
+    listLifetimePassCodes,
+    createLifetimePassCode,
+    redeemLifetimePassCode,
+} from './lifetimePass';

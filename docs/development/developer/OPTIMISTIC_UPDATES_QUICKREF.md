@@ -77,7 +77,7 @@ app/src/
 └── __tests__/
     └── optimisticUpdates.spec.tsx (new)
 
-docs/developer/
+docs/development/developer/
 └── optimistic-updates.md (comprehensive guide)
 ```
 
@@ -98,4 +98,4 @@ cd app && npm test -- optimisticUpdates
 
 ## 📚 Full Documentation
 
-See: `docs/developer/optimistic-updates.md`
+See: `docs/development/developer/optimistic-updates.md`

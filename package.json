@@ -18,7 +18,8 @@
     "swarm:roadmap": "node agents/scripts/run-swarm-analysis.mjs roadmap_update",
     "swarm:docs": "node agents/scripts/run-swarm-analysis.mjs documentation_sync",
     "swarm:brainstorm": "node agents/scripts/run-swarm-analysis.mjs feature_brainstorm",
-    "swarm:dry-run": "node agents/scripts/run-swarm-analysis.mjs"
+    "swarm:dry-run": "node agents/scripts/run-swarm-analysis.mjs",
+    "swarm:weekly": "npm run swarm:roadmap -- --no-dry-run && npm run swarm:brainstorm -- --no-dry-run"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

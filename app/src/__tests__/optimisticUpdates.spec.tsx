@@ -15,7 +15,7 @@ describe('Optimistic Updates', () => {
     beforeEach(() => {
         queryClient = new QueryClient({
             defaultOptions: {
-                queries: { retry: false },
+                queries: { retry: false, gcTime: Infinity },
                 mutations: { retry: false },
             },
         });

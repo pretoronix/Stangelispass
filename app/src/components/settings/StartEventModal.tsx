@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Modal } from 'react-native';
 import { colors, spacing, borderRadius } from '@/lib/theme';
 import { Button } from '@/components/ui/Button';
-import { PASS_TYPES, PassType } from '@/utils/settings/settingsConstants';
-import { capitalizeFirst } from '@/utils/settings/settingsHelpers';
+import { PASS_TYPES, PASS_TYPE_LABELS, PASS_TYPE_DURATIONS_DAYS, PASS_TYPE_PRICES_CHF, PassType } from '@/utils/settings/settingsConstants';
 
 interface StartEventModalProps {
     visible: boolean;
@@ -24,6 +23,9 @@ export const StartEventModal: React.FC<StartEventModalProps> = ({
     onCancel,
     onStart,
 }) => {
+    const durationDays = PASS_TYPE_DURATIONS_DAYS[passType];
+    const price = PASS_TYPE_PRICES_CHF[passType];
+    const durationLabel = durationDays === 1 ? '1 day' : `${durationDays} days`;
     return (
         <Modal
             visible={visible}
@@ -57,11 +59,14 @@ export const StartEventModal: React.FC<StartEventModalProps> = ({
                                         passType === type && styles.passTypeTextActive,
                                     ]}
                                 >
-                                    {capitalizeFirst(type)}
+                                    {PASS_TYPE_LABELS[type]}
                                 </Text>
                             </Pressable>
                         ))}
                     </View>
+                    <Text style={styles.passTypeHint}>
+                        {`${durationLabel} · CHF ${price.toFixed(2)}`}
+                    </Text>
                     <View style={styles.modalActions}>
                         <Button
                             title="Cancel"
@@ -115,6 +120,11 @@ const styles = StyleSheet.create({
     passTypeRow: {
         flexDirection: 'row',
         gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    passTypeHint: {
+        color: colors.textSecondary,
+        fontSize: 14,
         marginBottom: spacing.md,
     },
     passTypeButton: {

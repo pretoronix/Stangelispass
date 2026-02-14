@@ -1,10 +1,10 @@
 import { Database } from '@/types/database.types';
-import { BadgeType } from './achievements';
-
 /**
  * Type definitions for Supabase entities
  * Centralizes all type exports for better organization
  */
+
+export type BadgeType = 'hat_trick' | 'early_bird' | 'night_owl' | 'century_club' | 'first_blood' | 'weekend_warrior';
 
 export type NotificationPrefs = {
     leader_change: boolean;
@@ -31,10 +31,13 @@ export type EventPermissions = {
 };
 
 export type User = Database['public']['Tables']['users']['Row'] & {
-    subscription_tier?: 'pilsner' | 'craft' | 'brewmaster';
+    subscription_tier?: 'pilsner' | 'craft' | 'brewmaster' | 'lifetime';
     weight_kg?: number;
     gender?: 'male' | 'female' | 'neutral';
     notification_prefs?: NotificationPrefs;
+    lifetime_pass?: boolean;
+    lifetime_pass_granted_at?: string | null;
+    lifetime_pass_code?: string | null;
 };
 
 export type Event = {
@@ -42,7 +45,7 @@ export type Event = {
     name: string;
     created_by: string;
     is_active: boolean;
-    pass_type: 'free' | 'standard' | 'weekend';
+    pass_type: 'free' | 'day' | 'week' | 'year';
     expires_at: string;
     created_at: string;
     beer_price?: number; // Price per beer in CHF (default: 5.00)
@@ -78,6 +81,24 @@ export type EventLeaderState = {
     beer_count: number;
     updated_at: string;
     user?: Pick<User, 'id' | 'name' | 'is_admin'> | null;
+};
+
+export type EventLeaderSnapshot = {
+    id: string;
+    event_id: string;
+    leader_id: string | null;
+    leader_beer_count: number;
+    leader_points: number;
+    leader_last_beer_at: string | null;
+    leaderboard: Array<{
+        user_id: string;
+        name: string;
+        beer_count: number;
+        points?: number;
+        last_beer_at?: string | null;
+    }> | null;
+    snapshot_at: string;
+    created_at: string;
 };
 
 export type Beer = Database['public']['Tables']['beers']['Row'] & {
@@ -129,4 +150,3 @@ export type CommentInput = {
 export type CommentUpdate = {
     text: string;
 };
-

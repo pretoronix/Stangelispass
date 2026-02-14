@@ -2,7 +2,7 @@
 
 ## ✅ Implementation Complete
 
-The pour animation feature has been successfully implemented following the detailed plan in `docs/implementation-plans/10-pour-animation.md`.
+The pour animation feature has been successfully implemented following the detailed plan in `docs/implementation-plans/completed/10-pour-animation.md`.
 
 ## 📋 What Was Built
 
@@ -101,8 +101,8 @@ The pour animation feature has been successfully implemented following the detai
 - `app/src/utils/deviceInfo.ts` (52 lines)
 - `app/src/assets/animations/beer-pour.json` (4KB)
 - `app/src/__tests__/pourAnimation.spec.tsx` (155 lines)
-- `docs/developer/pour-animation.md` (9KB)
-- `docs/developer/POUR_ANIMATION_QUICKREF.md` (3.5KB)
+- `docs/development/developer/pour-animation.md` (9KB)
+- `docs/development/developer/POUR_ANIMATION_QUICKREF.md` (3.5KB)
 
 ### Modified
 - `app/package.json` - Added lottie-react-native

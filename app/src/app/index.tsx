@@ -8,7 +8,6 @@ import {
     Platform,
     Alert,
     Modal,
-    ScrollView,
     Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,15 +17,13 @@ import { useBeers } from '@/hooks/useBeers';
 import { LeaderboardItem } from '@/components/features/LeaderboardItem';
 import { useApp } from '@/providers/AppProvider';
 import { BlurView } from 'expo-blur';
-import { Button } from '@/components/ui/Button';
 import { MVPModal } from '@/components/features/MVPModal';
 import { QRScanner } from '@/components/features/QRScanner';
 import { calculateVelocity, prepareTrendData } from '@/utils/statsCalculator';
-import { VelocityMetricCard } from '@/components/features/VelocityMetricCard';
 import { InviteModal } from '@/components/features/InviteModal';
 import { BroadcastModal } from '@/components/notifications/BroadcastModal';
 import { Confetti } from '@/components/animations/Confetti';
-import { labels } from '@/ui/labels';
+import { usePacePreset } from '@/hooks/usePacePreset';
 
 // Extracted hooks
 import { useLeaderboardAnnouncements } from '@/hooks/home/useLeaderboardAnnouncements';
@@ -36,9 +33,10 @@ import { useExportData } from '@/hooks/home/useExportData';
 
 // Extracted components
 import { StartRoundPrompt } from '@/components/home/StartRoundPrompt';
+import { HomeHeader } from '@/components/home/HomeHeader';
 
 // Extracted utilities
-import { selectRandomPayer, calculateBill } from '@/utils/home/homeHelpers';
+import { selectRandomPayer, calculateBill, getEventDurationLabel, getStartRoundPriceLabel } from '@/utils/home/homeHelpers';
 
 // Extracted styles
 import { homeScreenStyles as styles } from '@/styles/screens/homeScreenStyles';
@@ -50,6 +48,7 @@ export default function HomeScreen() {
     const [scanning, setScanning] = useState(false);
     const [showInvite, setShowInvite] = useState(false);
     const [showBroadcast, setShowBroadcast] = useState(false);
+    const pacePreset = usePacePreset();
 
     // Custom hooks for business logic
     const { leaderAnnouncement, streakAnnouncement, showConfetti, setShowConfetti } = useLeaderboardAnnouncements({
@@ -79,9 +78,30 @@ export default function HomeScreen() {
     const beerPriceFromEvent = activeEvent?.beer_price ?? 5.00;
     const totalBill = calculateBill(totalBeers, beerPriceFromEvent);
     const winner = leaderInfo ?? beerCounts[0];
+    const startRoundPriceLabel = getStartRoundPriceLabel();
+    const activeEventDurationLabel = getEventDurationLabel(activeEvent?.pass_type);
+    const handleSavePace = React.useCallback(() => {
+        if (groupVelocity <= 0) return;
+        pacePreset.savePace(groupVelocity);
+    }, [groupVelocity, pacePreset.savePace]);
 
     // Event handlers
     const handleWhoPays = () => selectRandomPayer(beerCounts);
+    const handleStartRound = async () => {
+        if (!currentUser) {
+            eventActions.openNamePrompt('start_round');
+            return;
+        }
+        if (!eventPermissions.canManageEvent) {
+            Alert.alert('Admin Required', 'Only admins can start a round and invite others.');
+            return;
+        }
+        try {
+            await startEvent('Night Out', 'day');
+        } catch (_e) {
+            Alert.alert('Error', 'Failed to start round. Please try again.');
+        }
+    };
 
     if (loading && !refreshing) {
         return (
@@ -131,6 +151,23 @@ export default function HomeScreen() {
                 }}
             />
 
+            <InviteModal
+                visible={showInvite}
+                onClose={() => setShowInvite(false)}
+                eventId={activeEvent?.id || ''}
+                eventName={activeEvent?.name || ''}
+            />
+
+            {activeEvent && currentUser && (
+                <BroadcastModal
+                    visible={showBroadcast}
+                    onClose={() => setShowBroadcast(false)}
+                    eventId={activeEvent.id}
+                    senderId={currentUser.id}
+                    eventName={activeEvent.name}
+                />
+            )}
+
             {/* iOS Style Translucent Header Background */}
             {Platform.OS === 'ios' && (
                 <BlurView intensity={80} tint="dark" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as any} />
@@ -157,174 +194,34 @@ export default function HomeScreen() {
                     />
                 }
                 ListHeaderComponent={
-                    <View style={styles.header}>
-                        {!activeEvent ? (
-                            <View style={styles.startEventBanner}>
-                                <Ionicons name="sparkles" size={24} color={colors.primary} />
-                                <Text style={styles.startEventText}>No active round</Text>
-                                <Button
-                                    title="Start a Round ($0.99)"
-                                    testID={labels.home.startRound.testID}
-                                    accessibilityLabel={labels.home.startRound.accessibilityLabel}
-                                    onPress={async () => {
-                                        if (!currentUser) {
-                                            eventActions.openNamePrompt('start_round');
-                                            return;
-                                        }
-                                        if (!eventPermissions.canManageEvent) {
-                                            Alert.alert('Admin Required', 'Only admins can start a round and invite others.');
-                                            return;
-                                        }
-                                        try {
-                                            await startEvent('Night Out', 'standard');
-                                        } catch (_e) {
-                                            Alert.alert('Error', 'Failed to start round. Please try again.');
-                                        }
-                                    }}
-                                    style={styles.startButton}
-                                />
-                                <Text style={styles.trialText}>First round is always free!</Text>
-                            </View>
-                        ) : (
-                            <View style={styles.activeEventBanner}>
-                                <View style={styles.eventInfo}>
-                                    <Text style={styles.activeEventName}>{activeEvent.name}</Text>
-                                    <Text style={styles.activeEventTime}>Active for 24h</Text>
-                                </View>
-                                <ScrollView
-                                    horizontal
-                                    showsHorizontalScrollIndicator={false}
-                                    contentContainerStyle={styles.bannerActions}
-                                >
-                                    <Button
-                                        title="Who Pays?"
-                                        testID={labels.home.whoPays.testID}
-                                        accessibilityLabel={labels.home.whoPays.accessibilityLabel}
-                                        onPress={handleWhoPays}
-                                        icon="cash-outline"
-                                        variant="ghost"
-                                        style={styles.whoPaysButton}
-                                    />
-                                    <Button
-                                        title="Export"
-                                        testID={labels.home.export.testID}
-                                        accessibilityLabel={labels.home.export.accessibilityLabel}
-                                        onPress={() => handleExportData(activeEvent)}
-                                        icon="download-outline"
-                                        variant="ghost"
-                                        style={styles.exportButton}
-                                    />
-                                    <Button
-                                        title="Scan"
-                                        testID={labels.home.scan.testID}
-                                        accessibilityLabel={labels.home.scan.accessibilityLabel}
-                                        onPress={() => setScanning(true)}
-                                        icon="qr-code"
-                                        style={styles.scanButton}
-                                    />
-                                    <Button
-                                        title="End"
-                                        testID={labels.home.endRound.testID}
-                                        accessibilityLabel={labels.home.endRound.accessibilityLabel}
-                                        onPress={closeEvent}
-                                        variant="ghost"
-                                        disabled={!eventPermissions.canCloseEvent}
-                                        style={styles.endButton}
-                                    />
-                                    {eventPermissions.canInvite && (
-                                        <Button
-                                            title="Invite"
-                                            testID={labels.home.invite.testID}
-                                            accessibilityLabel={labels.home.invite.accessibilityLabel}
-                                            onPress={() => setShowInvite(true)}
-                                            icon="person-add-outline"
-                                            variant="ghost"
-                                            style={styles.inviteButton}
-                                        />
-                                    )}
-                                    {eventPermissions.canManageEvent && (
-                                        <Button
-                                            title="Notify All"
-                                            testID="home.notify_all"
-                                            accessibilityLabel="Broadcast notification to all members"
-                                            onPress={() => setShowBroadcast(true)}
-                                            icon="megaphone-outline"
-                                            variant="ghost"
-                                            style={styles.broadcastButton}
-                                        />
-                                    )}
-                                </ScrollView>
-                            </View>
-                        )}
-
-                        <InviteModal
-                            visible={showInvite}
-                            onClose={() => setShowInvite(false)}
-                            eventId={activeEvent?.id || ''}
-                            eventName={activeEvent?.name || ''}
-                        />
-
-                        {activeEvent && currentUser && (
-                            <BroadcastModal
-                                visible={showBroadcast}
-                                onClose={() => setShowBroadcast(false)}
-                                eventId={activeEvent.id}
-                                senderId={currentUser.id}
-                                eventName={activeEvent.name}
-                            />
-                        )}
-
-                        {activeEvent && rawBeers.length > 0 && (
-                            <VelocityMetricCard
-                                velocity={groupVelocity}
-                                trendData={trendData}
-                            />
-                        )}
-
-                        {gameStatsAvailable && (leaderInfo || hotStreak) && (
-                            <View style={styles.gameSummaryRow}>
-                                {leaderInfo && (
-                                    <View style={styles.gameChip}>
-                                        <Ionicons name="trophy" size={14} color={colors.primary} />
-                                        <Text style={styles.gameChipText}>
-                                            Leader: {leaderInfo.name} (+{leaderLead} pts)
-                                        </Text>
-                                    </View>
-                                )}
-                                {hotStreak && (
-                                    <View style={styles.gameChip}>
-                                        <Ionicons name="flame" size={14} color={colors.primary} />
-                                        <Text style={styles.gameChipText}>
-                                            Hot Streak: {hotStreak.name} x{hotStreak.streakCount}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
-                        )}
-
-                        {(leaderAnnouncement || streakAnnouncement) && (
-                            <View style={styles.gameBanner}>
-                                <Ionicons name="sparkles" size={16} color={colors.primary} />
-                                <Text style={styles.gameBannerText}>
-                                    {leaderAnnouncement || streakAnnouncement}
-                                </Text>
-                            </View>
-                        )}
-
-                        <View style={styles.statsContainer}>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>Stngeli Total</Text>
-                                <Text style={styles.statValue}>{totalBeers}</Text>
-                            </View>
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>Total Bill</Text>
-                                <Text style={styles.statValue}>{totalBill.toFixed(2)} CHF</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.divider} />
-                        <Text style={styles.largeTitle}>Leaderboard</Text>
-                    </View>
+                    <HomeHeader
+                        activeEvent={activeEvent}
+                        currentUser={currentUser}
+                        eventPermissions={eventPermissions}
+                        onStartRound={handleStartRound}
+                        onWhoPays={handleWhoPays}
+                        onExport={() => activeEvent && handleExportData(activeEvent)}
+                        onScan={() => setScanning(true)}
+                        onEnd={closeEvent}
+                        onInvite={() => setShowInvite(true)}
+                        onBroadcast={() => setShowBroadcast(true)}
+                        startRoundPriceLabel={startRoundPriceLabel}
+                        activeEventDurationLabel={activeEventDurationLabel}
+                        showVelocityCard={!!activeEvent && (rawBeers.length > 0 || !!pacePreset.savedPace)}
+                        groupVelocity={groupVelocity}
+                        trendData={trendData}
+                        savedPace={pacePreset.savedPace}
+                        onSavePace={handleSavePace}
+                        onClearSavedPace={pacePreset.clearSavedPace}
+                        gameStatsAvailable={gameStatsAvailable}
+                        leaderInfo={leaderInfo}
+                        leaderLead={leaderLead}
+                        hotStreak={hotStreak}
+                        leaderAnnouncement={leaderAnnouncement}
+                        streakAnnouncement={streakAnnouncement}
+                        totalBeers={totalBeers}
+                        totalBill={totalBill}
+                    />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

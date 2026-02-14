@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, act, waitFor } from '@testing-library/react-native';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { Text } from 'react-native';
 
@@ -23,24 +23,29 @@ jest.mock('expo-constants', () => ({
 }));
 
 describe('QueryProvider', () => {
-    it('should render children', () => {
+    it('should render children', async () => {
         const { getByText } = render(
             <QueryProvider>
                 <Text>Test Child</Text>
             </QueryProvider>
         );
-        
-        expect(getByText('Test Child')).toBeTruthy();
+        await act(async () => {});
+        await waitFor(() => {
+            expect(getByText('Test Child')).toBeTruthy();
+        });
     });
 
-    it('should provide query client context', () => {
+    it('should provide query client context', async () => {
         // Simply verify it renders without crashing
         const result = render(
             <QueryProvider>
                 <Text>Query Provider Test</Text>
             </QueryProvider>
         );
-        
-        expect(result.getByText('Query Provider Test')).toBeTruthy();
+
+        await act(async () => {});
+        await waitFor(() => {
+            expect(result.getByText('Query Provider Test')).toBeTruthy();
+        });
     });
 });

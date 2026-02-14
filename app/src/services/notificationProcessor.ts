@@ -1,47 +1,84 @@
+import { NotificationTemplates } from './notificationTemplates';
+
 export type FetchLike = (input: string, init?: any) => Promise<{ ok: boolean; status: number; json: () => Promise<any>; text: () => Promise<string>; }>;
 
-type NotificationType = 'leader_change' | 'milestone';
+type NotificationType = 'leader_change' | 'milestone' | 'admin_broadcast' | 'new_round';
 
 const DEFAULT_PREFS = {
   leader_change: true,
   milestones: [5, 10, 20],
+  admin_broadcasts: true,
 };
 
-const normalizePrefs = (raw: any): { leader_change: boolean; milestones: number[] } => {
+const normalizePrefs = (raw: any): { leader_change: boolean; milestones: number[]; admin_broadcasts: boolean } => {
   if (!raw || typeof raw !== 'object') return DEFAULT_PREFS;
   const leader_change = typeof raw.leader_change === 'boolean' ? raw.leader_change : DEFAULT_PREFS.leader_change;
+  const admin_broadcasts = typeof raw.admin_broadcasts === 'boolean' ? raw.admin_broadcasts : DEFAULT_PREFS.admin_broadcasts;
   const milestones: number[] = Array.isArray(raw.milestones)
     ? raw.milestones.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n) && n > 0)
     : [...DEFAULT_PREFS.milestones];
-  return { leader_change, milestones: [...new Set<number>(milestones)].sort((a, b) => a - b) };
+  return { leader_change, admin_broadcasts, milestones: [...new Set<number>(milestones)].sort((a, b) => a - b) };
 };
 
 const notificationTypeOf = (n: any): NotificationType => {
   const t = n?.payload?.type;
-  return t === 'milestone' ? 'milestone' : 'leader_change';
+  if (t === 'milestone' || t === 'admin_broadcast' || t === 'new_round') return t;
+  return 'leader_change';
 };
 
 const recipientOf = (n: any, notificationType: NotificationType) => {
   if (notificationType === 'milestone') {
     return n?.target_user || n?.payload?.user_id || n?.payload?.target_user_id || null;
   }
+  if (notificationType === 'admin_broadcast' || notificationType === 'new_round') {
+    return n?.target_user || n?.payload?.user_id || null;
+  }
   return n?.target_user || n?.new_leader || n?.payload?.new || n?.payload?.new_leader || null;
 };
 
 const buildPushMessage = (n: any, notificationType: NotificationType) => {
-  const eventId = n?.event_id;
-  if (notificationType === 'milestone') {
-    const milestone = Number(n?.payload?.milestone || 0);
+  const eventId = n?.event_id || n?.payload?.event_id;
+
+  if (notificationType === 'admin_broadcast') {
+    const title = n?.payload?.title || 'Admin broadcast';
+    const body = n?.payload?.body || '';
+    const data = { type: 'admin_broadcast', event_id: eventId, ...(n?.payload?.data || {}) };
+    const sound = n?.payload?.sound || 'default';
+    const priority = n?.payload?.priority || 'high';
+    return { title, body, data, sound, priority };
+  }
+
+  if (notificationType === 'new_round') {
+    const eventName = n?.payload?.event_name || 'New round';
+    const template = NotificationTemplates.newRound(eventName, eventId);
     return {
-      title: `Milestone: ${milestone} beers`,
-      body: `You reached ${milestone} beers in the current round.`,
-      data: { type: 'milestone', event_id: eventId, milestone },
+      title: template.title,
+      body: template.body,
+      data: { type: 'new_round', event_id: eventId },
+      sound: template.sound || 'default',
+      priority: template.priority || 'normal',
     };
   }
+
+  if (notificationType === 'milestone') {
+    const milestone = Number(n?.payload?.milestone || 0);
+    const template = NotificationTemplates.milestone('You', milestone, eventId);
+    return {
+      title: template.title,
+      body: template.body,
+      data: { type: 'milestone', event_id: eventId, milestone },
+      sound: template.sound || 'default',
+      priority: template.priority || 'normal',
+    };
+  }
+
+  const template = NotificationTemplates.leaderChange('You', eventId);
   return {
-    title: 'Lead change',
-    body: `You are currently leading event ${eventId}.`,
+    title: template.title,
+    body: template.body,
     data: { type: 'leader_change', event_id: eventId },
+    sound: template.sound || 'default',
+    priority: template.priority || 'high',
   };
 };
 
@@ -110,7 +147,11 @@ export async function processNotificationsBatch(opts: {
 
     const enabled = notificationType === 'leader_change'
       ? prefs.leader_change
-      : prefs.milestones.includes(Number(n?.payload?.milestone || 0));
+      : notificationType === 'admin_broadcast' || notificationType === 'new_round'
+        ? prefs.admin_broadcasts
+        : notificationType === 'milestone'
+          ? prefs.milestones.includes(Number(n?.payload?.milestone || 0))
+          : true;
 
     if (!enabled) {
       await markProcessed();
@@ -150,6 +191,8 @@ export async function processNotificationsBatch(opts: {
         title: message.title,
         body: message.body,
         data: message.data,
+        sound: message.sound || 'default',
+        priority: message.priority || 'high',
       };
       return fetchFn(expoEndpoint, {
         method: 'POST',

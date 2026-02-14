@@ -34,7 +34,7 @@ export const useEventManagement = ({
 }: UseEventManagementProps) => {
     const [showEventModal, setShowEventModal] = useState(false);
     const [newEventName, setNewEventName] = useState('');
-    const [newEventPassType, setNewEventPassType] = useState<PassType>('standard');
+    const [newEventPassType, setNewEventPassType] = useState<PassType>('day');
 
     const availableUsersForEvent = useMemo(() => {
         if (!activeEvent) return [];

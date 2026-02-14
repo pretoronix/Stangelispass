@@ -197,20 +197,74 @@ Coverage:   No regression
 
 New code can opt-in to query hooks and new components gradually.
 
-## Next Steps (Optional)
+## Enhancement Implementation Plans
 
-### Immediate Wins
-1. Migrate AppProvider to use React Query hooks
-2. Replace manual state in screens with query hooks
-3. Add React Query DevTools for debugging
-4. Implement optimistic updates for mutations
+### 1. Migrate AppProvider to React Query hooks (Immediate)
+**Goal**: Remove manual refresh flows and reduce duplicated state.  
+**Scope**: `app/src/providers/AppProvider.tsx`, `app/src/providers/appProviderLifecycle.ts`, `app/src/hooks/useUsersQuery.ts`, `app/src/hooks/useEventsQuery.ts`  
+**Plan**:
+1. Replace `refreshUsers`/`refreshEventMembers` with `useUsers()`/`useEventMembers()` data.
+2. Remove local state for data already stored in React Query (keep only UI selections).
+3. On realtime updates, call `queryClient.invalidateQueries` instead of setState.
+4. Update context shape to expose query data + loading flags.
+5. Add/update AppProvider tests to validate subscriptions + invalidations.
+**Acceptance**:
+- AppProvider no longer fetches data directly.
+- Subscriptions still trigger data refresh via query invalidation.
 
-### Future Enhancements
-1. Add query prefetching for predictable navigation
-2. Implement infinite scroll with pagination
-3. Add offline support with query persistence
-4. Set up background sync strategies
-5. Add query performance monitoring
+### 2. Replace manual state in screens with query hooks (Immediate)
+**Goal**: Consistent data flow and fewer redundant API calls.  
+**Scope**: `app/src/app/index.tsx`, `app/src/app/history.tsx`, `app/src/app/settings.tsx` and related components  
+**Plan**:
+1. Inventory manual data fetching with `rg -n \"refresh|fetch\"`.
+2. Replace with query hooks (`useBeersQuery`, `useBeerCounts`, `useEventMembers`, etc.).
+3. Remove local loading state now handled by hook `isLoading`.
+4. Ensure loading states and errors are surfaced in UI.
+**Acceptance**:
+- No manual `useEffect` fetches in primary screens.
+
+### 3. Query prefetching for predictable navigation (Planned)
+**Goal**: Reduce perceived latency during tab switches.  
+**Scope**: `app/src/app/_layout.tsx`, `app/src/hooks/home/*`  
+**Plan**:
+1. Identify top flows (Home → Add → History).
+2. Use `queryClient.prefetchQuery` on tab focus for relevant queries.
+3. Keep stale times conservative (30–60s) to avoid excess traffic.
+4. Add dev-only logs for prefetch hit rates.
+**Acceptance**:
+- Repeat tab visits render cached data in < 100ms.
+
+### 4. Pagination / infinite scroll (Planned)
+**Goal**: Scale large history lists without memory/perf issues.  
+**Scope**: `app/src/hooks/useBeersQuery.ts`, `app/src/app/history.tsx`  
+**Plan**:
+1. Add `useInfiniteQuery` for beer history with cursor-based paging.
+2. Update UI to append pages and show loading footer.
+3. Add server ordering + limit to `getBeers` service.
+4. Add tests for paging behavior.
+**Acceptance**:
+- History handles 1000+ items smoothly.
+
+### 5. Offline support with query persistence (Planned)
+**Goal**: Preserve cache across restarts and improve offline UX.  
+**Scope**: `app/src/providers/QueryProvider.tsx`, `app/src/utils/cacheManager.ts`  
+**Plan**:
+1. Add `persistQueryClient` with AsyncStorage persister.
+2. Define cache TTLs per query type.
+3. Add “Clear Cache” action in Settings.
+4. Add tests for hydration + cache clearing.
+**Acceptance**:
+- Cached data restores without network after restart.
+
+### 6. Background sync & query performance monitoring (Planned)
+**Goal**: Improve reliability and observability.  
+**Scope**: `app/src/providers/QueryProvider.tsx`, `app/src/utils/logger.ts`  
+**Plan**:
+1. Use React Query’s focus/online events for background refresh.
+2. Add optional query timing logs in dev mode.
+3. Alert on repeated failures for key queries.
+**Acceptance**:
+- Background refresh works reliably and is measurable in logs.
 
 ## Migration Strategy
 

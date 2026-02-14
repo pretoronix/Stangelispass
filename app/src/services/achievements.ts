@@ -1,6 +1,5 @@
-import type { Beer } from './supabase';
-
-export type BadgeType = 'hat_trick' | 'early_bird' | 'night_owl' | 'century_club' | 'first_blood' | 'weekend_warrior';
+import type { Beer, BadgeType } from './types';
+export type { BadgeType } from './types';
 
 export interface Badge {
     id: BadgeType;

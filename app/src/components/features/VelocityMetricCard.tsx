@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,9 +7,21 @@ import { Ionicons } from '@expo/vector-icons';
 interface VelocityMetricCardProps {
     velocity: number;
     trendData: { value: number, label: string }[];
+    savedPace?: number | null;
+    onSavePace?: () => void;
+    onClearSavedPace?: () => void;
 }
 
-export const VelocityMetricCard = ({ velocity, trendData }: VelocityMetricCardProps) => {
+export const VelocityMetricCard = ({
+    velocity,
+    trendData,
+    savedPace,
+    onSavePace,
+    onClearSavedPace,
+}: VelocityMetricCardProps) => {
+    const canSave = typeof onSavePace === 'function' && velocity > 0;
+    const hasSaved = typeof savedPace === 'number' && savedPace > 0;
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -28,6 +40,39 @@ export const VelocityMetricCard = ({ velocity, trendData }: VelocityMetricCardPr
                     />
                 </View>
             </View>
+
+            {(canSave || hasSaved) && (
+                <View style={styles.paceRow}>
+                    {hasSaved && (
+                        <View style={styles.savedPace}>
+                            <Ionicons name="repeat" size={14} color={colors.textMuted} />
+                            <Text style={styles.savedPaceText}>
+                                Saved pace: {savedPace?.toFixed(1)} beers/hr
+                            </Text>
+                        </View>
+                    )}
+                    <View style={styles.paceActions}>
+                        {canSave && (
+                            <TouchableOpacity
+                                onPress={onSavePace}
+                                style={styles.paceButton}
+                                accessibilityLabel="Save current pace"
+                            >
+                                <Text style={styles.paceButtonText}>Save pace</Text>
+                            </TouchableOpacity>
+                        )}
+                        {hasSaved && onClearSavedPace && (
+                            <TouchableOpacity
+                                onPress={onClearSavedPace}
+                                style={[styles.paceButton, styles.clearButton]}
+                                accessibilityLabel="Clear saved pace"
+                            >
+                                <Text style={[styles.paceButtonText, styles.clearButtonText]}>Clear</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            )}
 
             {trendData.length > 1 && (
                 <View style={styles.chartWrapper}>
@@ -107,5 +152,41 @@ const styles = StyleSheet.create({
     chartWrapper: {
         marginTop: spacing.md,
         alignItems: 'center',
+    },
+    paceRow: {
+        marginTop: spacing.sm,
+        gap: spacing.xs,
+    },
+    savedPace: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    savedPaceText: {
+        ...typography.caption,
+        color: colors.textMuted,
+    },
+    paceActions: {
+        flexDirection: 'row',
+        gap: spacing.sm,
+    },
+    paceButton: {
+        paddingVertical: spacing.xs,
+        paddingHorizontal: spacing.sm,
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.surfaceLight,
+        backgroundColor: colors.surfaceLight,
+    },
+    paceButtonText: {
+        ...typography.caption,
+        color: colors.textPrimary,
+        fontWeight: '600',
+    },
+    clearButton: {
+        backgroundColor: 'transparent',
+    },
+    clearButtonText: {
+        color: colors.textMuted,
     },
 });

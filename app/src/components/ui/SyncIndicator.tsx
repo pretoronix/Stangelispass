@@ -1,25 +1,26 @@
 import React from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
-import { useOfflineMutations } from '@/hooks/useOfflineMutations';
+import { useApp } from '@/providers/AppProvider';
 import { colors, spacing } from '@/lib/theme';
 
 export function SyncIndicator() {
-  const { queue, isProcessing } = useOfflineMutations();
-  
-  if (queue.length === 0) return null;
+  const { offlineQueue, offlineQueueProcessing } = useApp();
+  const queueLength = offlineQueue.length;
+
+  if (queueLength === 0) return null;
   
   return (
     <View style={styles.container}>
-      {isProcessing ? (
+      {offlineQueueProcessing ? (
         <>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={styles.text}>
-            Syncing {queue.length} change{queue.length > 1 ? 's' : ''}...
+            Syncing {queueLength} change{queueLength > 1 ? 's' : ''}...
           </Text>
         </>
       ) : (
         <Text style={styles.text}>
-          {queue.length} pending change{queue.length > 1 ? 's' : ''}
+          {queueLength} pending change{queueLength > 1 ? 's' : ''}
         </Text>
       )}
     </View>
