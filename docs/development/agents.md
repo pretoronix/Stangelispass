@@ -65,7 +65,7 @@ The Stängelispass project includes an advanced agentic AI workflow system with 
 
 ---
 
-#### Swarm Agents (4 agents) ✨ NEW
+#### Swarm Agents (12 agents) ✨
 
 Multi-agent AI collaboration system for strategic planning and documentation management.
 
@@ -133,23 +133,64 @@ Multi-agent AI collaboration system for strategic planning and documentation man
 
 **Voting Weight**: 1.5 (Medium influence)
 
-#### 7. UX/UX Auditor 🎨
-**Capabilities**: Aesthetic consistency, animation review, haptic validation.
-**Responsibilities**: Premium quality assurance, style consistency.
+#### 7. Refactor Agent 🏗️
+**Capabilities**: Decomposition, duplication removal, API simplification, complexity reduction.
+**Responsibilities**: Behavior-preserving refactors and structure improvements.
 
-#### 8. Social Engagement Agent 🍻
-**Capabilities**: Achievement design, viral loops, notification strategy.
-**Responsibilities**: Gamification optimization, community growth.
+**Voting Weight**: 1.75 (High influence)
 
-#### 9. Safety & Compliance Guardian 🛡️
-**Capabilities**: GDPR audit, responsible drinking verification.
-**Responsibilities**: Legal/ethical oversight, privacy protection.
+#### 8. Maintainability Auditor 🧭
+**Capabilities**: Hotspot identification, code smell detection, complexity scoring, risk assessment.
+**Responsibilities**: Prioritize tech debt and define maintainability success metrics.
 
-#### 10. Performance & Sync Sentinel ⚡
-**Capabilities**: Sync optimization, query audit, offline-first stability.
-**Responsibilities**: Lag reduction, backend efficiency.
+**Voting Weight**: 1.75 (High influence)
 
-**Voting Weights**: 1.5 - 2.0 (Role-dependent)
+#### 9. Dependency Curator 📦
+**Capabilities**: Dependency audits, unused code detection, circular dependency detection.
+**Responsibilities**: Reduce dependency risk and consolidate fragile module edges.
+
+**Voting Weight**: 1.25 (Medium influence)
+
+#### 10. Regression Guard 🧪
+**Capabilities**: Test gap analysis, refactor safety checks, risk-based test planning.
+**Responsibilities**: Ensure refactors stay behavior-preserving with minimal, targeted tests.
+
+**Voting Weight**: 1.5 (Medium influence)
+
+#### 11. UX/UX Auditor 🎨
+**Capabilities**: Aesthetic consistency, animation review, typography audit, haptic validation.
+**Responsibilities**: Premium quality assurance and interaction consistency.
+
+**Voting Weight**: 1.75 (High influence)
+
+#### 12. Social Engagement Agent 🍻
+**Capabilities**: Achievement design, viral loop analysis, notification strategy.
+**Responsibilities**: Gamification optimization and community growth.
+
+**Voting Weight**: 1.5 (Medium influence)
+
+#### 13. Safety & Compliance Guardian 🛡️
+**Capabilities**: GDPR audit, responsible drinking verification, age-gate checking.
+**Responsibilities**: Legal/ethical oversight and privacy protection.
+
+**Voting Weight**: 1.5 (Medium influence)
+
+#### 14. Performance & Sync Sentinel ⚡
+**Capabilities**: Supabase query audit, realtime sync optimization, offline-first resilience.
+**Responsibilities**: Lag reduction, backend efficiency, offline stability.
+
+**Voting Weight**: 1.75 (High influence)
+
+**Canonical Source**: `agents/config/swarm-agents.json`
+
+### Suggested New Agents (Candidates)
+
+Not yet enabled in `agents/config/swarm-agents.json`—add only when there’s a clear workflow need.
+
+1. **Monetization & Billing Agent 💳**: IAP/Stripe design, entitlements, receipt validation, pricing experiments.
+2. **Release & Storefront Agent 🚀**: App Store metadata, screenshots, release notes, ASO iteration, versioning discipline.
+3. **Localization & i18n Agent 🌍**: Translation coverage, locale formatting, copy tone consistency (DE/CH/EN).
+4. **Analytics & Experimentation Agent 📈**: Funnels, cohorts, A/B tests, guardrail metrics tied to roadmap items.
 
 ### Swarm Agent Workflows
 
@@ -225,9 +266,9 @@ npm run swarm:analyze -- --no-dry-run
 
 - **[Quality Maintenance Guide](./QUALITY_MAINTENANCE.md)** - How to use quality agents
 - **[Swarm Agents Guide](../../agents/docs/SWARM_AGENTS.md)** ✨ NEW - Multi-agent system
-- **[Architecture](./agents/docs/AGENTS_ARCHITECTURE.md)** - System design
-- **[Development Guide](./agents/docs/AGENT_DEVELOPMENT.md)** - Create new agents
-- **[Agent README](./agents/README.md)** - Configuration reference
+- **[Architecture](../../agents/docs/AGENTS_ARCHITECTURE.md)** - System design
+- **[Development Guide](../../agents/docs/AGENT_DEVELOPMENT.md)** - Create new agents
+- **[Agent README](../../agents/README.md)** - Configuration reference
 
 ### Features
 
@@ -264,9 +305,9 @@ npm run swarm:analyze -- --no-dry-run
 
 ---
 
-**Total Agents**: 12 (2 Quality + 10 Swarm)  
+**Total Agents**: 14 (2 Quality + 12 Swarm)  
 **System Status**: ✅ Production Ready  
-**Last Updated**: February 14, 2026
+**Last Updated**: February 15, 2026
 
 ## Runbook
 1. Check Supabase config via `.env` in `app/` or Expo extras.

@@ -1,13 +1,13 @@
 /**
  * Cost Calculator Utility
- * 
+ *
  * Handles all cost-related calculations for beer tracking.
  * All calculations use the event's configured beer_price.
  */
 
-import { reportError } from './logger';
+import { reportError } from "./logger";
 
-export const DEFAULT_BEER_PRICE = 5.00;
+export const DEFAULT_BEER_PRICE = 5.0;
 
 /**
  * Calculate the total cost for a specific user
@@ -15,17 +15,30 @@ export const DEFAULT_BEER_PRICE = 5.00;
  * @param eventPrice - Price per beer from the event (optional, defaults to 5.00)
  * @returns Total cost in CHF
  */
-export function calculateUserCost(beerCount: number, eventPrice?: number): number {
-    const price = eventPrice ?? DEFAULT_BEER_PRICE;
-    if (beerCount < 0) {
-        reportError(new Error(`calculateUserCost called with negative beerCount: ${beerCount}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console' });
-        return 0;
-    }
-    if (price <= 0) {
-        reportError(new Error(`calculateUserCost called with non-positive price: ${price}. Returning 0.`), { scope: 'costCalculator', action: 'replace_console' });
-        return 0;
-    }
-    return beerCount * price;
+export function calculateUserCost(
+  beerCount: number,
+  eventPrice?: number,
+): number {
+  const price = eventPrice ?? DEFAULT_BEER_PRICE;
+  if (beerCount < 0) {
+    reportError(
+      new Error(
+        `calculateUserCost called with negative beerCount: ${beerCount}. Returning 0.`,
+      ),
+      { scope: "costCalculator", action: "replace_console" },
+    );
+    return 0;
+  }
+  if (price <= 0) {
+    reportError(
+      new Error(
+        `calculateUserCost called with non-positive price: ${price}. Returning 0.`,
+      ),
+      { scope: "costCalculator", action: "replace_console" },
+    );
+    return 0;
+  }
+  return beerCount * price;
 }
 
 /**
@@ -35,17 +48,17 @@ export function calculateUserCost(beerCount: number, eventPrice?: number): numbe
  * @returns Map of userId to cost in CHF
  */
 export function calculateRoundCosts(
-    beerCounts: { id: string; count: number }[],
-    eventPrice?: number
+  beerCounts: { id: string; count: number }[],
+  eventPrice?: number,
 ): Map<string, number> {
-    const price = eventPrice ?? DEFAULT_BEER_PRICE;
-    const costMap = new Map<string, number>();
-    
-    for (const { id, count } of beerCounts) {
-        costMap.set(id, calculateUserCost(count, price));
-    }
-    
-    return costMap;
+  const price = eventPrice ?? DEFAULT_BEER_PRICE;
+  const costMap = new Map<string, number>();
+
+  for (const { id, count } of beerCounts) {
+    costMap.set(id, calculateUserCost(count, price));
+  }
+
+  return costMap;
 }
 
 /**
@@ -54,8 +67,11 @@ export function calculateRoundCosts(
  * @param eventPrice - Price per beer from the event (optional, defaults to 5.00)
  * @returns Total bill in CHF
  */
-export function calculateTotalBill(totalBeers: number, eventPrice?: number): number {
-    return calculateUserCost(totalBeers, eventPrice);
+export function calculateTotalBill(
+  totalBeers: number,
+  eventPrice?: number,
+): number {
+  return calculateUserCost(totalBeers, eventPrice);
 }
 
 /**
@@ -64,7 +80,10 @@ export function calculateTotalBill(totalBeers: number, eventPrice?: number): num
  * @param includeSymbol - Whether to include "CHF" suffix (default: true)
  * @returns Formatted cost string
  */
-export function formatCost(cost: number, includeSymbol: boolean = true): string {
-    const formatted = cost.toFixed(2);
-    return includeSymbol ? `${formatted} CHF` : formatted;
+export function formatCost(
+  cost: number,
+  includeSymbol: boolean = true,
+): string {
+  const formatted = cost.toFixed(2);
+  return includeSymbol ? `${formatted} CHF` : formatted;
 }

@@ -56,6 +56,28 @@ Maintainability swarm agents:
    - Defines safety checks
    - Verifies behavior preservation
 
+Experience and operating-risk agents:
+
+9. **🎨 UX/UX Auditor**
+   - Audits visual consistency and interaction polish
+   - Reviews animation smoothness and typography
+   - Validates haptic feedback patterns
+
+10. **🍻 Social Engagement Agent**
+   - Proposes badges/achievements and viral loops
+   - Optimizes notification strategy for retention
+   - Improves shareable post-event recaps
+
+11. **🛡️ Safety & Compliance Guardian**
+   - Audits privacy/GDPR and data handling
+   - Verifies age-gate and responsible drinking messaging
+   - Reviews policy and consent flows
+
+12. **⚡ Performance & Sync Sentinel**
+   - Audits Supabase queries and realtime churn
+   - Optimizes offline-first stability and sync resilience
+   - Flags redundant calls and latency hotspots
+
 ### Collaboration Protocol
 
 Agents follow a structured workflow:
@@ -200,6 +222,26 @@ npm run swarm:analyze baseline_maintenance
 - Non-dry-run: applies changes and writes a report.
 - Maintainability refactor report: `docs/refactoring/refactor-swarm-report.md`.
 
+## Proposed New Agents (Suggestions)
+
+These are intentionally **not** enabled in `agents/config/swarm-agents.json` yet—treat as candidates to add once there is a clear workflow need.
+
+1. **💳 Monetization & Billing Agent**
+   - Ownership: pricing tiers, IAP/Stripe design, entitlement modeling, receipt validation.
+   - Fits: `feature_brainstorm`, `roadmap_update` (when revenue features are planned).
+
+2. **🚀 Release & Storefront Agent**
+   - Ownership: App Store metadata, release notes, screenshot sets, ASO keyword deltas, versioning discipline.
+   - Fits: `documentation_sync` (store copy), plus a future `release_readiness` workflow.
+
+3. **🌍 Localization & i18n Agent**
+   - Ownership: translation coverage, locale formatting, copy tone consistency (DE/CH/EN), regional keyword strategy.
+   - Fits: `documentation_sync` and any UI/copy changes.
+
+4. **📈 Analytics & Experimentation Agent**
+   - Ownership: event funnel metrics, retention cohorts, A/B test design, guardrail metrics.
+   - Fits: `roadmap_update` (tie roadmap items to measurable outcomes).
+
 ### Common Runs
 
 ```bash
@@ -236,6 +278,10 @@ Voting weights determine influence:
 - Maintainability Auditor: 1.75
 - Dependency Curator: 1.25
 - Regression Guard: 1.5
+- UX/UX Auditor: 1.75
+- Social Engagement Agent: 1.5
+- Safety & Compliance Guardian: 1.5
+- Performance & Sync Sentinel: 1.75
 
 ### Safety Rules
 

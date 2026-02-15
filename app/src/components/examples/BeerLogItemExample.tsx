@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '@/lib/theme';
-import { OptimisticItem } from '@/components/ui/OptimisticItem';
+import React from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { colors } from "@/lib/theme";
+import { OptimisticItem } from "@/components/ui/OptimisticItem";
 
 /**
  * Example component showing how to use OptimisticItem with beer logs
@@ -9,66 +9,62 @@ import { OptimisticItem } from '@/components/ui/OptimisticItem';
  */
 
 interface BeerLogItemProps {
-    beer: {
-        id: string;
-        user_id: string;
-        created_at: string;
-        user?: {
-            name?: string;
-        } | null;
-    };
+  beer: {
+    id: string;
+    user_id: string;
+    created_at: string;
+    user?: {
+      name?: string;
+    } | null;
+  };
 }
 
 export function BeerLogItemExample({ beer }: BeerLogItemProps) {
-    // Detect optimistic items by temporary ID
-    const isOptimistic = beer.id.startsWith('temp-');
+  // Detect optimistic items by temporary ID
+  const isOptimistic = beer.id.startsWith("temp-");
 
-    return (
-        <OptimisticItem isOptimistic={isOptimistic} style={styles.container}>
-            <View style={styles.content}>
-                <Text style={styles.userName}>
-                    {beer.user?.name || 'Unknown User'}
-                </Text>
-                <Text style={styles.timestamp}>
-                    {new Date(beer.created_at).toLocaleTimeString()}
-                </Text>
+  return (
+    <OptimisticItem isOptimistic={isOptimistic} style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.userName}>{beer.user?.name || "Unknown User"}</Text>
+        <Text style={styles.timestamp}>
+          {new Date(beer.created_at).toLocaleTimeString()}
+        </Text>
 
-                {/* Show pending indicator for optimistic items */}
-                {isOptimistic && (
-                    <Text style={styles.pending}>⏳ Saving...</Text>
-                )}
-            </View>
-        </OptimisticItem>
-    );
+        {/* Show pending indicator for optimistic items */}
+        {isOptimistic && <Text style={styles.pending}>⏳ Saving...</Text>}
+      </View>
+    </OptimisticItem>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 12,
-        marginVertical: 4,
-        backgroundColor: colors.surface,
-        borderRadius: 8,
-    },
-    content: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: colors.textPrimary,
-        flex: 1,
-    },
-    timestamp: {
-        fontSize: 12,
-        color: colors.textSecondary,
-        marginLeft: 8,
-    },
-    pending: {
-        fontSize: 12,
-        color: colors.primary,
-        fontStyle: 'italic',
-        marginLeft: 8,
-    },
+  container: {
+    padding: 12,
+    marginVertical: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+  },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  timestamp: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 8,
+  },
+  pending: {
+    fontSize: 12,
+    color: colors.primary,
+    fontStyle: "italic",
+    marginLeft: 8,
+  },
 });

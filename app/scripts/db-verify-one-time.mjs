@@ -7,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function verify() {
     console.log('--- One-Time DB Verification ---');
-    const { data, error, count } = await supabase
+    const { error, count } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true });
 

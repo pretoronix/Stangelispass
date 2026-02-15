@@ -1,8 +1,8 @@
-import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { mvpRecapStyles as styles } from './mvpRecapStyles';
+import React from "react";
+import { Pressable, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { mvpRecapStyles as styles } from "./mvpRecapStyles";
 
 type MVPRecapActionsProps = {
   onShare: () => void;
@@ -15,7 +15,9 @@ export function MVPRecapActions({ onShare, onClose }: MVPRecapActionsProps) {
       <Pressable
         style={styles.shareButton}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => null);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
+            () => null,
+          );
           onShare();
         }}
       >

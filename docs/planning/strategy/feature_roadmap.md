@@ -420,6 +420,13 @@ The following features have been successfully implemented and verified.
 ---
 
 ## 🧠 Swarm Feature Backlog (Proposed)
+- [ ] Viral Features: Social media integration (Twitter, Instagram) — Found as TODO in docs/features/viral-features.md
+- [ ] Proposals: Augmented Reality Trophies: View earned badges in 3D AR space. — Found as TODO in docs/features/proposals.md
+- [ ] Proposals: Beer Stamps: QR-code based loyalty system for round-buying rewards. — Found as TODO in docs/features/proposals.md
+- [ ] Proposals: Enhanced Wall of Fame: Advanced filters and video recaps of event highlights. — Found as TODO in docs/features/proposals.md
+- [ ] Proposals: Safe Ride Integration: One-tap Uber/Lyft/Taxi links based on current BAC estimator. — Found as TODO in docs/features/proposals.md
+- [ ] Proposals: Live Squad Mode: Real-time proximity-based heatmap of users in the same event. — Found as TODO in docs/features/proposals.md
+- [ ] Proposals: Siri/Voice Logging: "Hey Siri, log a beer in Stängelispass." — Found as TODO in docs/features/proposals.md
 - [ ] Viral Features: Wall of Fame filters (by month, by user, by event type) — Found as TODO in docs/features/viral-features.md
 - [ ] Viral Features: Custom share message templates — Found as TODO in docs/features/viral-features.md
 - [ ] Viral Features: Refer-a-friend bonus beers — Found as TODO in docs/features/viral-features.md
@@ -486,3 +493,21 @@ The following features have been successfully implemented and verified.
   - Update roadmap status for: Offline First Architecture  (COMPLETE)
   - Viral Features: Wall of Fame filters (by month, by user, by event type)
   - Viral Features: Custom share message templates
+
+- 2026-02-15: Applied 10 swarm-approved roadmap suggestions
+  - Proposals: Safe Ride Integration: One-tap Uber/Lyft/Taxi links based on current BAC estimator.
+  - Update roadmap status for: Individual User Cost Tracking
+  - Update roadmap status for: Offline First Architecture  (COMPLETE)
+  - Update roadmap status for: Multi-Agent Collaboration Framework  (COMPLETE)
+  - Update roadmap status for: Physiological BAC Estimator
+  - Update roadmap status for: Safe Ride Monitor UI
+  - Update roadmap status for: Physiological BAC Estimator
+  - Update roadmap status for: Safe Ride Monitor UI
+  - Proposals: Live Squad Mode: Real-time proximity-based heatmap of users in the same event.
+  - Proposals: Siri/Voice Logging: "Hey Siri, log a beer in Stängelispass."
+
+- 2026-02-15: Applied 4 swarm-approved roadmap suggestions
+  - Viral Features: Social media integration (Twitter, Instagram)
+  - Proposals: Augmented Reality Trophies: View earned badges in 3D AR space.
+  - Proposals: Beer Stamps: QR-code based loyalty system for round-buying rewards.
+  - Proposals: Enhanced Wall of Fame: Advanced filters and video recaps of event highlights.

@@ -39,6 +39,15 @@ jest.mock('expo-audio', () => ({
   })),
 }), { virtual: true });
 
+jest.mock('expo-in-app-purchases', () => ({
+  connectAsync: jest.fn(async () => true),
+  getProductsAsync: jest.fn(async () => ({ responseCode: 0, results: [] })),
+  purchaseItemAsync: jest.fn(async () => ({})),
+  finishTransactionAsync: jest.fn(async () => true),
+  setPurchaseListener: jest.fn(() => ({ remove: jest.fn() })),
+  IAPResponseCode: { OK: 0 },
+}), { virtual: true });
+
 // Silence logger output in tests while keeping payloads usable for assertions.
 jest.mock('@/utils/logger', () => {
   const buildPayload = (level, message, context) => ({
@@ -74,12 +83,20 @@ jest.mock('@/utils/logger', () => {
     });
   });
 
+  const addBreadcrumb = jest.fn((message, metadata, level = 'info') => ({
+    ts: new Date().toISOString(),
+    level,
+    message,
+    metadata: metadata || {},
+  }));
+
   return {
     logInfo,
     logWarn,
     logError,
     logExpected,
     reportError,
+    addBreadcrumb,
   };
 });
 

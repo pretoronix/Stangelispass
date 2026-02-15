@@ -10,7 +10,7 @@ Stängelispass is not just a beer tracker; it's the digital companion for legend
 ## 🚀 Rollout Phases
 
 ### Phase 1: The Inner Circle (Days 1-7)
-- **Target**: Local pub regulars and close friend groups.
+- **Target**: Local pub regulars, close friend groups, and high-intent nights (pub crawls / bar crawls, Junggesellenabschied/JGA).
 - **Action**: Direct seeding. One person starts an "Event Pass" and invites the squad.
 - **Goal**: Establish the "Wall of Fame" with real data.
 
@@ -20,11 +20,19 @@ Stängelispass is not just a beer tracker; it's the digital companion for legend
 - **Strategy**: Encourage users to share the "Brewmaster of the Night" recap with the hashtag #Stängelispass.
 
 ### Phase 3: The Society Scale (Day 22+)
-- **Target**: Student associations, societies, and social clubs.
+- **Target**: Student associations, societies, social clubs, and organizers running pub crawls / bachelor(ette) parties.
 - **Action**: Offer a "Society Pass" (Bulk event rounds).
 - **Goal**: Become the official logging tool for organized events.
 
 ---
+
+## 🎟️ High-Intent Occasions (Fastest Growth)
+
+These groups already have a shared goal (“legendary night”) and a clear reason to track rounds, costs, and “who pays?”—perfect fit for Stängelispass.
+
+- **Pub crawl / bar crawl**: Multi-venue nights need a single, frictionless tally.
+- **Junggesellenabschied (JGA)** / bachelor(ette) party: Built-in competition + receipts + “proof” for the next-day recap.
+- **Birthday rounds / sports watch parties**: Repeatable formats with the same cast → retention.
 
 ## 📸 Social Media Hooks
 
@@ -85,4 +93,4 @@ Stängelispass carves a unique niche as a "Social Utility" — avoiding the comp
 ## 📈 Optimization (ASO)
 -   **Primary Keywords**: Beer Tally, Leaderboard, Group Drinks, Drinking Game Tracker.
 -   **Screenshot Focus**: High-contrast dark mode, large trophy icons, and "Real-time Sync" callouts.
-捉
+-   **Occasion Keywords**: Pub Crawl / Bar Crawl, Bachelor Party, Junggesellenabschied (JGA), Birthday Rounds.

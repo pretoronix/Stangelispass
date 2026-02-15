@@ -20,6 +20,9 @@ This directory contains the infrastructure for automated agent workflows that he
   - Formats code
   - Replaces console statements with reportError()
   - Generates quality reports
+- **Test Coverage Enforcer** (`config/test-coverage-enforcer.yml`)
+  - Generates coverage reports and test gap analysis
+  - Suggests/creates test scaffolds (dry-run by default)
 
 ### Scripts ✅
 - **replace-console.ts** - Replaces console.* with reportError() utility
@@ -224,7 +227,6 @@ Advisory actions requiring approval:
 ## Next Steps (Phase 2+)
 
 Planned agents:
-- Test Coverage Enforcer 🧪
 - Documentation Maestro 📚
 - Deployment Orchestrator 🚀
 - Feature Delivery Accelerator ⚡

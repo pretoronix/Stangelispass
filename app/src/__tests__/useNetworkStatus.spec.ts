@@ -1,16 +1,16 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import NetInfo from '@react-native-community/netinfo';
-import { onlineManager } from '@tanstack/react-query';
+import { renderHook, waitFor, act } from "@testing-library/react-native";
+import { useNetworkStatus } from "@/hooks/useNetworkStatus";
+import NetInfo from "@react-native-community/netinfo";
+import { onlineManager } from "@tanstack/react-query";
 
-jest.mock('@react-native-community/netinfo');
-jest.mock('@tanstack/react-query', () => ({
+jest.mock("@react-native-community/netinfo");
+jest.mock("@tanstack/react-query", () => ({
   onlineManager: {
     setOnline: jest.fn(),
   },
 }));
 
-describe('useNetworkStatus', () => {
+describe("useNetworkStatus", () => {
   let mockEventListener: ((state: any) => void) | null = null;
 
   beforeEach(() => {
@@ -30,7 +30,7 @@ describe('useNetworkStatus', () => {
     jest.useRealTimers();
   });
 
-  it('should initialize with online status', async () => {
+  it("should initialize with online status", async () => {
     (NetInfo.fetch as jest.Mock).mockResolvedValue({
       isConnected: true,
       isInternetReachable: true,
@@ -45,7 +45,7 @@ describe('useNetworkStatus', () => {
     expect(onlineManager.setOnline).toHaveBeenCalledWith(true);
   });
 
-  it('should detect offline status', async () => {
+  it("should detect offline status", async () => {
     (NetInfo.fetch as jest.Mock).mockResolvedValue({
       isConnected: false,
       isInternetReachable: false,
@@ -60,7 +60,7 @@ describe('useNetworkStatus', () => {
     expect(onlineManager.setOnline).toHaveBeenCalledWith(false);
   });
 
-  it('should show reconnecting state when coming back online', async () => {
+  it("should show reconnecting state when coming back online", async () => {
     (NetInfo.fetch as jest.Mock).mockResolvedValue({
       isConnected: false,
       isInternetReachable: false,
@@ -88,12 +88,15 @@ describe('useNetworkStatus', () => {
     expect(result.current.isOnline).toBe(true);
     // The reconnecting state may or may not be captured depending on timing
     // So we'll just verify it eventually goes back to false
-    await waitFor(() => {
-      expect(result.current.isOnline).toBe(true);
-    }, { timeout: 4000 });
+    await waitFor(
+      () => {
+        expect(result.current.isOnline).toBe(true);
+      },
+      { timeout: 4000 },
+    );
   });
 
-  it('should handle null isInternetReachable as online', async () => {
+  it("should handle null isInternetReachable as online", async () => {
     (NetInfo.fetch as jest.Mock).mockResolvedValue({
       isConnected: true,
       isInternetReachable: null,
@@ -106,7 +109,7 @@ describe('useNetworkStatus', () => {
     });
   });
 
-  it('should cleanup event listener on unmount', async () => {
+  it("should cleanup event listener on unmount", async () => {
     const mockUnsubscribe = jest.fn();
     (NetInfo.addEventListener as jest.Mock).mockReturnValue(mockUnsubscribe);
 

@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import pkg from 'dotenv';
-const { config } = pkg;
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
+const { config } = pkg;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

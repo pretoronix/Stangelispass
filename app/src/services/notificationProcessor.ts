@@ -1,8 +1,20 @@
-import { NotificationTemplates } from './notificationTemplates';
+import { NotificationTemplates } from "./notificationTemplates";
 
-export type FetchLike = (input: string, init?: any) => Promise<{ ok: boolean; status: number; json: () => Promise<any>; text: () => Promise<string>; }>;
+export type FetchLike = (
+  input: string,
+  init?: any,
+) => Promise<{
+  ok: boolean;
+  status: number;
+  json: () => Promise<any>;
+  text: () => Promise<string>;
+}>;
 
-type NotificationType = 'leader_change' | 'milestone' | 'admin_broadcast' | 'new_round';
+type NotificationType =
+  | "leader_change"
+  | "milestone"
+  | "admin_broadcast"
+  | "new_round";
 
 const DEFAULT_PREFS = {
   leader_change: true,
@@ -11,76 +23,118 @@ const DEFAULT_PREFS = {
   new_round: true,
 };
 
-const normalizePrefs = (raw: any): { leader_change: boolean; milestones: number[]; admin_broadcasts: boolean; new_round: boolean } => {
-  if (!raw || typeof raw !== 'object') return DEFAULT_PREFS;
-  const leader_change = typeof raw.leader_change === 'boolean' ? raw.leader_change : DEFAULT_PREFS.leader_change;
-  const admin_broadcasts = typeof raw.admin_broadcasts === 'boolean' ? raw.admin_broadcasts : DEFAULT_PREFS.admin_broadcasts;
-  const new_round = typeof raw.new_round === 'boolean' ? raw.new_round : DEFAULT_PREFS.new_round;
+const normalizePrefs = (
+  raw: any,
+): {
+  leader_change: boolean;
+  milestones: number[];
+  admin_broadcasts: boolean;
+  new_round: boolean;
+} => {
+  if (!raw || typeof raw !== "object") return DEFAULT_PREFS;
+  const leader_change =
+    typeof raw.leader_change === "boolean"
+      ? raw.leader_change
+      : DEFAULT_PREFS.leader_change;
+  const admin_broadcasts =
+    typeof raw.admin_broadcasts === "boolean"
+      ? raw.admin_broadcasts
+      : DEFAULT_PREFS.admin_broadcasts;
+  const new_round =
+    typeof raw.new_round === "boolean"
+      ? raw.new_round
+      : DEFAULT_PREFS.new_round;
   const milestones: number[] = Array.isArray(raw.milestones)
-    ? raw.milestones.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n) && n > 0)
+    ? raw.milestones
+        .map((n: any) => Number(n))
+        .filter((n: number) => Number.isFinite(n) && n > 0)
     : [...DEFAULT_PREFS.milestones];
-  return { leader_change, admin_broadcasts, new_round, milestones: [...new Set<number>(milestones)].sort((a, b) => a - b) };
+  return {
+    leader_change,
+    admin_broadcasts,
+    new_round,
+    milestones: [...new Set<number>(milestones)].sort((a, b) => a - b),
+  };
 };
 
 const notificationTypeOf = (n: any): NotificationType => {
   const t = n?.payload?.type;
-  if (t === 'milestone' || t === 'admin_broadcast' || t === 'new_round') return t;
-  return 'leader_change';
+  if (t === "milestone" || t === "admin_broadcast" || t === "new_round")
+    return t;
+  return "leader_change";
 };
 
 const recipientOf = (n: any, notificationType: NotificationType) => {
-  if (notificationType === 'milestone') {
-    return n?.target_user || n?.payload?.user_id || n?.payload?.target_user_id || null;
+  if (notificationType === "milestone") {
+    return (
+      n?.target_user ||
+      n?.payload?.user_id ||
+      n?.payload?.target_user_id ||
+      null
+    );
   }
-  if (notificationType === 'admin_broadcast' || notificationType === 'new_round') {
+  if (
+    notificationType === "admin_broadcast" ||
+    notificationType === "new_round"
+  ) {
     return n?.target_user || n?.payload?.user_id || null;
   }
-  return n?.target_user || n?.new_leader || n?.payload?.new || n?.payload?.new_leader || null;
+  return (
+    n?.target_user ||
+    n?.new_leader ||
+    n?.payload?.new ||
+    n?.payload?.new_leader ||
+    null
+  );
 };
 
 const buildPushMessage = (n: any, notificationType: NotificationType) => {
   const eventId = n?.event_id || n?.payload?.event_id;
 
-  if (notificationType === 'admin_broadcast') {
-    const title = n?.payload?.title || 'Admin broadcast';
-    const body = n?.payload?.body || '';
-    const data = { type: 'admin_broadcast', event_id: eventId, ...(n?.payload?.data || {}) };
-    const sound = n?.payload?.sound || 'default';
-    const priority = n?.payload?.priority || 'high';
+  if (notificationType === "admin_broadcast") {
+    const title = n?.payload?.title || "Admin broadcast";
+    const body = n?.payload?.body || "";
+    const data = {
+      type: "admin_broadcast",
+      event_id: eventId,
+      ...(n?.payload?.data || {}),
+    };
+    const sound = n?.payload?.sound || "default";
+    const priority = n?.payload?.priority || "high";
     return { title, body, data, sound, priority };
   }
 
-  if (notificationType === 'new_round') {
-    const eventName = n?.payload?.event_name || 'New round';
+  if (notificationType === "new_round") {
+    const eventName = n?.payload?.event_name || "New round";
     const template = NotificationTemplates.newRound(eventName, eventId);
     return {
       title: template.title,
       body: template.body,
-      data: { type: 'new_round', event_id: eventId },
-      sound: template.sound || 'default',
-      priority: template.priority || 'normal',
+      data: { type: "new_round", event_id: eventId },
+      sound: template.sound || "default",
+      priority: template.priority || "normal",
     };
   }
 
-  if (notificationType === 'milestone') {
+  if (notificationType === "milestone") {
     const milestone = Number(n?.payload?.milestone || 0);
-    const template = NotificationTemplates.milestone('You', milestone, eventId);
+    const template = NotificationTemplates.milestone("You", milestone, eventId);
     return {
       title: template.title,
       body: template.body,
-      data: { type: 'milestone', event_id: eventId, milestone },
-      sound: template.sound || 'default',
-      priority: template.priority || 'normal',
+      data: { type: "milestone", event_id: eventId, milestone },
+      sound: template.sound || "default",
+      priority: template.priority || "normal",
     };
   }
 
-  const template = NotificationTemplates.leaderChange('You', eventId);
+  const template = NotificationTemplates.leaderChange("You", eventId);
   return {
     title: template.title,
     body: template.body,
-    data: { type: 'leader_change', event_id: eventId },
-    sound: template.sound || 'default',
-    priority: template.priority || 'high',
+    data: { type: "leader_change", event_id: eventId },
+    sound: template.sound || "default",
+    priority: template.priority || "high",
   };
 };
 
@@ -91,7 +145,13 @@ export async function processNotificationsBatch(opts: {
   expoEndpoint?: string;
   limit?: number;
 }) {
-  const { fetchFn, supabaseUrl, serviceKey, expoEndpoint = 'https://exp.host/--/api/v2/push/send', limit = 20 } = opts;
+  const {
+    fetchFn,
+    supabaseUrl,
+    serviceKey,
+    expoEndpoint = "https://exp.host/--/api/v2/push/send",
+    limit = 20,
+  } = opts;
   const authHeaders = {
     apikey: serviceKey,
     Authorization: `Bearer ${serviceKey}`,
@@ -99,18 +159,23 @@ export async function processNotificationsBatch(opts: {
 
   // Helper to perform REST fetch with auth
   const restFetch = (path: string, init?: any) => {
-    const url = `${supabaseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+    const url = `${supabaseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
     const headers = { ...(init?.headers || {}), ...authHeaders };
     return fetchFn(url, { ...init, headers });
   };
 
-  const notifyRes = await restFetch(`rest/v1/notifications?processed=eq.false&order=created_at.asc&limit=${limit}`);
+  const notifyRes = await restFetch(
+    `rest/v1/notifications?processed=eq.false&order=created_at.asc&limit=${limit}`,
+  );
   if (!notifyRes.ok) {
     const txt = await notifyRes.text();
-    throw new Error(`Failed to fetch notifications: ${notifyRes.status} - ${txt}`);
+    throw new Error(
+      `Failed to fetch notifications: ${notifyRes.status} - ${txt}`,
+    );
   }
   const notifications = await notifyRes.json();
-  if (!Array.isArray(notifications)) throw new Error('Unexpected notifications response');
+  if (!Array.isArray(notifications))
+    throw new Error("Unexpected notifications response");
 
   const results: any[] = [];
 
@@ -121,8 +186,8 @@ export async function processNotificationsBatch(opts: {
 
     const markProcessed = async (extraBody: Record<string, any> = {}) => {
       await restFetch(`rest/v1/notifications?id=eq.${encodeURIComponent(id)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           processed: true,
           processed_at: new Date().toISOString(),
@@ -134,55 +199,62 @@ export async function processNotificationsBatch(opts: {
 
     if (!recipientUserId) {
       await markProcessed();
-      results.push({ id, success: false, reason: 'missing recipient' });
+      results.push({ id, success: false, reason: "missing recipient" });
       continue;
     }
 
     // Resolve user preferences (fallback to defaults if unavailable)
     let prefs = DEFAULT_PREFS;
-    const prefsRes = await restFetch(`rest/v1/users?id=eq.${encodeURIComponent(recipientUserId)}&select=notification_prefs&limit=1`);
+    const prefsRes = await restFetch(
+      `rest/v1/users?id=eq.${encodeURIComponent(recipientUserId)}&select=notification_prefs&limit=1`,
+    );
     if (prefsRes.ok) {
       const prefsBody = await prefsRes.json().catch(() => []);
       const row = Array.isArray(prefsBody) ? prefsBody[0] : null;
       prefs = normalizePrefs(row?.notification_prefs);
     }
 
-    const enabled = notificationType === 'leader_change'
-      ? prefs.leader_change
-      : notificationType === 'admin_broadcast'
-        ? prefs.admin_broadcasts
-        : notificationType === 'new_round'
-          ? prefs.new_round
-          : notificationType === 'milestone'
-            ? prefs.milestones.includes(Number(n?.payload?.milestone || 0))
-            : true;
+    const enabled =
+      notificationType === "leader_change"
+        ? prefs.leader_change
+        : notificationType === "admin_broadcast"
+          ? prefs.admin_broadcasts
+          : notificationType === "new_round"
+            ? prefs.new_round
+            : notificationType === "milestone"
+              ? prefs.milestones.includes(Number(n?.payload?.milestone || 0))
+              : true;
 
     if (!enabled) {
       await markProcessed();
-      results.push({ id, success: true, reason: 'disabled by preference' });
+      results.push({ id, success: true, reason: "disabled by preference" });
       continue;
     }
 
     // Fetch tokens
-    const tokensRes = await restFetch(`rest/v1/device_tokens?user_id=eq.${encodeURIComponent(recipientUserId)}&select=token`);
+    const tokensRes = await restFetch(
+      `rest/v1/device_tokens?user_id=eq.${encodeURIComponent(recipientUserId)}&select=token`,
+    );
     if (!tokensRes.ok) {
       // update attempts
       await restFetch(`rest/v1/notifications?id=eq.${encodeURIComponent(id)}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attempts: (n.attempts || 0) + 1 }),
       }).catch(() => null);
-      results.push({ id, success: false, reason: 'failed to fetch tokens' });
+      results.push({ id, success: false, reason: "failed to fetch tokens" });
       continue;
     }
 
     const tokensBody = await tokensRes.json();
-    const pushTokens = Array.isArray(tokensBody) ? tokensBody.map((t: any) => t.token).filter(Boolean) : [];
+    const pushTokens = Array.isArray(tokensBody)
+      ? tokensBody.map((t: any) => t.token).filter(Boolean)
+      : [];
 
     if (pushTokens.length === 0) {
       // Mark as processed (nothing to send)
       await markProcessed();
-      results.push({ id, success: true, reason: 'no tokens' });
+      results.push({ id, success: true, reason: "no tokens" });
       continue;
     }
 
@@ -195,18 +267,22 @@ export async function processNotificationsBatch(opts: {
         title: message.title,
         body: message.body,
         data: message.data,
-        sound: message.sound || 'default',
-        priority: message.priority || 'high',
+        sound: message.sound || "default",
+        priority: message.priority || "high",
       };
       return fetchFn(expoEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }).then((r) => r.json().catch(() => null)).catch(() => null);
+      })
+        .then((r) => r.json().catch(() => null))
+        .catch(() => null);
     });
 
     const sendResults = await Promise.all(sendPromises);
-    const failedSends = sendResults.filter((r: any) => !r || r.error || r.errors);
+    const failedSends = sendResults.filter(
+      (r: any) => !r || r.error || r.errors,
+    );
     const sendSuccess = failedSends.length === 0;
 
     // Mark notification processed and record attempts
@@ -215,7 +291,7 @@ export async function processNotificationsBatch(opts: {
     results.push({
       id,
       success: sendSuccess,
-      reason: sendSuccess ? undefined : 'send failures',
+      reason: sendSuccess ? undefined : "send failures",
       sendResults,
       failedCount: failedSends.length,
     });

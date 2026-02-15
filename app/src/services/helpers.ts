@@ -3,5 +3,5 @@
  */
 
 export const isMissingTableError = (error: any): boolean => {
-    return error?.code === 'PGRST205' || error?.code === '42P01';
+  return error?.code === "PGRST205" || error?.code === "42P01";
 };

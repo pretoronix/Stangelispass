@@ -21,6 +21,9 @@ dist/
 build/
 coverage/
 
+# Agent artifacts
+agents/.backups/
+
 # App workspace caches
 app/node_modules/
 app/jest_cache/

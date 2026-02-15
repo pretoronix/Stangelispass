@@ -1,5 +1,12 @@
 // Re-export types for convenience
-export type { Event, EventMembership, EventGameStats, EventLeaderState, EventLeaderSnapshot, EventRole } from './types';
+export type {
+  Event,
+  EventMembership,
+  EventGameStats,
+  EventLeaderState,
+  EventLeaderSnapshot,
+  EventRole,
+} from "./types";
 
 /**
  * Event operations module
@@ -7,23 +14,17 @@ export type { Event, EventMembership, EventGameStats, EventLeaderState, EventLea
  */
 
 export {
-    getEventMembership,
-    getEventMembers,
-    upsertEventMemberRole,
-    removeEventMember,
-    joinEvent,
-} from './events/memberships';
+  getEventMembership,
+  getEventMembers,
+  upsertEventMemberRole,
+  removeEventMember,
+  joinEvent,
+} from "./events/memberships";
 
-export {
-    getEventGameStats,
-    getEventLeaderState,
-} from './events/stats';
+export { getEventGameStats, getEventLeaderState } from "./events/stats";
 
-export {
-    getWallOfFame,
-    addToWallOfFame,
-} from './events/wallOfFame';
+export { getWallOfFame, addToWallOfFame } from "./events/wallOfFame";
 
-export { createLeaderEventSnapshot } from './events/leaderSnapshots';
+export { createLeaderEventSnapshot } from "./events/leaderSnapshots";
 
-export { resetEventData } from './events/reset';
+export { resetEventData } from "./events/reset";

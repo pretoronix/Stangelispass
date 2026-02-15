@@ -1,25 +1,25 @@
-describe('services/audio', () => {
+describe("services/audio", () => {
   beforeEach(() => {
     jest.resetModules();
   });
 
-  test('loadSound reports errors when player creation fails', async () => {
-    const expoAudio = require('expo-audio');
-    const { reportError } = require('@/utils/logger');
+  test("loadSound reports errors when player creation fails", async () => {
+    const expoAudio = require("expo-audio");
+    const { reportError } = require("@/utils/logger");
 
     expoAudio.createAudioPlayer.mockImplementationOnce(() => {
-      throw new Error('boom');
+      throw new Error("boom");
     });
 
-    const { audioService } = require('@/services/audio');
+    const { audioService } = require("@/services/audio");
     await audioService.loadSound();
 
     expect(reportError).toHaveBeenCalled();
   });
 
-  test('playPsst is a no-op when muted', async () => {
-    const expoAudio = require('expo-audio');
-    const { audioService } = require('@/services/audio');
+  test("playPsst is a no-op when muted", async () => {
+    const expoAudio = require("expo-audio");
+    const { audioService } = require("@/services/audio");
 
     audioService.setMuted(true);
     await audioService.playPsst();
@@ -31,9 +31,9 @@ describe('services/audio', () => {
     expect(player.play).not.toHaveBeenCalled();
   });
 
-  test('playPsst seeks to 0 and plays when unmuted', async () => {
-    const expoAudio = require('expo-audio');
-    const { audioService } = require('@/services/audio');
+  test("playPsst seeks to 0 and plays when unmuted", async () => {
+    const expoAudio = require("expo-audio");
+    const { audioService } = require("@/services/audio");
 
     audioService.setMuted(false);
     await audioService.playPsst();
@@ -43,13 +43,13 @@ describe('services/audio', () => {
     expect(player.play).toHaveBeenCalled();
   });
 
-  test('playPsst reloads on play failure', async () => {
-    const expoAudio = require('expo-audio');
+  test("playPsst reloads on play failure", async () => {
+    const expoAudio = require("expo-audio");
 
     expoAudio.createAudioPlayer
       .mockImplementationOnce(() => ({
         play: jest.fn(() => {
-          throw new Error('fail');
+          throw new Error("fail");
         }),
         seekTo: jest.fn(),
         release: jest.fn(),
@@ -60,7 +60,7 @@ describe('services/audio', () => {
         release: jest.fn(),
       }));
 
-    const { audioService } = require('@/services/audio');
+    const { audioService } = require("@/services/audio");
     audioService.setMuted(false);
     await audioService.playPsst();
 
