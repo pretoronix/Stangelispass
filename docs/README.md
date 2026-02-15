@@ -2,6 +2,8 @@
 
 Welcome to the Stängelispass documentation! This folder contains all guides, references, and planning documents for the drinking game tracking app.
 
+**Local path note:** For reliable tooling on macOS/Linux, keep the repo in an ASCII-only path (e.g. `/Users/ppf/Downloads/Stangelispass`) to avoid Metro/Jest EPERM issues.
+
 ## 📁 Documentation Structure
 
 ### 🚀 [/guides](./guides)

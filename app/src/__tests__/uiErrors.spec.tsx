@@ -5,7 +5,10 @@ import { AppProvider, useApp } from '@/providers/AppProvider';
 import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { reportError } from '@/utils/logger';
 import AddBeerScreen from '@/app/add';
+import HomeScreen from '@/app/index';
 import { addBeer } from '@/services/supabase';
+import { startEventInSupabase } from '@/providers/appProviderActions';
+import { labels } from '@/ui/labels';
 
 // Mock dependencies
 jest.mock('react-native', () => {
@@ -21,9 +24,17 @@ jest.mock('@/utils/logger', () => ({
 
 const mockUser = { id: 'u1', name: 'Alice', is_admin: true };
 const mockEvent = { id: 'e1', name: 'Round 1', is_active: true, pass_type: 'day' };
+const mockEventsQuery: any = {
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    maybeSingle: jest.fn().mockResolvedValue({ data: mockEvent, error: null }),
+};
 
 jest.mock('@/services/supabase', () => ({
     ...jest.requireActual('@/services/supabase'),
+    __eventsQuery: mockEventsQuery,
     addBeer: jest.fn(),
     getUsers: jest.fn(async () => [mockUser]),
     getEventMembership: jest.fn(async () => ({ missingTable: false, membership: { role: 'owner' } })),
@@ -39,11 +50,11 @@ jest.mock('@/services/supabase', () => ({
     })),
     supabase: {
         from: jest.fn((table: string) => ({
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockReturnThis(),
-            limit: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: mockEvent, error: null }),
+            select: mockEventsQuery.select,
+            eq: mockEventsQuery.eq,
+            order: mockEventsQuery.order,
+            limit: mockEventsQuery.limit,
+            maybeSingle: mockEventsQuery.maybeSingle,
         })),
     },
 }));
@@ -69,6 +80,108 @@ jest.mock('@/hooks/useNotifications', () => ({
 
 jest.mock('@/hooks/useNetworkStatus', () => ({
     useNetworkStatus: jest.fn(() => ({ isOnline: true })),
+}));
+
+jest.mock('@/hooks/useBeers', () => ({
+    useBeers: jest.fn(() => ({
+        beerCounts: [],
+        rawBeers: [],
+        totalBeers: 0,
+        leaderInfo: null,
+        leaderLead: 0,
+        hotStreak: null,
+        gameStatsAvailable: false,
+        loading: false,
+        refreshing: false,
+        refresh: jest.fn(),
+    })),
+}));
+
+jest.mock('@/hooks/home/useLeaderboardAnnouncements', () => ({
+    useLeaderboardAnnouncements: jest.fn(() => ({
+        leaderAnnouncement: null,
+        streakAnnouncement: null,
+        showConfetti: false,
+        setShowConfetti: jest.fn(),
+    })),
+}));
+
+jest.mock('@/hooks/home/useScanHandler', () => ({
+    useScanHandler: jest.fn(() => ({
+        handleScan: jest.fn(),
+    })),
+}));
+
+jest.mock('@/hooks/home/useEventActions', () => ({
+    useEventActions: jest.fn(() => ({
+        openNamePrompt: jest.fn(),
+        showStartRoundPrompt: false,
+        pendingAction: null,
+        startRoundName: '',
+        setStartRoundName: jest.fn(),
+        beerPrice: '5.00',
+        setBeerPrice: jest.fn(),
+        pendingJoinEventName: '',
+        promptSubmitting: false,
+        submitNamePrompt: jest.fn(),
+        setShowStartRoundPrompt: jest.fn(),
+    })),
+}));
+
+jest.mock('@/hooks/home/useExportData', () => ({
+    useExportData: jest.fn(() => ({
+        handleExportData: jest.fn(),
+    })),
+}));
+
+jest.mock('@/hooks/usePacePreset', () => ({
+    usePacePreset: jest.fn(() => ({
+        savedPace: null,
+        savePace: jest.fn(),
+        clearSavedPace: jest.fn(),
+    })),
+}));
+
+jest.mock('@/components/home/StartRoundPrompt', () => ({
+    StartRoundPrompt: () => null,
+}));
+
+jest.mock('@/components/features/MVPModal', () => ({
+    MVPModal: () => null,
+}));
+
+jest.mock('@/components/features/QRScanner', () => ({
+    QRScanner: () => null,
+}));
+
+jest.mock('@/components/features/InviteModal', () => ({
+    InviteModal: () => null,
+}));
+
+jest.mock('@/components/notifications/BroadcastModal', () => ({
+    BroadcastModal: () => null,
+}));
+
+jest.mock('@/components/animations/Confetti', () => ({
+    Confetti: () => null,
+}));
+
+jest.mock('@/components/features/VelocityMetricCard', () => ({
+    VelocityMetricCard: () => null,
+}));
+
+jest.mock('@/components/features/SafeRideCard', () => ({
+    SafeRideCard: () => null,
+}));
+
+jest.mock('@/providers/appProviderActions', () => ({
+    startEventInSupabase: jest.fn(async () => ({
+        id: 'e2',
+        name: 'Round 2',
+        is_active: true,
+        pass_type: 'day',
+    })),
+    closeEventInSupabase: jest.fn(async () => null),
 }));
 
 // Mock child components to avoid deep rendering issues and focus on screen logic
@@ -99,6 +212,7 @@ jest.mock('@/components/add/SelectedUserCard', () => {
 describe('UI Error Handling', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockEventsQuery.maybeSingle.mockResolvedValue({ data: mockEvent, error: null });
     });
 
     describe('Context Errors', () => {
@@ -163,5 +277,25 @@ describe('UI Error Handling', () => {
             expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to add beer. Please try again.');
             expect(reportError).toHaveBeenCalled();
         });
+
+        it('HomeScreen: alerts on startEvent failure', async () => {
+            mockEventsQuery.maybeSingle.mockResolvedValue({ data: null, error: null });
+            const mockStartEvent = startEventInSupabase as jest.Mock;
+            mockStartEvent.mockRejectedValueOnce(new Error('Start failed'));
+
+            const { getByTestId } = render(
+                <AppProvider>
+                    <HomeScreen />
+                </AppProvider>
+            );
+
+            await act(async () => {
+                fireEvent.press(getByTestId(labels.home.startRound.testID));
+            });
+
+            expect(Alert.alert).toHaveBeenCalledWith('Error', 'Failed to start round. Please try again.');
+            expect(reportError).toHaveBeenCalled();
+        });
+
     });
 });

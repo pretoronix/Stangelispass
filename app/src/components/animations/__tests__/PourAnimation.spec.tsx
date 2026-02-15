@@ -37,6 +37,11 @@ jest.mock('expo-blur', () => ({
     BlurView: 'BlurView',
 }));
 
+jest.mock('@/utils/deviceInfo', () => ({
+    hasNativeHaptics: jest.fn(() => Promise.resolve(true)),
+    isSimulator: jest.fn(() => false),
+}));
+
 describe('PourAnimation', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -126,13 +131,15 @@ describe('SimplePourFeedback', () => {
         expect(queryByText(/Beer Logged!/i)).toBeNull();
     });
 
-    it('triggers success haptic when visible', () => {
+    it('triggers success haptic when visible', async () => {
         const onComplete = jest.fn();
         render(<SimplePourFeedback visible={true} onComplete={onComplete} />);
-        
-        expect(Haptics.notificationAsync).toHaveBeenCalledWith(
-            Haptics.NotificationFeedbackType.Success
-        );
+
+        await waitFor(() => {
+            expect(Haptics.notificationAsync).toHaveBeenCalledWith(
+                Haptics.NotificationFeedbackType.Success
+            );
+        });
     });
 
     it('calls onComplete after short duration', () => {
@@ -151,6 +158,6 @@ describe('SimplePourFeedback', () => {
             <SimplePourFeedback visible={true} onComplete={onComplete} />
         );
         
-        expect(getByText('Beer Logged! 🍺')).toBeTruthy();
+        expect(getByText('Beer Logged!')).toBeTruthy();
     });
 });

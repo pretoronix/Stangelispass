@@ -51,6 +51,7 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+let loggedContextError = false;
 
 export function AppProvider({ children }: { children: ReactNode }) {
     const [currentUser, setCurrentUserState] = useState<User | null>(null);
@@ -313,6 +314,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 export function useApp() {
     const context = useContext(AppContext);
     if (!context) {
+        if (!loggedContextError) {
+            loggedContextError = true;
+            reportError(new Error('Context Access Violation'), {
+                scope: 'infrastructure',
+                action: 'useApp_outside_provider',
+            });
+        }
         throw new Error('useApp must be used within AppProvider');
     }
     return context;

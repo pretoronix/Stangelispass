@@ -8,7 +8,7 @@ The `reportError()` function now properly extracts Supabase/Postgrest error deta
 
 1. **Restart Metro** (required to pick up the fix):
    ```bash
-   cd /Users/ppf/Downloads/Stängelispass/app
+   cd /Users/ppf/Downloads/Stangelispass/app
    npx expo start -c
    ```
 
@@ -31,7 +31,7 @@ The `reportError()` function now properly extracts Supabase/Postgrest error deta
 
 ## 📍 Files Changed
 
-- [`app/src/utils/logger.ts`](file:///Users/ppf/Downloads/Stängelispass/app/src/utils/logger.ts) - Enhanced error extraction
+- [`app/src/utils/logger.ts`](file:///Users/ppf/Downloads/Stangelispass/app/src/utils/logger.ts) - Enhanced error extraction
 
 ## 📚 Full Documentation
 

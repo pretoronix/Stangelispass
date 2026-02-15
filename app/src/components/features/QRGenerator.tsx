@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { colors, spacing, borderRadius, typography } from '@/lib/theme';
+import { QR_ACTIONS, QR_PAYLOAD_VERSION } from '@/constants/qr';
 
 interface QRGeneratorProps {
     userId: string;
@@ -20,16 +21,19 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
     mode = 'stamp',
     onQrRef,
 }) => {
-    const payload = mode === 'log'
-        ? JSON.stringify({ userId, eventId: eventId || '' })
+    const payloadObject = mode === 'log'
+        ? { type: QR_ACTIONS.JOIN_EVENT, eventId: eventId || '', eventName: userName, v: QR_PAYLOAD_VERSION }
         : stampId
-            ? JSON.stringify({ type: 'STAMP_BEER', stampId })
-            : JSON.stringify({ type: 'STAMP_BEER', userId, eventId: eventId || '' });
+            ? { type: QR_ACTIONS.STAMP_BEER, stampId, v: QR_PAYLOAD_VERSION }
+            : { type: QR_ACTIONS.STAMP_BEER, userId, eventId: eventId || '', v: QR_PAYLOAD_VERSION };
+
+    const payload = JSON.stringify(payloadObject);
+
     const labelText = mode === 'log'
-        ? `Admin scan adds a beer for ${userName}`
+        ? `Scan to join ${userName}'s round`
         : `Stamp +1 beer for ${userName}`;
     const hintText = mode === 'log'
-        ? 'Only admins should scan this code to log a beer'
+        ? 'Others scan this to participate in your round'
         : 'Show this to the participant to claim one beer';
 
     return (

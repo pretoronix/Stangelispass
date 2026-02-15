@@ -170,6 +170,6 @@ npm run swarm:brainstorm   # Feature ideation
 
 ---
 
-*For detailed strategy, marketing plans, and implementation specs, refer to the [docs/](file:///Users/ppf/Downloads/Stängelispass/docs/) directory.*
+*For detailed strategy, marketing plans, and implementation specs, refer to the [docs/](file:///Users/ppf/Downloads/Stangelispass/docs/) directory.*
 
 **Built with ❤️ and 🍺 | Powered by AI 🤖 | Production Ready 🚀**

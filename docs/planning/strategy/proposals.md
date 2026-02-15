@@ -14,7 +14,7 @@ This plan outlines the final steps to activate the 80%-complete push notificatio
 
 ### [Backend] Supabase Infrastructure
 
-#### [MODIFY] [SQL Migration](file:///Users/ppf/Downloads/Stängelispass/app/supabase/migrations/20260211235831_notification_triggers.sql)
+#### [MODIFY] [SQL Migration](file:///Users/ppf/Downloads/Stangelispass/app/supabase/migrations/20260211235831_notification_triggers.sql)
 - **Action**: Add a Database Webhook trigger.
 - **Details**: whenever a row is inserted into `notifications`, it should trigger the `process-notifications` Edge Function immediately.
 ```sql
@@ -31,7 +31,7 @@ EXECUTE FUNCTION supabase_functions.http_request(
 );
 ```
 
-#### [MODIFY] [Edge Function](file:///Users/ppf/Downloads/Stängelispass/app/supabase/functions/processNotifications/index.ts)
+#### [MODIFY] [Edge Function](file:///Users/ppf/Downloads/Stangelispass/app/supabase/functions/processNotifications/index.ts)
 - **Action**: Ensure the Deno runtime can resolve the `notificationProcessor`.
 - **Details**: Bundle the processor logic specifically for Deno or move it to a shared `functions/_shared` directory to avoid broken relative imports in production.
 
@@ -39,11 +39,11 @@ EXECUTE FUNCTION supabase_functions.http_request(
 
 ### [Frontend] App Integration
 
-#### [MODIFY] [App Layout](file:///Users/ppf/Downloads/Stängelispass/app/src/app/_layout.tsx)
+#### [MODIFY] [App Layout](file:///Users/ppf/Downloads/Stangelispass/app/src/app/_layout.tsx)
 - **Action**: Initialize push notifications.
 - **Details**: Call `registerForPushNotificationsAsync(currentUserId)` once a session is established.
 
-#### [NEW] [Notification Settings](file:///Users/ppf/Downloads/Stängelispass/app/src/app/settings/notifications.tsx)
+#### [NEW] [Notification Settings](file:///Users/ppf/Downloads/Stangelispass/app/src/app/settings/notifications.tsx)
 - **Action**: Create a UI for managing preferences.
 - **Details**: Toggle switches for `leader_change`, `milestones`, and `admin_broadcasts` connected to the `users.notification_prefs` JSONB column.
 

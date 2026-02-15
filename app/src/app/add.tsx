@@ -31,7 +31,7 @@ export default function AddBeerScreen() {
     const qrRef = useRef<any>(null);
     const [showAnimation, setShowAnimation] = useState(false);
     const [useFullAnimation, setUseFullAnimation] = useState(true);
-    
+
     // Check device capability on mount
     useEffect(() => {
         shouldShowAnimations().then(setUseFullAnimation);
@@ -57,9 +57,19 @@ export default function AddBeerScreen() {
     }, [selectedUser]);
 
     const buildQrImageUri = useCallback(async (userId: string) => {
-        const base64 = await new Promise<string>((resolve) => {
-            qrRef.current.toDataURL((data: string) => resolve(data));
+        const base64 = await new Promise<string | null>((resolve) => {
+            const timeoutId = setTimeout(() => resolve(null), 3000);
+            qrRef.current.toDataURL((data: string) => {
+                clearTimeout(timeoutId);
+                resolve(data);
+            });
         });
+
+        if (!base64) {
+            Alert.alert('Error', 'Failed to generate QR image (timeout).');
+            return null;
+        }
+
         const cacheDirectory = (FileSystem as any).cacheDirectory;
         if (!cacheDirectory) {
             Alert.alert('Unavailable', 'File system is not available on this device.');
@@ -73,9 +83,11 @@ export default function AddBeerScreen() {
     const handleShareQr = useCallback(async () => {
         if (!validateShareQr() || !selectedUser) return;
         setShareLoading(true);
+        let fileUri: string | null = null;
         try {
-            const fileUri = await buildQrImageUri(selectedUser.id);
+            fileUri = await buildQrImageUri(selectedUser.id);
             if (!fileUri) return;
+
             if (await Sharing.isAvailableAsync()) {
                 await Sharing.shareAsync(fileUri);
             } else {
@@ -90,6 +102,12 @@ export default function AddBeerScreen() {
             Alert.alert('Error', 'Could not share QR code.');
         } finally {
             setShareLoading(false);
+            // Clean up temporary file
+            if (fileUri) {
+                FileSystem.deleteAsync(fileUri, { idempotent: true }).catch((err) => {
+                    reportError(err, { scope: 'add', action: 'qr_cache_cleanup' });
+                });
+            }
         }
     }, [buildQrImageUri, selectedUser, validateShareQr]);
 
@@ -141,7 +159,7 @@ export default function AddBeerScreen() {
             }
 
             // Animation will handle haptics, no manual haptic needed
-            
+
             // After animation completes, show achievements if any
             if (newBadges.length > 0) {
                 const badgeNames = newBadges.map(b => BADGES[b].name).join(', ');
@@ -268,7 +286,7 @@ export default function AddBeerScreen() {
                         qrRef.current = ref;
                     }}
                 />
-                
+
                 {/* Pour Animation */}
                 {useFullAnimation ? (
                     <PourAnimation

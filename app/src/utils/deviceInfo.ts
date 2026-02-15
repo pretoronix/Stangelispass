@@ -7,13 +7,29 @@ import { reportError } from '@/utils/logger';
  * Device capability detection for animations
  */
 
+export const isSimulator = () => Platform.OS !== 'web' && !Device.isDevice;
+
+export async function hasNativeHaptics(): Promise<boolean> {
+    try {
+        if (Platform.OS === 'web') return false;
+        return !!Device.isDevice;
+    } catch (error) {
+        reportError(new Error('Haptics capability check failed'), {
+            scope: 'deviceInfo',
+            action: 'detect_haptics',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
+        return false;
+    }
+}
+
 export async function isLowEndDevice(): Promise<boolean> {
     try {
         // Web is assumed capable
         if (Platform.OS === 'web') return false;
 
         // Simulators/emulators often struggle with Lottie + heavy Reanimated
-        if (!Device.isDevice) {
+        if (isSimulator()) {
             return true;
         }
 

@@ -6,7 +6,7 @@ set -e  # Exit on error
 
 PROJECT_REF="rsduijvlwlyspilrjalm"
 DB_PASSWORD="AR6dhUge8zIM0uWY"
-APP_DIR="/Users/ppf/Downloads/Stängelispass/app"
+APP_DIR="/Users/ppf/Downloads/Stangelispass/app"
 
 echo "🚀 Supabase Migration Push Script"
 echo "=================================="

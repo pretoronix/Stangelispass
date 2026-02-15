@@ -37,15 +37,18 @@ export function useScanHandler(
             if (payload.type === 'join_event') {
                 if (currentUser) {
                     if (payload.eventId) {
-                        await joinEvent(payload.eventId, currentUser.id).catch((e) => {
+                        try {
+                            await joinEvent(payload.eventId, currentUser.id);
+                            Alert.alert('Joined!', `You are now part of ${payload.eventName || 'the round'}.`);
+                        } catch (e) {
                             reportError(new Error('Failed to join event membership'), {
                                 scope: 'useScanHandler',
                                 action: 'join_event',
                                 metadata: { cause: e instanceof Error ? e.message : String(e) },
                             });
-                        });
+                            Alert.alert('Error', 'Failed to join the round. Please try again.');
+                        }
                     }
-                    Alert.alert('Joined!', `You are now part of ${payload.eventName || 'the round'}.`);
                     setScanning(false);
                     return;
                 }
@@ -60,101 +63,110 @@ export function useScanHandler(
                     Alert.alert('Select User', 'Please select a user in Settings before redeeming stamps.');
                     return;
                 }
-                const redemption = await redeemBeerStamp(payload.stampId, currentUser.id);
-                if (!redemption.ok) {
-                    const reasonMessage = {
-                        invalid_stamp: 'This stamp is invalid.',
-                        already_redeemed: 'This stamp has already been redeemed.',
-                        expired_stamp: 'This stamp has expired.',
-                        stamps_unavailable: 'Stamp feature is not available in the database yet.',
-                    } as Record<string, string>;
-                    Alert.alert('Stamp', reasonMessage[redemption.reason] || 'Could not redeem stamp.');
+
+                try {
+                    const redemption = await redeemBeerStamp(payload.stampId, currentUser.id);
+                    if (!redemption.ok) {
+                        const reasonMessage = {
+                            invalid_stamp: 'This stamp is invalid.',
+                            already_redeemed: 'This stamp has already been redeemed.',
+                            expired_stamp: 'This stamp has expired.',
+                            stamps_unavailable: 'Stamp feature is not available in the database yet.',
+                        } as Record<string, string>;
+                        Alert.alert('Stamp', reasonMessage[redemption.reason] || 'Could not redeem stamp.');
+                        setScanning(false);
+                        return;
+                    }
+
+                    audioService.playPsst();
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
+
+                    const badges = redemption.newBadges || [];
+                    if (badges.length > 0) {
+                        const badgeNames = badges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
+                        Alert.alert('Stamp Redeemed', `+1 beer added.\nNew badges: ${badgeNames}`);
+                    } else {
+                        Alert.alert('Stamp Redeemed', '+1 beer added successfully.');
+                    }
+                } catch (e) {
+                    reportError(e as Error, {
+                        scope: 'useScanHandler',
+                        action: 'redeem_stamp_catch',
+                    });
+                    Alert.alert('Error', 'An error occurred while redeeming the stamp.');
+                } finally {
                     setScanning(false);
+                    try {
+                        refresh();
+                    } catch (refreshError) {
+                        // Log but don't block
+                        reportError(refreshError as Error, { scope: 'useScanHandler', action: 'post_redeem_refresh' });
+                    }
+                }
+                return;
+            }
+
+            if (payload.type === 'beer_log') {
+                if (!currentUser) {
+                    Alert.alert('Select User', 'Please select a user in Settings before scanning beer QR codes.');
+                    return;
+                }
+                const effectiveEventId = payload.eventId || activeEvent?.id;
+                if (!effectiveEventId) {
+                    Alert.alert('No Active Round', 'This QR code is not linked to an active round.');
                     return;
                 }
 
-                audioService.playPsst();
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
-
-                // ✅ CRASH PREVENTION: Ensure newBadges is always an array
-                const badges = redemption.newBadges || [];
-                if (badges.length > 0) {
-                    const badgeNames = badges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
-                    Alert.alert('Stamp Redeemed', `+1 beer added.\nNew badges: ${badgeNames}`);
-                } else {
-                    Alert.alert('Stamp Redeemed', '+1 beer added successfully.');
+                // Cross-round security check
+                if (activeEvent?.id && payload.eventId && payload.eventId !== activeEvent.id) {
+                    Alert.alert('Wrong Round', 'This QR code belongs to a different event.');
+                    return;
                 }
-                setScanning(false);
 
-                // ✅ CRASH PREVENTION: Wrap refresh in try-catch
+                // Permission check: only admins can log for others
+                if (!eventPermissions.canManageLogs && payload.userId !== currentUser.id) {
+                    Alert.alert('Not Authorized', 'Only admins can log beers for other users.');
+                    return;
+                }
+
                 try {
-                    refresh();
-                } catch (refreshError) {
-                    reportError(new Error('Failed to refresh after stamp redeem'), {
+                    const result = await addBeer(payload.userId, currentUser.id, effectiveEventId);
+                    const newBadges = result?.newBadges || [];
+
+                    audioService.playPsst();
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
+
+                    if (newBadges.length > 0) {
+                        const badgeNames = newBadges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
+                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
+                        Alert.alert(
+                            '🏆 Achievement Unlocked!',
+                            `You earned: ${badgeNames}\n\nBeer logged via scan!`,
+                            [{ text: 'Woohoo!' }]
+                        );
+                    }
+                } catch (e) {
+                    reportError(e as Error, {
                         scope: 'useScanHandler',
-                        action: 'post_stamp_refresh',
-                        metadata: { cause: refreshError instanceof Error ? refreshError.message : String(refreshError) },
+                        action: 'scan_add_beer',
                     });
+                    Alert.alert('Error', 'Failed to log beer. Please try again.');
+                } finally {
+                    setScanning(false);
+                    try {
+                        refresh();
+                    } catch (refreshError) {
+                        reportError(refreshError as Error, { scope: 'useScanHandler', action: 'post_log_refresh' });
+                    }
                 }
                 return;
-            }
-
-            if (!currentUser) {
-                Alert.alert('Select User', 'Please select a user in Settings before scanning beer QR codes.');
-                return;
-            }
-            const effectiveEventId = payload.eventId || activeEvent?.id;
-            if (!effectiveEventId) {
-                Alert.alert('No Active Round', 'This QR code is not linked to an active round.');
-                return;
-            }
-            if (activeEvent?.id && payload.eventId && payload.eventId !== activeEvent.id) {
-                Alert.alert('Wrong Round', 'This QR code belongs to a different event.');
-                return;
-            }
-            if (!eventPermissions.canManageLogs && payload.userId !== currentUser.id) {
-                Alert.alert('Not Authorized', 'Only admins can log beers for other users.');
-                return;
-            }
-
-            const result = await addBeer(payload.userId, currentUser.id, effectiveEventId);
-
-            // ✅ CRASH PREVENTION: Ensure newBadges is always an array
-            const newBadges = result?.newBadges || [];
-
-            // Audio & Haptic feedback
-            audioService.playPsst();
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
-
-            if (newBadges.length > 0) {
-                const badgeNames = newBadges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
-                Alert.alert(
-                    '🏆 Achievement Unlocked!',
-                    `You earned: ${badgeNames}\n\nBeer logged via scan!`,
-                    [{ text: 'Woohoo!' }]
-                );
-            }
-
-            setScanning(false);
-
-            // ✅ CRASH PREVENTION: Wrap refresh in try-catch
-            try {
-                refresh();
-            } catch (refreshError) {
-                reportError(new Error('Failed to refresh after beer log'), {
-                    scope: 'useScanHandler',
-                    action: 'post_beer_refresh',
-                    metadata: { cause: refreshError instanceof Error ? refreshError.message : String(refreshError) },
-                });
             }
         } catch (e) {
-            reportError(new Error('Failed to add beer via scan'), {
+            reportError(e as Error, {
                 scope: 'useScanHandler',
-                action: 'scan_add_beer',
-                metadata: { cause: e instanceof Error ? e.message : String(e) },
+                action: 'handleScan_outer_catch',
             });
-            Alert.alert('Error', 'Failed to log beer. Please try again.');
+            Alert.alert('Error', 'Failed to process scan.');
         }
     };
 

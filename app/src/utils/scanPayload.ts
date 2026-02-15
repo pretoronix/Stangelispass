@@ -1,7 +1,9 @@
+import { QR_ACTIONS } from '@/constants/qr';
+
 export type ParsedScanPayload =
-    | { type: 'join_event'; eventId?: string; eventName?: string }
-    | { type: 'stamp_redeem'; stampId: string }
-    | { type: 'beer_log'; userId: string; eventId?: string }
+    | { type: 'join_event'; eventId?: string; eventName?: string; version?: number }
+    | { type: 'stamp_redeem'; stampId: string; version?: number }
+    | { type: 'beer_log'; userId: string; eventId?: string; version?: number }
     | { type: 'unknown' };
 
 const isLikelyId = (value: string | undefined) => {
@@ -22,47 +24,64 @@ export function parseScanPayload(raw: string): ParsedScanPayload {
 
     try {
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.type === 'JOIN_EVENT') {
+        if (!parsed || typeof parsed !== 'object') return { type: 'unknown' };
+
+        const version = typeof parsed.v === 'number' ? parsed.v : undefined;
+
+        if (parsed.type === QR_ACTIONS.JOIN_EVENT) {
             return {
                 type: 'join_event',
                 eventId: typeof parsed.eventId === 'string' ? parsed.eventId : undefined,
                 eventName: typeof parsed.eventName === 'string' ? parsed.eventName : undefined,
+                version,
             };
         }
-        if (parsed && typeof parsed.userId === 'string') {
+
+        // Newer versioned or standard STAMP_BEER payload
+        if (parsed.type === QR_ACTIONS.STAMP_BEER) {
+            // Case 1: Pre-generated stamp for redemption
+            if (typeof parsed.stampId === 'string') {
+                const stampId = parsed.stampId.trim();
+                if (!isLikelyStampId(stampId)) return { type: 'unknown' };
+                return { type: 'stamp_redeem', stampId, version };
+            }
+
+            // Case 2: Logging a beer for a user
+            if (typeof parsed.userId === 'string') {
+                const userId = parsed.userId.trim();
+                const eventId = typeof parsed.eventId === 'string' ? parsed.eventId.trim() : undefined;
+                if (!isLikelyId(userId)) return { type: 'unknown' };
+                if (eventId && !isLikelyId(eventId)) return { type: 'unknown' };
+                return { type: 'beer_log', userId, eventId, version };
+            }
+        }
+
+        // Legacy/Implicit beer log payload (no type field, just userId/eventId)
+        if (typeof parsed.userId === 'string') {
             const userId = parsed.userId.trim();
             const eventId = typeof parsed.eventId === 'string' ? parsed.eventId.trim() : undefined;
-            if (!isLikelyId(userId)) return { type: 'unknown' };
-            if (eventId && !isLikelyId(eventId)) return { type: 'unknown' };
-            if (parsed.type && parsed.type !== 'STAMP_BEER') return { type: 'unknown' };
-            return {
-                type: 'beer_log',
-                userId,
-                eventId,
-            };
-        }
-        if (parsed && parsed.type === 'STAMP_BEER' && typeof parsed.stampId === 'string') {
-            const stampId = parsed.stampId.trim();
-            if (!isLikelyStampId(stampId)) return { type: 'unknown' };
-            return { type: 'stamp_redeem', stampId };
+            if (isLikelyId(userId)) {
+                return { type: 'beer_log', userId, eventId, version };
+            }
         }
     } catch (_err) {
-        // Fall through to legacy payload parsing.
+        // Fall through to legacy pipe-separated payload parsing.
     }
 
-    if (!raw.includes('|')) {
-        return { type: 'unknown' };
-    }
-
-    const [userId, eventId] = raw.split('|');
-    if (userId && userId.trim().length > 0 && isLikelyId(userId.trim())) {
-        const safeEventId = eventId && eventId.trim().length > 0 ? eventId.trim() : undefined;
-        if (safeEventId && !isLikelyId(safeEventId)) return { type: 'unknown' };
-        return {
-            type: 'beer_log',
-            userId: userId.trim(),
-            eventId: safeEventId,
-        };
+    // Legacy format: userId|eventId
+    if (raw.includes('|')) {
+        const [userId, eventId] = raw.split('|');
+        const trimmedUserId = userId?.trim();
+        if (trimmedUserId && isLikelyId(trimmedUserId)) {
+            const trimmedEventId = eventId?.trim();
+            const safeEventId = trimmedEventId && trimmedEventId.length > 0 ? trimmedEventId : undefined;
+            if (safeEventId && !isLikelyId(safeEventId)) return { type: 'unknown' };
+            return {
+                type: 'beer_log',
+                userId: trimmedUserId,
+                eventId: safeEventId,
+            };
+        }
     }
 
     return { type: 'unknown' };

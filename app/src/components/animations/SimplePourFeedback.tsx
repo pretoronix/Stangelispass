@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@/lib/theme';
 import * as Haptics from 'expo-haptics';
+import { hasNativeHaptics, isSimulator } from '@/utils/deviceInfo';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -24,38 +25,63 @@ interface SimplePourFeedbackProps {
 export function SimplePourFeedback({ visible, onComplete }: SimplePourFeedbackProps) {
     const scale = useSharedValue(0);
     const opacity = useSharedValue(0);
+    const [hapticsEnabled, setHapticsEnabled] = useState(false);
+    const shouldAnimate = !isSimulator();
+
+    useEffect(() => {
+        let cancelled = false;
+        hasNativeHaptics().then((enabled) => {
+            if (!cancelled) {
+                setHapticsEnabled(enabled);
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         if (visible) {
             // Haptic feedback
-            Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Success
-            ).catch(() => {
-                // Ignore haptic errors
-            });
+            if (hapticsEnabled) {
+                Haptics.notificationAsync(
+                    Haptics.NotificationFeedbackType.Success
+                ).catch(() => {
+                    // Ignore haptic errors
+                });
+            }
 
-            // Scale and fade in animation
-            scale.value = withSequence(
-                withTiming(1.2, {
-                    duration: 300,
-                    easing: Easing.out(Easing.back(1.5)),
-                }),
-                withTiming(1.0, {
-                    duration: 200,
-                    easing: Easing.inOut(Easing.ease),
-                })
-            );
+            if (shouldAnimate) {
+                // Scale and fade in animation
+                scale.value = withSequence(
+                    withTiming(1.2, {
+                        duration: 300,
+                        easing: Easing.out(Easing.back(1.5)),
+                    }),
+                    withTiming(1.0, {
+                        duration: 200,
+                        easing: Easing.inOut(Easing.ease),
+                    })
+                );
 
-            opacity.value = withTiming(1, { duration: 200 });
+                opacity.value = withTiming(1, { duration: 200 });
+            } else {
+                scale.value = 1;
+                opacity.value = 1;
+            }
 
             // Auto-dismiss after animation
             const timer = setTimeout(() => {
-                opacity.value = withTiming(0, { duration: 300 }, (finished) => {
-                    if (finished) {
-                        onComplete();
-                    }
-                });
-            }, 1200);
+                if (shouldAnimate) {
+                    opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+                        if (finished) {
+                            onComplete();
+                        }
+                    });
+                } else {
+                    onComplete();
+                }
+            }, shouldAnimate ? 1200 : 300);
 
             return () => clearTimeout(timer);
         } else {
@@ -63,7 +89,7 @@ export function SimplePourFeedback({ visible, onComplete }: SimplePourFeedbackPr
             opacity.value = 0;
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [visible]);
+    }, [visible, hapticsEnabled, shouldAnimate]);
 
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
@@ -73,10 +99,10 @@ export function SimplePourFeedback({ visible, onComplete }: SimplePourFeedbackPr
     if (!visible) return null;
 
     return (
-        <View style={[styles.overlay, { backgroundColor: colors.background + 'B3' }]}>
-            <Animated.View style={[styles.content, animatedStyle, { backgroundColor: colors.surfaceLight + '1A' }]}>
+        <View style={styles.overlay}>
+            <Animated.View style={[styles.content, animatedStyle]}>
                 <Ionicons name="beer" size={80} color={colors.primary} />
-                <Text style={[styles.text, { color: colors.textPrimary }]}>Beer Logged! 🍺</Text>
+                <Text style={styles.text}>Beer Logged!</Text>
             </Animated.View>
         </View>
     );
@@ -85,14 +111,14 @@ export function SimplePourFeedback({ visible, onComplete }: SimplePourFeedbackPr
 const styles = StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: `${colors.background}B3`,
         justifyContent: 'center',
         alignItems: 'center',
         zIndex: 9999,
     },
     content: {
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.1)',
+        backgroundColor: `${colors.surfaceLight}1A`,
         paddingHorizontal: 40,
         paddingVertical: 30,
         borderRadius: 20,
@@ -101,5 +127,6 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         marginTop: 16,
+        color: colors.textPrimary,
     },
 });

@@ -13,7 +13,7 @@ Syntax error in `cacheManager.ts` caused iOS app crash and Metro bundler failure
 
 ### Error Message
 ```
-ERROR  SyntaxError: /Users/ppf/Downloads/Stängelispass/app/src/utils/cacheManager.ts: 
+ERROR  SyntaxError: /Users/ppf/Downloads/Stangelispass/app/src/utils/cacheManager.ts: 
 Unexpected token, expected "," (79:196)
 
   77 |
@@ -236,16 +236,16 @@ Thread 0 Crashed:: Dispatch queue: com.apple.main-thread
 <summary>Click to expand full Babel parser stack trace</summary>
 
 ```
-at constructor (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:365:19)
-at TypeScriptParserMixin.raise (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:6599:19)
-at TypeScriptParserMixin.unexpected (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:6619:16)
-at TypeScriptParserMixin.expect (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:6899:12)
-at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:11243:14)
-at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:11186:29)
-at TypeScriptParserMixin.parseSubscript (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:11120:19)
-at TypeScriptParserMixin.parseSubscript (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:9272:18)
-at TypeScriptParserMixin.parseSubscripts (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:11094:19)
-at TypeScriptParserMixin.parseExprSubscripts (/Users/ppf/Downloads/Stängelispass/app/node_modules/@babel/parser/lib/index.js:11085:17)
+at constructor (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:365:19)
+at TypeScriptParserMixin.raise (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:6599:19)
+at TypeScriptParserMixin.unexpected (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:6619:16)
+at TypeScriptParserMixin.expect (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:6899:12)
+at TypeScriptParserMixin.parseCallExpressionArguments (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:11243:14)
+at TypeScriptParserMixin.parseCoverCallAndAsyncArrowHead (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:11186:29)
+at TypeScriptParserMixin.parseSubscript (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:11120:19)
+at TypeScriptParserMixin.parseSubscript (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:9272:18)
+at TypeScriptParserMixin.parseSubscripts (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:11094:19)
+at TypeScriptParserMixin.parseExprSubscripts (/Users/ppf/Downloads/Stangelispass/app/node_modules/@babel/parser/lib/index.js:11085:17)
 [... 40 more frames ...]
 ```
 </details>

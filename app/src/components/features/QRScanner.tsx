@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Alert, Linking } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '@/lib/theme';
@@ -13,6 +13,7 @@ interface QRScannerProps {
 export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
+    const [torch, setTorch] = useState(false);
 
     const requestPermissionCallback = useCallback(() => {
         if (!permission) {
@@ -31,10 +32,19 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
     if (!permission.granted) {
         return (
             <View style={styles.centered}>
-                <Text style={styles.text}>No access to camera</Text>
-                <TouchableOpacity onPress={requestPermission} style={styles.button}>
-                    <Text style={styles.buttonText}>Grant Permission</Text>
-                </TouchableOpacity>
+                <Ionicons name="camera-outline" size={64} color={colors.textMuted} style={{ marginBottom: spacing.lg }} />
+                <Text style={styles.text}>Camera access is required to scan QR codes.</Text>
+
+                {permission.canAskAgain ? (
+                    <TouchableOpacity onPress={requestPermission} style={styles.button}>
+                        <Text style={styles.buttonText}>Grant Permission</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity onPress={() => Linking.openSettings()} style={styles.button}>
+                        <Text style={styles.buttonText}>Open Settings</Text>
+                    </TouchableOpacity>
+                )}
+
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                     <Text style={styles.closeButtonText}>Cancel</Text>
                 </TouchableOpacity>
@@ -63,16 +73,28 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
                 barcodeScannerSettings={{
                     barcodeTypes: ['qr'],
                 }}
+                enableTorch={torch}
             />
             <View style={styles.overlay}>
-                <View style={styles.unfocusedContainer} />
+                <View style={[styles.unfocusedContainer, styles.headerOverlay]}>
+                    <TouchableOpacity
+                        onPress={() => setTorch(t => !t)}
+                        style={styles.torchButton}
+                    >
+                        <Ionicons
+                            name={torch ? "flash" : "flash-off"}
+                            size={28}
+                            color="#FFFFFF"
+                        />
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.focusedWrapper}>
                     <View style={styles.unfocusedContainer} />
                     <View style={styles.focusedContainer} />
                     <View style={styles.unfocusedContainer} />
                 </View>
                 <View style={styles.unfocusedContainer}>
-                    <Text style={styles.instruction}>Center the Admin's QR code here</Text>
+                    <Text style={styles.instruction}>Center the QR code here</Text>
                     <TouchableOpacity onPress={onClose} style={styles.bottomClose}>
                         <Ionicons name="close-circle" size={64} color="#FFFFFF" />
                     </TouchableOpacity>
@@ -125,6 +147,20 @@ const styles = StyleSheet.create({
     unfocusedContainer: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    headerOverlay: {
+        justifyContent: 'flex-start',
+        alignItems: 'flex-end',
+        paddingTop: 60,
+        paddingRight: spacing.xl,
+    },
+    torchButton: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: 'rgba(255,255,255,0.2)',
         justifyContent: 'center',
         alignItems: 'center',
     },

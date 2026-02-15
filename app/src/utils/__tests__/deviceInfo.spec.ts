@@ -3,7 +3,7 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { reportError } from '@/utils/logger';
 
-import { isLowEndDevice, shouldShowAnimations, setAnimationPreference } from '@/utils/deviceInfo';
+import { isLowEndDevice, shouldShowAnimations, setAnimationPreference, isSimulator, hasNativeHaptics } from '@/utils/deviceInfo';
 
 describe('deviceInfo (utils)', () => {
   const originalOS = Platform.OS;
@@ -18,6 +18,7 @@ describe('deviceInfo (utils)', () => {
 
     Object.defineProperty(Device, 'deviceYearClass', { value: undefined, configurable: true });
     Object.defineProperty(Device, 'totalMemory', { value: undefined, configurable: true });
+    Object.defineProperty(Device, 'isDevice', { value: true, configurable: true });
   });
 
   afterEach(() => {
@@ -27,6 +28,17 @@ describe('deviceInfo (utils)', () => {
   it('isLowEndDevice returns false on web', async () => {
     Object.defineProperty(Platform, 'OS', { value: 'web' });
     await expect(isLowEndDevice()).resolves.toBe(false);
+  });
+
+  it('isSimulator reflects Device.isDevice', () => {
+    Object.defineProperty(Device, 'isDevice', { value: false, configurable: true });
+    Object.defineProperty(Platform, 'OS', { value: 'ios' });
+    expect(isSimulator()).toBe(true);
+  });
+
+  it('hasNativeHaptics returns false on web', async () => {
+    Object.defineProperty(Platform, 'OS', { value: 'web' });
+    await expect(hasNativeHaptics()).resolves.toBe(false);
   });
 
   it('isLowEndDevice returns true for old devices by year class', async () => {
@@ -89,4 +101,3 @@ describe('deviceInfo (utils)', () => {
     expect(reportError).toHaveBeenCalled();
   });
 });
-
