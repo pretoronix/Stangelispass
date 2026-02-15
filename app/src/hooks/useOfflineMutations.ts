@@ -30,7 +30,11 @@ export function useOfflineMutations() {
         setQueue(JSON.parse(stored));
       }
     } catch (error) {
-      reportError(new Error('Failed to load offline queue:', error), { scope: 'useOfflineMutations', action: 'replace_console' });
+      reportError(new Error('Failed to load offline queue'), {
+        scope: 'useOfflineMutations',
+        action: 'load_queue',
+        metadata: { cause: error instanceof Error ? error.message : String(error) },
+      });
     }
   }, []);
   
@@ -38,7 +42,11 @@ export function useOfflineMutations() {
     setQueue((prev) => {
       const next = updater(prev);
       AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(next)).catch((error) => {
-        reportError(new Error('Failed to save offline queue:', error), { scope: 'useOfflineMutations', action: 'replace_console' });
+        reportError(new Error('Failed to save offline queue'), {
+          scope: 'useOfflineMutations',
+          action: 'persist_queue',
+          metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
       });
       return next;
     });
@@ -73,7 +81,11 @@ export function useOfflineMutations() {
         // Remove from queue on success
         await removeFromQueue(mutation.id);
       } catch (error) {
-        reportError(new Error('Failed to process offline mutation:', error), { scope: 'useOfflineMutations', action: 'replace_console' });
+        reportError(new Error('Failed to process offline mutation'), {
+          scope: 'useOfflineMutations',
+          action: 'process_queue',
+          metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         // Keep in queue for retry
       }
     }

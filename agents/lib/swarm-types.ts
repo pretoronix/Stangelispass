@@ -8,7 +8,7 @@ import { AgentExecutionContext, AgentExecutionResult } from './types.js';
 /**
  * Swarm agent role types
  */
-export type SwarmAgentRole = 
+export type SwarmAgentRole =
   | 'strategic_planning'
   | 'product_management'
   | 'technical_assessment'
@@ -21,7 +21,7 @@ export type SwarmAgentRole =
 /**
  * Swarm collaboration mode
  */
-export type CollaborationMode = 
+export type CollaborationMode =
   | 'consensus'      // All agents must agree
   | 'majority'       // >50% agreement required
   | 'weighted'       // Weight-based voting
@@ -255,6 +255,7 @@ export interface RoadmapAnalysis {
   planned_features: number;
   completion_percentage: number;
   gaps: FeatureGap[];
+  evidence?: Record<string, string[]>;
   recommendations: string[];
   last_updated: string;
   data_freshness: 'current' | 'stale' | 'outdated';

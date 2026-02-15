@@ -5,21 +5,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, addBeer, createBeerStamp } from '@/services/supabase';
 import { useApp } from '@/providers/AppProvider';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { SelectedUserCard } from '@/components/add/SelectedUserCard';
 import { SyncIndicator } from '@/components/ui/SyncIndicator';
 import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { BADGES } from '@/services/achievements';
-import { labels } from '@/ui/labels';
 import { PourAnimation } from '@/components/animations/PourAnimation';
 import { SimplePourFeedback } from '@/components/animations/SimplePourFeedback';
 import { shouldShowAnimations } from '@/utils/deviceInfo';
 import { reportError } from '@/utils/logger';
 import { AddUserGrid } from '@/components/add/AddUserGrid';
 import { AddQrModal } from '@/components/add/AddQrModal';
-import { Avatar } from '@/components/ui/Avatar';
 
 export default function AddBeerScreen() {
     const { currentUser, users, activeEvent, eventPermissions, addOfflineMutation } = useApp();
@@ -85,7 +82,11 @@ export default function AddBeerScreen() {
                 Alert.alert('Unavailable', 'Sharing is not available on this device.');
             }
         } catch (e) {
-            reportError(new Error('Failed to share QR:', e), { scope: 'add', action: 'replace_console' });
+            reportError(new Error('Failed to share QR'), {
+                scope: 'add',
+                action: 'share_qr',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             Alert.alert('Error', 'Could not share QR code.');
         } finally {
             setShareLoading(false);
@@ -201,7 +202,11 @@ export default function AddBeerScreen() {
                 setStampId(result.stamp.id);
             }
         } catch (e) {
-            reportError(new Error('Failed to create stamp:', e), { scope: 'add', action: 'replace_console' });
+            reportError(new Error('Failed to create stamp'), {
+                scope: 'add',
+                action: 'create_stamp',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             Alert.alert('Error', 'Could not create stamp QR.');
             return;
         } finally {
@@ -239,47 +244,15 @@ export default function AddBeerScreen() {
                 />
 
                 {selectedUser && (
-                    <Card style={styles.selectedCard}>
-                        <View style={styles.cardHeader}>
-                            <Avatar name={selectedUser.name} size={60} />
-                            <View style={styles.cardInfo}>
-                                <Text style={styles.cardTitle}>{selectedUser.name}</Text>
-                                <Text style={styles.cardSubtitle}>Ready for a beer? </Text>
-                            </View>
-                        </View>
-                        <View style={styles.buttonContainer}>
-                            <Button
-                                title="Add 1 Beer!"
-                                icon="beer"
-                                variant="primary"
-                                onPress={handleAddBeer}
-                                testID={labels.add.addBeer.testID}
-                                accessibilityLabel={labels.add.addBeer.accessibilityLabel}
-                                disabled={loading}
-                                style={styles.actionButton}
-                            />
-                            <Button
-                                title="Stamp QR (+1)"
-                                icon="qr-code"
-                                variant="ghost"
-                                testID={labels.add.stampQr.testID}
-                                accessibilityLabel={labels.add.stampQr.accessibilityLabel}
-                                onPress={handleStampQr}
-                                disabled={!eventPermissions.canIssueStamps || stampLoading}
-                                style={styles.actionButton}
-                            />
-                            <Button
-                                title="User QR (Admin Log)"
-                                icon="qr-code"
-                                variant="secondary"
-                                testID={labels.add.userQr.testID}
-                                accessibilityLabel={labels.add.userQr.accessibilityLabel}
-                                onPress={handleUserQr}
-                                disabled={!activeEvent}
-                                style={styles.actionButton}
-                            />
-                        </View>
-                    </Card>
+                    <SelectedUserCard
+                        user={selectedUser}
+                        loading={loading}
+                        canIssueStamps={eventPermissions.canIssueStamps && !stampLoading}
+                        hasActiveEvent={!!activeEvent}
+                        onAddBeer={handleAddBeer}
+                        onStampQr={handleStampQr}
+                        onUserQr={handleUserQr}
+                    />
                 )}
 
                 <AddQrModal
@@ -331,40 +304,5 @@ const styles = StyleSheet.create({
         ...typography.caption,
         color: colors.textMuted,
         marginBottom: spacing.md,
-    },
-    selectedCard: {
-        position: 'absolute',
-        bottom: spacing.md,
-        left: spacing.md,
-        right: spacing.md,
-        padding: spacing.lg,
-        elevation: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: spacing.lg,
-    },
-    cardInfo: {
-        marginLeft: spacing.md,
-    },
-    cardTitle: {
-        ...typography.title,
-        color: colors.textPrimary,
-    },
-    cardSubtitle: {
-        ...typography.body,
-        color: colors.textMuted,
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        gap: spacing.sm,
-    },
-    actionButton: {
-        flex: 1,
     },
 });

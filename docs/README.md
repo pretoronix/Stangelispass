@@ -35,6 +35,8 @@ Testing documentation and results
 - **[phase-3-summary.md](./testing/phase-3-summary.md)** - QR & offline tests
 - **[complete-summary.md](./testing/complete-summary.md)** - Full test overview
 - **[guide.md](./testing/guide.md)** - General testing guide
+- **[TEST_COVERAGE_REPORT.md](./testing/TEST_COVERAGE_REPORT.md)** - Detailed coverage report
+- **[TEST_FIXES_SUMMARY.md](./testing/TEST_FIXES_SUMMARY.md)** - Summary of recent test fixes
 
 ### 🚀 [/deployment](./deployment)
 Deployment, monitoring, and operations
@@ -63,7 +65,7 @@ Strategic planning and roadmaps
 ### 📦 [/archive](./archive)
 Historical and completed documentation
 - Implementation plans (completed features)
-- Legacy summaries
+- Legacy summaries (Animation crash fixes, error logs)
 - Old specs and optimizations
 
 ---

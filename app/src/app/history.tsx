@@ -30,7 +30,11 @@ export default function HistoryScreen() {
             const data = await getBeers(activeEvent?.id);
             setBeers(data ?? []);
         } catch (e) {
-            reportError(new Error('Failed to fetch beers:', e), { scope: 'history', action: 'replace_console' });
+            reportError(new Error('Failed to fetch beers'), {
+                scope: 'history',
+                action: 'fetch_beers',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
         } finally {
             setLoading(false);
             setRefreshing(false);

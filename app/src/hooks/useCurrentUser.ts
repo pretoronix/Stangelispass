@@ -27,15 +27,19 @@ export function useCurrentUser() {
                     savedUser = await SecureStore.getItemAsync(CURRENT_USER_KEY);
                 }
 
-                if (savedUser) {
-                    try {
-                        setCurrentUserState(JSON.parse(savedUser));
-                    } catch (parseError) {
-                        reportError(new Error('Invalid saved user payload:', parseError), { scope: 'useCurrentUser', action: 'replace_console' });
-                        // Clean up invalid data
-                        if (Platform.OS === 'web') {
-                            if (typeof window !== 'undefined') {
-                                window.localStorage.removeItem(CURRENT_USER_KEY);
+                    if (savedUser) {
+                        try {
+                            setCurrentUserState(JSON.parse(savedUser));
+                        } catch (parseError) {
+                        reportError(new Error('Invalid saved user payload'), {
+                            scope: 'useCurrentUser',
+                            action: 'parse_saved_user',
+                            metadata: { cause: parseError instanceof Error ? parseError.message : String(parseError) },
+                        });
+                            // Clean up invalid data
+                            if (Platform.OS === 'web') {
+                                if (typeof window !== 'undefined') {
+                                    window.localStorage.removeItem(CURRENT_USER_KEY);
                             }
                         } else {
                             await SecureStore.deleteItemAsync(CURRENT_USER_KEY);
@@ -43,7 +47,11 @@ export function useCurrentUser() {
                     }
                 }
             } catch (e) {
-                reportError(new Error('Failed to load current user:', e), { scope: 'useCurrentUser', action: 'replace_console' });
+                reportError(new Error('Failed to load current user'), {
+                    scope: 'useCurrentUser',
+                    action: 'load_user',
+                    metadata: { cause: e instanceof Error ? e.message : String(e) },
+                });
             } finally {
                 setLoading(false);
             }
@@ -72,7 +80,11 @@ export function useCurrentUser() {
                 await SecureStore.deleteItemAsync(CURRENT_USER_KEY);
             }
         } catch (e) {
-            reportError(new Error('Failed to save current user:', e), { scope: 'useCurrentUser', action: 'replace_console' });
+            reportError(new Error('Failed to save current user'), {
+                scope: 'useCurrentUser',
+                action: 'save_user',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             throw e;
         }
     }, []);

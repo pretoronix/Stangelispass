@@ -10,6 +10,7 @@ interface NotificationsSectionProps {
     onToggleLeaderChange: (value: boolean) => void;
     onToggleMilestone: (milestone: number, value: boolean) => void;
     onToggleAdminBroadcasts?: (value: boolean) => void;
+    onToggleNewRound?: (value: boolean) => void;
 }
 
 export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
@@ -18,6 +19,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
     onToggleLeaderChange,
     onToggleMilestone,
     onToggleAdminBroadcasts,
+    onToggleNewRound,
 }) => {
     return (
         <Card>
@@ -50,6 +52,17 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
                     <Switch
                         value={notificationPrefs.admin_broadcasts}
                         onValueChange={onToggleAdminBroadcasts}
+                        trackColor={{ false: colors.surfaceLight, true: colors.primary }}
+                    />
+                </View>
+            )}
+
+            {onToggleNewRound && (
+                <View style={styles.bioRow}>
+                    <Text style={styles.bioLabel}>New Round Alerts</Text>
+                    <Switch
+                        value={notificationPrefs.new_round}
+                        onValueChange={onToggleNewRound}
                         trackColor={{ false: colors.surfaceLight, true: colors.primary }}
                     />
                 </View>

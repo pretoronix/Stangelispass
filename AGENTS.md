@@ -21,3 +21,4 @@ npm run swarm:brainstorm
 For full details, see:
 - `docs/development/agents.md`
 - `agents/docs/SWARM_AGENTS.md`
+

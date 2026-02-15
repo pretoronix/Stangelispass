@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { reportError } from '@/utils/logger';
+import { logExpected, reportError } from '@/utils/logger';
 
 export interface WallOfFameEntry {
   id: string;
@@ -47,7 +47,11 @@ export async function getWallOfFame(): Promise<WallOfFameEntry[]> {
       toast_count: Array.isArray(entry.toasts) ? entry.toasts.length : 0,
     }));
   } catch (error) {
-    reportError(new Error('Failed to fetch wall of fame:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to fetch wall of fame'), {
+      scope: 'wallOfFame',
+      action: 'fetch_wall_of_fame',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return [];
   }
 }
@@ -68,7 +72,11 @@ export async function createWallOfFameEntry(entry: {
     if (error) throw error;
     return data;
   } catch (error) {
-    reportError(new Error('Failed to create wall of fame entry:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to create wall of fame entry'), {
+      scope: 'wallOfFame',
+      action: 'create_entry',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return null;
   }
 }
@@ -82,7 +90,7 @@ export async function addToast(wallId: string, userId: string): Promise<boolean>
     if (error) {
       // Check if it's a unique constraint violation (already toasted)
       if (error.code === '23505') {
-        console.log('User has already toasted this entry');
+        logExpected('User has already toasted this entry', 'wallOfFame');
         return false;
       }
       throw error;
@@ -90,7 +98,11 @@ export async function addToast(wallId: string, userId: string): Promise<boolean>
 
     return true;
   } catch (error) {
-    reportError(new Error('Failed to add toast:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to add toast'), {
+      scope: 'wallOfFame',
+      action: 'add_toast',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return false;
   }
 }
@@ -106,7 +118,11 @@ export async function removeToast(wallId: string, userId: string): Promise<boole
     if (error) throw error;
     return true;
   } catch (error) {
-    reportError(new Error('Failed to remove toast:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to remove toast'), {
+      scope: 'wallOfFame',
+      action: 'remove_toast',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return false;
   }
 }
@@ -121,7 +137,11 @@ export async function getUserToasts(userId: string): Promise<string[]> {
     if (error) throw error;
     return (data || []).map((t: any) => t.wall_id);
   } catch (error) {
-    reportError(new Error('Failed to fetch user toasts:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to fetch user toasts'), {
+      scope: 'wallOfFame',
+      action: 'get_user_toasts',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return [];
   }
 }
@@ -136,7 +156,11 @@ export async function getToastCount(wallId: string): Promise<number> {
     if (error) throw error;
     return count || 0;
   } catch (error) {
-    reportError(new Error('Failed to get toast count:', error), { scope: 'wallOfFame', action: 'replace_console' });
+    reportError(new Error('Failed to get toast count'), {
+      scope: 'wallOfFame',
+      action: 'get_toast_count',
+      metadata: { cause: error instanceof Error ? error.message : String(error) },
+    });
     return 0;
   }
 }

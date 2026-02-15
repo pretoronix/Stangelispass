@@ -41,10 +41,14 @@ import { selectRandomPayer, calculateBill, getEventDurationLabel, getStartRoundP
 // Extracted styles
 import { homeScreenStyles as styles } from '@/styles/screens/homeScreenStyles';
 
+// Safety features
+import { estimateBAC } from '@/services/safety';
+import { SafeRideCard } from '@/components/features/SafeRideCard';
+
 export default function HomeScreen() {
     const { beerCounts, rawBeers, totalBeers, leaderInfo, leaderLead, hotStreak, gameStatsAvailable, loading, refreshing, refresh } = useBeers();
     const { currentUser, setCurrentUser, activeEvent, startEvent, closeEvent, showRecap, setShowRecap, eventPermissions } = useApp();
-    
+
     const [scanning, setScanning] = useState(false);
     const [showInvite, setShowInvite] = useState(false);
     const [showBroadcast, setShowBroadcast] = useState(false);
@@ -80,6 +84,15 @@ export default function HomeScreen() {
     const winner = leaderInfo ?? beerCounts[0];
     const startRoundPriceLabel = getStartRoundPriceLabel();
     const activeEventDurationLabel = getEventDurationLabel(activeEvent?.pass_type);
+
+    // Safety Stats
+    const currentUserStats = beerCounts.find(b => b.userId === currentUser?.id);
+    const bacStats = estimateBAC(
+        currentUserStats?.count || 0,
+        activeEvent?.created_at ? new Date(activeEvent.created_at) : new Date(),
+        currentUser
+    );
+
     const handleSavePace = React.useCallback(() => {
         if (groupVelocity <= 0) return;
         pacePreset.savePace(groupVelocity);
@@ -194,34 +207,37 @@ export default function HomeScreen() {
                     />
                 }
                 ListHeaderComponent={
-                    <HomeHeader
-                        activeEvent={activeEvent}
-                        currentUser={currentUser}
-                        eventPermissions={eventPermissions}
-                        onStartRound={handleStartRound}
-                        onWhoPays={handleWhoPays}
-                        onExport={() => activeEvent && handleExportData(activeEvent)}
-                        onScan={() => setScanning(true)}
-                        onEnd={closeEvent}
-                        onInvite={() => setShowInvite(true)}
-                        onBroadcast={() => setShowBroadcast(true)}
-                        startRoundPriceLabel={startRoundPriceLabel}
-                        activeEventDurationLabel={activeEventDurationLabel}
-                        showVelocityCard={!!activeEvent && (rawBeers.length > 0 || !!pacePreset.savedPace)}
-                        groupVelocity={groupVelocity}
-                        trendData={trendData}
-                        savedPace={pacePreset.savedPace}
-                        onSavePace={handleSavePace}
-                        onClearSavedPace={pacePreset.clearSavedPace}
-                        gameStatsAvailable={gameStatsAvailable}
-                        leaderInfo={leaderInfo}
-                        leaderLead={leaderLead}
-                        hotStreak={hotStreak}
-                        leaderAnnouncement={leaderAnnouncement}
-                        streakAnnouncement={streakAnnouncement}
-                        totalBeers={totalBeers}
-                        totalBill={totalBill}
-                    />
+                    <View>
+                        <HomeHeader
+                            activeEvent={activeEvent}
+                            currentUser={currentUser}
+                            eventPermissions={eventPermissions}
+                            onStartRound={handleStartRound}
+                            onWhoPays={handleWhoPays}
+                            onExport={() => activeEvent && handleExportData(activeEvent)}
+                            onScan={() => setScanning(true)}
+                            onEnd={closeEvent}
+                            onInvite={() => setShowInvite(true)}
+                            onBroadcast={() => setShowBroadcast(true)}
+                            startRoundPriceLabel={startRoundPriceLabel}
+                            activeEventDurationLabel={activeEventDurationLabel}
+                            showVelocityCard={!!activeEvent && (rawBeers.length > 0 || !!pacePreset.savedPace)}
+                            groupVelocity={groupVelocity}
+                            trendData={trendData}
+                            savedPace={pacePreset.savedPace}
+                            onSavePace={handleSavePace}
+                            onClearSavedPace={pacePreset.clearSavedPace}
+                            gameStatsAvailable={gameStatsAvailable}
+                            leaderInfo={leaderInfo}
+                            leaderLead={leaderLead}
+                            hotStreak={hotStreak}
+                            leaderAnnouncement={leaderAnnouncement ?? undefined}
+                            streakAnnouncement={streakAnnouncement ?? undefined}
+                            totalBeers={totalBeers}
+                            totalBill={totalBill}
+                        />
+                        {!!activeEvent && <SafeRideCard stats={bacStats} />}
+                    </View>
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>

@@ -73,14 +73,12 @@ describe('useNetworkStatus', () => {
     });
 
     // Simulate reconnection
-    if (mockEventListener) {
-      await act(async () => {
-        mockEventListener({
-          isConnected: true,
-          isInternetReachable: true,
-        });
+    await act(async () => {
+      mockEventListener?.({
+        isConnected: true,
+        isInternetReachable: true,
       });
-    }
+    });
 
     // Flush reconnection timeout
     await act(async () => {

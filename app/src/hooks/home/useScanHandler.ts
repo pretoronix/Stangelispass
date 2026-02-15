@@ -38,7 +38,11 @@ export function useScanHandler(
                 if (currentUser) {
                     if (payload.eventId) {
                         await joinEvent(payload.eventId, currentUser.id).catch((e) => {
-                            reportError(new Error('Failed to join event membership:', e), { scope: 'useScanHandler', action: 'replace_console' });
+                            reportError(new Error('Failed to join event membership'), {
+                                scope: 'useScanHandler',
+                                action: 'join_event',
+                                metadata: { cause: e instanceof Error ? e.message : String(e) },
+                            });
                         });
                     }
                     Alert.alert('Joined!', `You are now part of ${payload.eventName || 'the round'}.`);
@@ -71,14 +75,27 @@ export function useScanHandler(
 
                 audioService.playPsst();
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
-                if (redemption.newBadges.length > 0) {
-                    const badgeNames = redemption.newBadges.map(b => BADGES[b].name).join(', ');
+
+                // ✅ CRASH PREVENTION: Ensure newBadges is always an array
+                const badges = redemption.newBadges || [];
+                if (badges.length > 0) {
+                    const badgeNames = badges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
                     Alert.alert('Stamp Redeemed', `+1 beer added.\nNew badges: ${badgeNames}`);
                 } else {
                     Alert.alert('Stamp Redeemed', '+1 beer added successfully.');
                 }
                 setScanning(false);
-                refresh();
+
+                // ✅ CRASH PREVENTION: Wrap refresh in try-catch
+                try {
+                    refresh();
+                } catch (refreshError) {
+                    reportError(new Error('Failed to refresh after stamp redeem'), {
+                        scope: 'useScanHandler',
+                        action: 'post_stamp_refresh',
+                        metadata: { cause: refreshError instanceof Error ? refreshError.message : String(refreshError) },
+                    });
+                }
                 return;
             }
 
@@ -100,14 +117,17 @@ export function useScanHandler(
                 return;
             }
 
-            const { newBadges } = await addBeer(payload.userId, currentUser.id, effectiveEventId);
+            const result = await addBeer(payload.userId, currentUser.id, effectiveEventId);
+
+            // ✅ CRASH PREVENTION: Ensure newBadges is always an array
+            const newBadges = result?.newBadges || [];
 
             // Audio & Haptic feedback
             audioService.playPsst();
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
 
             if (newBadges.length > 0) {
-                const badgeNames = newBadges.map(b => BADGES[b].name).join(', ');
+                const badgeNames = newBadges.map(b => BADGES[b]?.name || 'Unknown').filter(Boolean).join(', ');
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => null);
                 Alert.alert(
                     '🏆 Achievement Unlocked!',
@@ -117,9 +137,23 @@ export function useScanHandler(
             }
 
             setScanning(false);
-            refresh();
+
+            // ✅ CRASH PREVENTION: Wrap refresh in try-catch
+            try {
+                refresh();
+            } catch (refreshError) {
+                reportError(new Error('Failed to refresh after beer log'), {
+                    scope: 'useScanHandler',
+                    action: 'post_beer_refresh',
+                    metadata: { cause: refreshError instanceof Error ? refreshError.message : String(refreshError) },
+                });
+            }
         } catch (e) {
-            reportError(new Error('Failed to add beer via scan:', e), { scope: 'useScanHandler', action: 'replace_console' });
+            reportError(new Error('Failed to add beer via scan'), {
+                scope: 'useScanHandler',
+                action: 'scan_add_beer',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             Alert.alert('Error', 'Failed to log beer. Please try again.');
         }
     };

@@ -103,8 +103,10 @@ export default function ProfileScreen() {
     );
 }
 
-const getLastLogDate = (userBeers: Beer[]) =>
-    userBeers.length > 0 ? new Date(userBeers[userBeers.length - 1].created_at).toLocaleDateString() : 'N/A';
+const getLastLogDate = (userBeers: Beer[]) => {
+    const last = userBeers.length > 0 ? userBeers[userBeers.length - 1] : undefined;
+    return last ? new Date(last.created_at).toLocaleDateString() : 'N/A';
+};
 
 const styles = StyleSheet.create({
     safeArea: {

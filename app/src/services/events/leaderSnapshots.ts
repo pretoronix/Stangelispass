@@ -14,8 +14,8 @@ type LeaderboardRow = {
 };
 
 const fetchLeaderLastBeerAt = async (eventId: string, leaderId: string) => {
-    const { data, error } = await supabase
-        .from('beers')
+    const { data, error } = await (supabase
+        .from('beers') as any)
         .select('created_at')
         .eq('event_id', eventId)
         .eq('user_id', leaderId)
@@ -28,12 +28,12 @@ const fetchLeaderLastBeerAt = async (eventId: string, leaderId: string) => {
         }
         throw error;
     }
-    return (data && data[0]?.created_at) || null;
+    return ((data as any[]) && (data as any[])[0]?.created_at) || null;
 };
 
 const buildLastBeerByUser = async (eventId: string) => {
-    const { data, error } = await supabase
-        .from('beers')
+    const { data, error } = await (supabase
+        .from('beers') as any)
         .select('user_id, created_at')
         .eq('event_id', eventId);
 

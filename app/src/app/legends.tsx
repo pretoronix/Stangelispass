@@ -15,7 +15,11 @@ export default function LegendsScreen() {
             const data = await getWallOfFame();
             setEntries(data || []);
         } catch (e) {
-            reportError(new Error('Failed to fetch Wall of Fame:', e), { scope: 'legends', action: 'replace_console' });
+            reportError(new Error('Failed to fetch Wall of Fame'), {
+                scope: 'legends',
+                action: 'fetch_wall_of_fame',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
         } finally {
             setLoading(false);
         }

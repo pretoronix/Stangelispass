@@ -19,7 +19,6 @@ import {
     createTestEvent,
     createTestBeer,
     createHatTrickBeers,
-    createFailedHatTrickBeers,
     resetCounters,
 } from '../helpers/testDataFactory';
 import { checkAchievements, type BadgeType } from '@/services/achievements';

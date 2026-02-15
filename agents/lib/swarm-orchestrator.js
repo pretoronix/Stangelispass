@@ -171,8 +171,28 @@ export class SwarmOrchestrator {
             return await this.prioritizeExecutionOrder(execution);
         case 'apply_refactors':
             return await this.applyRefactorPlan(execution);
-        case 'update_docs_and_logs':
+            case 'update_docs_and_logs':
                 return await this.updateRefactorDocs(execution);
+            // Documentation sync workflow (minimal viable implementation)
+            case 'scan_all_documentation':
+                return await this.scanAllDocumentation(execution);
+            case 'validate_cross_references':
+                return await this.validateCrossReferences(execution);
+            case 'check_version_consistency':
+                return await this.checkVersionConsistency(execution);
+            case 'identify_outdated_content':
+                return await this.identifyOutdatedContent(execution);
+            case 'verify_roadmap_accuracy':
+                return await this.compareRoadmapVsReality(execution);
+            case 'validate_technical_claims':
+                return await this.validateTechnicalClaims(execution);
+            case 'check_feature_status':
+                return await this.scanCodebaseForFeatures(execution);
+            case 'fix_inconsistencies':
+            case 'update_dates_versions':
+            case 'refresh_content':
+            case 'improve_clarity':
+                return await this.writeDocumentationSyncReport(execution);
             // No-op actions (configured in swarm-agents.json but not yet implemented)
             case 'identify_completion_status':
             case 'check_documentation_impact':
@@ -185,6 +205,192 @@ export class SwarmOrchestrator {
                 logger.warn(`Unknown action: ${action}`);
                 return null;
         }
+    }
+
+    async listDocumentationFiles() {
+        const files = await glob('{docs/**/*.md,README.md,Description.md,AGENTS.md,TEST_COVERAGE_REPORT.md,TEST_COVERAGE_DRY_RUN.md}', {
+            cwd: this.projectRoot,
+            nodir: true,
+            ignore: ['**/node_modules/**', '**/.git/**']
+        });
+        return files;
+    }
+
+    async scanAllDocumentation(execution) {
+        const files = await this.listDocumentationFiles();
+        execution.discussions.push({
+            id: this.generateId(),
+            agent_id: 'documentation-agent',
+            message: `Documentation audit: found ${files.length} markdown file(s) to scan.`,
+            type: 'comment',
+            timestamp: new Date()
+        });
+        return { files };
+    }
+
+    async validateCrossReferences(execution) {
+        const files = await this.listDocumentationFiles();
+        const broken = [];
+        const linkRe = /\[[^\]]+\]\(([^)]+)\)/g;
+        for (const file of files) {
+            const abs = path.join(this.projectRoot, file);
+            const content = await fs.readFile(abs, 'utf-8');
+            for (const m of content.matchAll(linkRe)) {
+                const targetRaw = (m[1] || '').trim();
+                if (!targetRaw)
+                    continue;
+                if (targetRaw.startsWith('http:') || targetRaw.startsWith('https:') || targetRaw.startsWith('mailto:'))
+                    continue;
+                if (targetRaw.startsWith('#'))
+                    continue;
+                const targetNoAnchor = targetRaw.split('#')[0] || '';
+                if (!targetNoAnchor)
+                    continue;
+                const resolved = targetNoAnchor.startsWith('/')
+                    ? path.join(this.projectRoot, targetNoAnchor.replace(/^\//, ''))
+                    : path.resolve(path.dirname(abs), targetNoAnchor);
+                try {
+                    await fs.stat(resolved);
+                }
+                catch {
+                    broken.push({ from: file, to: targetRaw });
+                }
+            }
+        }
+        const sample = broken.slice(0, 5).map(b => `${b.from} -> ${b.to}`).join('; ');
+        execution.discussions.push({
+            id: this.generateId(),
+            agent_id: 'documentation-agent',
+            message: `Cross-reference check: ${broken.length} broken link(s) detected${sample ? ` (sample: ${sample})` : ''}.`,
+            type: broken.length > 0 ? 'concern' : 'comment',
+            timestamp: new Date()
+        });
+        return { broken };
+    }
+
+    async checkVersionConsistency(execution) {
+        const keyDocs = [
+            'docs/planning/project-status.md',
+            'docs/planning/strategy/feature_roadmap.md',
+            'docs/implementation-plans/push-notifications-plan.md',
+        ];
+        const issues = [];
+        const dateRe = /Last Updated[:\s]+(.+?)\s*$/gim;
+        const now = new Date();
+        for (const doc of keyDocs) {
+            const abs = path.join(this.projectRoot, doc);
+            let content = '';
+            try {
+                content = await fs.readFile(abs, 'utf-8');
+            }
+            catch {
+                issues.push(`${doc}: missing file`);
+                continue;
+            }
+            const matches = [...content.matchAll(dateRe)];
+            if (matches.length === 0) {
+                issues.push(`${doc}: missing "Last Updated" marker`);
+                continue;
+            }
+            const raw = String(matches[0][1] || '').trim();
+            const d = new Date(raw);
+            if (Number.isNaN(d.getTime())) {
+                issues.push(`${doc}: unparseable Last Updated "${raw}"`);
+                continue;
+            }
+            if (d.getTime() > now.getTime() + 24 * 60 * 60 * 1000) {
+                issues.push(`${doc}: Last Updated is in the future (${raw})`);
+            }
+        }
+        execution.discussions.push({
+            id: this.generateId(),
+            agent_id: 'documentation-agent',
+            message: issues.length > 0
+                ? `Version/date consistency: ${issues.length} issue(s) (${issues.slice(0, 3).join('; ')})`
+                : 'Version/date consistency: no issues found in key docs.',
+            type: issues.length > 0 ? 'concern' : 'comment',
+            timestamp: new Date()
+        });
+        return { issues };
+    }
+
+    async identifyOutdatedContent(execution) {
+        const findings = [];
+        const statusDoc = path.join(this.projectRoot, 'docs/planning/project-status.md');
+        const coverageSummary = path.join(this.projectRoot, 'app/coverage/coverage-summary.json');
+        try {
+            const content = await fs.readFile(statusDoc, 'utf-8');
+            const claim = content.match(/Code Coverage:\s*~?(\d+)%/i);
+            if (claim) {
+                findings.push(`project-status.md claims code coverage ~${claim[1]}%`);
+            }
+        }
+        catch {
+            // ignore
+        }
+        try {
+            const raw = await fs.readFile(coverageSummary, 'utf-8');
+            const json = JSON.parse(raw);
+            const total = json?.total;
+            if (total?.statements?.pct != null) {
+                findings.push(`latest jest coverage (statements) is ${total.statements.pct}%`);
+            }
+            if (total?.branches?.pct != null) {
+                findings.push(`latest jest coverage (branches) is ${total.branches.pct}%`);
+            }
+        }
+        catch {
+            findings.push('no local jest coverage summary found (run app tests with --coverage to generate)');
+        }
+        execution.discussions.push({
+            id: this.generateId(),
+            agent_id: 'documentation-agent',
+            message: `Outdated-content scan: ${findings.join(' | ')}`,
+            type: 'comment',
+            timestamp: new Date()
+        });
+        return { findings };
+    }
+
+    async validateTechnicalClaims(execution) {
+        // Minimal implementation: record that claims are not validated automatically.
+        execution.discussions.push({
+            id: this.generateId(),
+            agent_id: 'technical-agent',
+            message: 'Technical-claims validation: minimal checker active (link + date + roadmap drift only).',
+            type: 'comment',
+            timestamp: new Date()
+        });
+        return { ok: true };
+    }
+
+    async writeDocumentationSyncReport(execution) {
+        // Dry-run: emit a summary to stdout via discussions, but do not write files.
+        if (execution.dry_run) {
+            execution.discussions.push({
+                id: this.generateId(),
+                agent_id: 'documentation-agent',
+                message: 'Documentation sync: dry-run mode (no files written).',
+                type: 'comment',
+                timestamp: new Date()
+            });
+            return null;
+        }
+        const reportPath = path.join(this.projectRoot, 'docs/quality/documentation-sync-report.md');
+        await fs.mkdir(path.dirname(reportPath), { recursive: true });
+        const lines = [
+            '# Documentation Sync Report',
+            '',
+            `Date: ${new Date().toISOString().slice(0, 10)}`,
+            `Workflow: ${execution.workflow_name}`,
+            '',
+            '## Notes',
+            ...execution.discussions.map(d => `- [${d.agent_id}] ${d.message}`),
+            ''
+        ];
+        await fs.writeFile(reportPath, lines.join('\n'), 'utf-8');
+        execution.changes_applied = [...(execution.changes_applied || []), 'docs/quality/documentation-sync-report.md'];
+        return { report: 'docs/quality/documentation-sync-report.md' };
     }
     /**
      * Scan codebase for implemented features

@@ -46,7 +46,8 @@ export function useEventActions(
                     Alert.alert('Admin Required', 'Only an admin can start a round.');
                     return;
                 }
-                const price = parseFloat(beerPrice) || 5.00;
+                const parsedPrice = parseFloat(beerPrice);
+                const price = Number.isFinite(parsedPrice) ? parsedPrice : 5.0;
                 if (price <= 0) {
                     Alert.alert('Invalid Price', 'Beer price must be greater than 0.');
                     return;
@@ -55,7 +56,11 @@ export function useEventActions(
             } else {
                 if (pendingJoinEventId) {
                     await joinEventService(pendingJoinEventId, user.id).catch((e) => {
-                        reportError(new Error('Failed to join event membership:', e), { scope: 'useEventActions', action: 'replace_console' });
+                        reportError(new Error('Failed to join event membership'), {
+                            scope: 'useEventActions',
+                            action: 'join_event',
+                            metadata: { cause: e instanceof Error ? e.message : String(e) },
+                        });
                     });
                 }
                 Alert.alert('Joined!', `You are now part of ${pendingJoinEventName || 'the round'}.`);
@@ -66,7 +71,11 @@ export function useEventActions(
             setBeerPrice('5.00');
             refresh();
         } catch (e) {
-            reportError(new Error('Failed to complete action after creating user:', e), { scope: 'useEventActions', action: 'replace_console' });
+            reportError(new Error('Failed to complete action after creating user'), {
+                scope: 'useEventActions',
+                action: 'submit_name_prompt',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             Alert.alert('Error', 'Failed to complete this action. Please try again.');
         } finally {
             setPromptSubmitting(false);

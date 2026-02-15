@@ -10,12 +10,14 @@ export type NotificationPrefs = {
     leader_change: boolean;
     milestones: number[];
     admin_broadcasts: boolean;
+    new_round: boolean;
 };
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
     leader_change: true,
     milestones: [5, 10, 20],
     admin_broadcasts: true,
+    new_round: true,
 };
 
 export type EventRole = 'owner' | 'admin' | 'member' | 'viewer';
@@ -32,8 +34,10 @@ export type EventPermissions = {
 
 export type User = Database['public']['Tables']['users']['Row'] & {
     subscription_tier?: 'pilsner' | 'craft' | 'brewmaster' | 'lifetime';
-    weight_kg?: number;
-    gender?: 'male' | 'female' | 'neutral';
+    physiology?: {
+        weight_kg?: number;
+        gender?: 'male' | 'female' | 'other';
+    };
     notification_prefs?: NotificationPrefs;
     lifetime_pass?: boolean;
     lifetime_pass_granted_at?: string | null;

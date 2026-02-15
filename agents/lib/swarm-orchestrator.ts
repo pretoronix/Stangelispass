@@ -21,7 +21,7 @@ const logger = {
   info: (msg: string) => console.log(`[INFO] ${msg}`),
   warn: (msg: string) => console.log(`[WARN] ${msg}`),
   error: (msg: string) => console.error(`[ERROR] ${msg}`),
-  debug: (msg: string) => {} // Silent in production
+  debug: (msg: string) => { } // Silent in production
 };
 
 export class SwarmOrchestrator {
@@ -146,16 +146,16 @@ export class SwarmOrchestrator {
     switch (action) {
       case 'scan_codebase_for_features':
         return await this.scanCodebaseForFeatures(execution);
-      
+
       case 'compare_roadmap_vs_reality':
         return await this.compareRoadmapVsReality(execution);
-      
+
       case 'propose_roadmap_updates':
         return await this.proposeRoadmapUpdates(agents, execution);
-      
+
       case 'validate_technical_feasibility':
         return await this.validateTechnicalFeasibility(agents, execution);
-      
+
       case 'vote_on_proposals':
         return await this.conductVoting(execution, agents, consensusThreshold);
 
@@ -164,7 +164,7 @@ export class SwarmOrchestrator {
 
       case 'vote_on_refactor_plan':
         return await this.conductVoting(execution, agents, consensusThreshold);
-      
+
       case 'update_feature_roadmap':
         return await this.updateFeatureRoadmap(execution);
 
@@ -248,7 +248,7 @@ export class SwarmOrchestrator {
       case 'update_documentation_index':
       case 'log_changes':
         return null;
-      
+
       default:
         logger.warn(`Unknown action: ${action}`);
         return null;
@@ -455,7 +455,7 @@ export class SwarmOrchestrator {
   private async scanCodebaseForFeatures(execution: SwarmWorkflowExecution): Promise<any> {
     logger.info('Scanning codebase for features...');
     const analysis = await this.roadmapAnalyzer.analyzeRoadmap();
-    
+
     execution.discussions.push({
       id: this.generateId(),
       agent_id: 'strategy-agent',
@@ -472,7 +472,7 @@ export class SwarmOrchestrator {
    */
   private async compareRoadmapVsReality(execution: SwarmWorkflowExecution): Promise<any> {
     const analysis = await this.roadmapAnalyzer.analyzeRoadmap();
-    
+
     if (analysis.gaps.length > 0) {
       execution.discussions.push({
         id: this.generateId(),
@@ -633,7 +633,16 @@ export class SwarmOrchestrator {
 
   private async collectFeatureIdeasFromDocs(): Promise<Array<{ title: string; source: string }>> {
     const baseDir = path.join(this.projectRoot, 'docs/features');
-    const files = await this.collectFilesRecursive(baseDir);
+    const featureFiles = await this.collectFilesRecursive(baseDir);
+    const proposalsFile = path.join(this.projectRoot, 'docs/planning/strategy/proposals.md');
+
+    const files = [...featureFiles];
+    try {
+      await fs.access(proposalsFile);
+      files.push(proposalsFile);
+    } catch {
+      // ignore
+    }
 
     const seen = new Set<string>();
     const ideas: Array<{ title: string; source: string }> = [];
@@ -926,15 +935,33 @@ export class SwarmOrchestrator {
     execution: SwarmWorkflowExecution
   ): Promise<void> {
     const guard = agents.find(a => a.id === 'regression-guard') ?? agents[0];
-    for (const proposal of execution.proposals) {
-      execution.discussions.push({
-        id: this.generateId(),
-        agent_id: guard?.id ?? 'regression-guard',
-        proposal_id: proposal.id,
-        message: 'Add or update unit tests around core flows touched by this refactor (providers, hooks, services).',
-        type: 'suggestion',
-        timestamp: new Date()
-      });
+    const roadmapAnalysis = execution.phases.find(p => p.name === 'documentation_audit')?.outputs?.compare_roadmap_vs_reality as any;
+    const evidence = roadmapAnalysis?.evidence || {};
+
+    for (const [featureName, files] of Object.entries(evidence)) {
+      if (typeof files === 'object' && Array.isArray(files)) {
+        const testFile = files[0].replace(/\.(ts|tsx)$/, '.spec.$1').replace('app/src/', 'app/src/__tests__/');
+        execution.discussions.push({
+          id: this.generateId(),
+          agent_id: guard?.id ?? 'regression-guard',
+          message: `Required test: Create/update tests for ${featureName} in ${testFile}. Ensure it covers the recent changes in ${files.join(', ')}.`,
+          type: 'suggestion',
+          timestamp: new Date()
+        });
+      }
+    }
+
+    if (execution.proposals.length > 0) {
+      for (const proposal of execution.proposals) {
+        execution.discussions.push({
+          id: this.generateId(),
+          agent_id: guard?.id ?? 'regression-guard',
+          proposal_id: proposal.id,
+          message: 'Add regression tests for this proposed change to ensure core flows (providers, hooks, services) remain stable.',
+          type: 'suggestion',
+          timestamp: new Date()
+        });
+      }
     }
   }
 
@@ -1176,7 +1203,7 @@ export class SwarmOrchestrator {
    * Generate execution report
    */
   generateReport(execution: SwarmWorkflowExecution): string {
-    const duration = execution.completed_at 
+    const duration = execution.completed_at
       ? (execution.completed_at.getTime() - execution.started_at.getTime()) / 1000
       : 0;
 

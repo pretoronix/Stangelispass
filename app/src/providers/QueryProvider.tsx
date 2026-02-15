@@ -6,7 +6,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import { reportError } from '@/utils/logger';
+import { logInfo, reportError } from '@/utils/logger';
 
 /**
  * React Query provider configuration with persistent cache
@@ -54,10 +54,18 @@ export function QueryProvider({ children }: QueryProviderProps) {
                 
                 if (oldCacheKeys.length > 0) {
                     await AsyncStorage.multiRemove(oldCacheKeys);
-                    console.log('[QueryProvider] Cleared old cache versions:', oldCacheKeys.length);
+                    logInfo('[QueryProvider] Cleared old cache versions', {
+                        scope: 'QueryProvider',
+                        action: 'clear_old_cache',
+                        metadata: { removedKeys: oldCacheKeys.length },
+                    });
                 }
             } catch (error) {
-                reportError(new Error('[QueryProvider] Error clearing old cache:', error), { scope: 'QueryProvider', action: 'replace_console' });
+                reportError(new Error('[QueryProvider] Error clearing old cache'), {
+                    scope: 'QueryProvider',
+                    action: 'clear_old_cache',
+                    metadata: { cause: error instanceof Error ? error.message : String(error) },
+                });
             }
         };
         

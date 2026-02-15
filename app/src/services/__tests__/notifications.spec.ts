@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-import type { Mock } from 'jest-mock';
+// Use `jest.Mock` directly to avoid importing type-only modules in this environment.
 
 // Helpers to load the module with per-test mocks.
 const loadModule = async (opts: {
@@ -8,6 +8,7 @@ const loadModule = async (opts: {
   permissions?: { existing: string; requested: string };
   token?: string | null;
   upsertError?: any;
+  deleteError?: any;
   membershipRole?: 'owner' | 'admin' | 'member' | null;
   senderName?: string | null;
   members?: Array<{ user_id: string }>;
@@ -17,10 +18,8 @@ const loadModule = async (opts: {
   jest.resetModules();
 
   jest.doMock('react-native', () => {
-    const actual = jest.requireActual('react-native');
     return {
-      ...actual,
-      Platform: { ...actual.Platform, OS: opts.platformOS },
+      Platform: { OS: opts.platformOS },
     };
   });
 
@@ -30,6 +29,17 @@ const loadModule = async (opts: {
     getPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.existing ?? 'granted' })),
     requestPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.requested ?? 'granted' })),
     getExpoPushTokenAsync: jest.fn(async () => ({ data: opts.token ?? 'ExponentPushToken[test]' })),
+    // Cover transforms that wrap CommonJS exports under `default` or `default.default`.
+    default: {
+      getPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.existing ?? 'granted' })),
+      requestPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.requested ?? 'granted' })),
+      getExpoPushTokenAsync: jest.fn(async () => ({ data: opts.token ?? 'ExponentPushToken[test]' })),
+      default: {
+        getPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.existing ?? 'granted' })),
+        requestPermissionsAsync: jest.fn(async () => ({ status: opts.permissions?.requested ?? 'granted' })),
+        getExpoPushTokenAsync: jest.fn(async () => ({ data: opts.token ?? 'ExponentPushToken[test]' })),
+      },
+    },
   }));
 
   const fromCalls: Array<{ table: string; args?: any }> = [];
@@ -44,7 +54,7 @@ const loadModule = async (opts: {
             select: jest.fn(async () => ({ error: opts.upsertError ?? null })),
           })),
           delete: jest.fn(() => ({
-            match: jest.fn(async () => ({ error: null })),
+            match: jest.fn(async () => ({ error: opts.deleteError ?? null })),
           })),
         };
       }
@@ -61,15 +71,19 @@ const loadModule = async (opts: {
       }
 
       if (table === 'users') {
-        return {
-          select: jest.fn().mockReturnThis(),
-          eq: jest.fn().mockReturnThis(),
+        const usersResult = { data: opts.users ?? [], error: null };
+        const builder: any = {
+          select: jest.fn(() => builder),
+          eq: jest.fn(() => builder),
           single: jest.fn(async () => ({
             data: opts.senderName ? { name: opts.senderName } : null,
             error: null,
           })),
-          in: jest.fn(async () => ({ data: opts.users ?? [], error: null })),
+          in: jest.fn(async () => usersResult),
+          // Allow `await supabase.from('users').select(...)` to resolve like a promise.
+          then: (resolve: any, reject: any) => Promise.resolve(usersResult).then(resolve, reject),
         };
+        return builder;
       }
 
       if (table === 'notifications') {
@@ -91,12 +105,13 @@ const loadModule = async (opts: {
   }));
 
   const logger = require('@/utils/logger') as {
-    reportError: Mock;
-    logExpected: Mock;
+    reportError: jest.Mock;
+    logExpected: jest.Mock;
   };
 
-  // Import after mocks are in place.
-  const mod = await import('../notifications');
+  // Require after mocks are in place (Jest in this repo does not support TS dynamic import()).
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const mod = require('../notifications');
   return { mod, supabase, fromCalls, logger };
 };
 
@@ -110,7 +125,7 @@ describe('services/notifications', () => {
     const token = await mod.registerForPushNotificationsAsync('u1');
     expect(token).toBeNull();
     expect(logger.logExpected).toHaveBeenCalled();
-    expect((supabase.from as Mock).mock.calls.length).toBe(0);
+    expect((supabase.from as unknown as jest.Mock).mock.calls.length).toBe(0);
   });
 
   it('registerForPushNotificationsAsync returns null on simulator and logs expected', async () => {
@@ -122,7 +137,7 @@ describe('services/notifications', () => {
     const token = await mod.registerForPushNotificationsAsync('u1');
     expect(token).toBeNull();
     expect(logger.logExpected).toHaveBeenCalled();
-    expect((supabase.from as Mock).mock.calls.length).toBe(0);
+    expect((supabase.from as unknown as jest.Mock).mock.calls.length).toBe(0);
   });
 
   it('registerForPushNotificationsAsync reports error when permissions are denied', async () => {
@@ -147,7 +162,7 @@ describe('services/notifications', () => {
 
     const token = await mod.registerForPushNotificationsAsync('u1');
     expect(token).toBe('ExponentPushToken[abc]');
-    expect((supabase.from as Mock).mock.calls.some(c => c[0] === 'device_tokens')).toBe(true);
+    expect((supabase.from as unknown as jest.Mock).mock.calls.some(c => c[0] === 'device_tokens')).toBe(true);
   });
 
   it('registerForPushNotificationsAsync tolerates missing device_tokens table', async () => {
@@ -163,6 +178,31 @@ describe('services/notifications', () => {
     expect(logger.logExpected).toHaveBeenCalled();
   });
 
+  it('registerForPushNotificationsAsync reports error on non-schema upsert error but still returns token', async () => {
+    const { mod, logger } = await loadModule({
+      platformOS: 'ios',
+      isDevice: true,
+      token: 'ExponentPushToken[abc]',
+      upsertError: { code: '500', message: 'boom' },
+    });
+
+    const token = await mod.registerForPushNotificationsAsync('u1');
+    expect(token).toBe('ExponentPushToken[abc]');
+    expect(logger.reportError).toHaveBeenCalled();
+  });
+
+  it('unregisterPushToken reports error and returns false when delete fails', async () => {
+    const { mod, logger } = await loadModule({
+      platformOS: 'ios',
+      isDevice: true,
+      deleteError: { code: '500', message: 'boom' },
+    });
+
+    const ok = await mod.unregisterPushToken('u1', 'ExponentPushToken[abc]');
+    expect(ok).toBe(false);
+    expect(logger.reportError).toHaveBeenCalled();
+  });
+
   it('sendAdminBroadcast rejects empty message', async () => {
     const { mod } = await loadModule({
       platformOS: 'ios',
@@ -172,6 +212,18 @@ describe('services/notifications', () => {
     const res = await mod.sendAdminBroadcast('evt1', '   ', 'u1');
     expect(res.success).toBe(false);
     expect(res.error).toMatch(/empty/i);
+  });
+
+  it('sendAdminBroadcast rejects messages longer than 100 characters', async () => {
+    const { mod } = await loadModule({
+      platformOS: 'ios',
+      isDevice: true,
+    });
+
+    const long = 'x'.repeat(101);
+    const res = await mod.sendAdminBroadcast('evt1', long, 'u1');
+    expect(res.success).toBe(false);
+    expect(res.error).toMatch(/too long/i);
   });
 
   it('sendAdminBroadcast requires admin role', async () => {
@@ -249,5 +301,18 @@ describe('services/notifications', () => {
     expect(insertCall?.args).toHaveLength(1);
     expect(insertCall?.args[0]).toMatchObject({ target_user: 'u2' });
   });
-});
 
+  it('enqueueNewRoundNotifications returns a friendly error when notifications table is missing', async () => {
+    const { mod, logger } = await loadModule({
+      platformOS: 'ios',
+      isDevice: true,
+      users: [{ id: 'u2', notification_prefs: { admin_broadcasts: true } }],
+      insertError: { code: 'PGRST205', message: 'missing table' },
+    });
+
+    const res = await mod.enqueueNewRoundNotifications('evt1', 'Event Name', 'u1');
+    expect(res.success).toBe(false);
+    expect(res.error).toMatch(/table/i);
+    expect(logger.reportError).toHaveBeenCalled();
+  });
+});

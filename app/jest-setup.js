@@ -1,4 +1,5 @@
 import '@testing-library/jest-native/extend-expect';
+import { cleanup } from '@testing-library/react-native';
 
 // Essential React Native mocks for Jest (this file runs after the test framework is installed)
 import 'react-native-gesture-handler/jestSetup';
@@ -27,6 +28,16 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(() => Promise.resolve()),
   clear: jest.fn(() => Promise.resolve()),
 }));
+
+jest.mock('expo-audio', () => ({
+  createAudioPlayer: jest.fn(() => ({
+    play: jest.fn(),
+    pause: jest.fn(),
+    seekTo: jest.fn(),
+    replace: jest.fn(),
+    release: jest.fn(),
+  })),
+}), { virtual: true });
 
 // Silence logger output in tests while keeping payloads usable for assertions.
 jest.mock('@/utils/logger', () => {
@@ -74,3 +85,33 @@ jest.mock('@/utils/logger', () => {
 
 // Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
 // jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
+
+// FlatList/VirtualizedList can schedule internal timers that trigger "not wrapped in act(...)" warnings
+// and keep Jest open. This lightweight mock renders items synchronously.
+jest.mock('react-native/Libraries/Lists/VirtualizedList', () => {
+  const React = require('react');
+
+  const VirtualizedList = React.forwardRef((props) => {
+    const { data, renderItem, children } = props || {};
+    // Avoid importing `react-native` here (it can recurse during module init).
+    return React.createElement(
+      React.Fragment,
+      null,
+      Array.isArray(data) && typeof renderItem === 'function'
+        ? data.map((item, index) => renderItem({ item, index }))
+        : null,
+      children
+    );
+  });
+
+  VirtualizedList.displayName = 'VirtualizedList';
+
+  return VirtualizedList;
+});
+
+afterEach(() => {
+  cleanup();
+  if (jest.isMockFunction(globalThis.setTimeout)) {
+    jest.clearAllTimers();
+  }
+});

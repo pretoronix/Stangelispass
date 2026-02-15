@@ -52,7 +52,7 @@ describe('appProviderLifecycle', () => {
 
     test('subscribeUsersAndEvents cleans up channels', () => {
         const channelSpy = jest.spyOn(supabase, 'channel');
-        const removeSpy = jest.spyOn(supabase, 'removeChannel').mockImplementation(() => {});
+        const removeSpy = jest.spyOn(supabase, 'removeChannel').mockResolvedValue('ok' as any);
 
         channelSpy.mockImplementation((name: string) => ({
             on: () => ({
@@ -70,7 +70,7 @@ describe('appProviderLifecycle', () => {
 
     test('subscribeEventMemberships cleans up channel', () => {
         const channelSpy = jest.spyOn(supabase, 'channel');
-        const removeSpy = jest.spyOn(supabase, 'removeChannel').mockImplementation(() => {});
+        const removeSpy = jest.spyOn(supabase, 'removeChannel').mockResolvedValue('ok' as any);
 
         channelSpy.mockImplementation((name: string) => ({
             on: () => ({

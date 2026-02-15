@@ -14,7 +14,7 @@ describe('resetEventData', () => {
 
         mockFrom.mockImplementation((table: string) => ({
             delete: () => ({
-                neq: jest.fn().mockImplementation((column: string) => {
+                not: jest.fn().mockImplementation((column: string) => {
                     columns[table] = column;
                     if (table === 'beers') {
                         return Promise.resolve({ error: { code: 'PGRST205' } });
@@ -27,13 +27,19 @@ describe('resetEventData', () => {
         const results = await resetEventData();
 
         const beerResult = results.find((r) => r.table === 'beers');
+        const gameStatsResult = results.find((r) => r.table === 'event_game_stats');
+        const leaderStateResult = results.find((r) => r.table === 'event_leader_state');
         const membershipResult = results.find((r) => r.table === 'event_memberships');
         const eventsResult = results.find((r) => r.table === 'events');
 
         expect(beerResult?.skipped).toBe(true);
         expect(beerResult?.ok).toBe(true);
-        expect(columns.event_memberships).toBe('event_id');
+        expect(columns.event_game_stats).toBe('event_id');
+        expect(columns.event_leader_state).toBe('event_id');
+        expect(columns.event_memberships).toBe('id');
         expect(columns.events).toBe('id');
+        expect(gameStatsResult?.ok).toBe(true);
+        expect(leaderStateResult?.ok).toBe(true);
         expect(membershipResult?.ok).toBe(true);
         expect(eventsResult?.ok).toBe(true);
     });

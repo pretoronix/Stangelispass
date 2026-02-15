@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { queryClient } from '@/providers/QueryProvider';
 import { getCacheStats, clearCache, checkAndClearIfOversized } from '@/utils/cacheManager';
+import { reportError } from '@/utils/logger';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -90,5 +91,23 @@ describe('Cache Persistence', () => {
 
         expect(wasCleared).toBe(false);
         expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    });
+
+    it('getCacheStats returns empty stats and reports when storage throws', async () => {
+        (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce('fail');
+
+        const stats = await getCacheStats();
+
+        expect(stats).toEqual({ sizeKB: 0, queriesCount: 0, lastUpdated: null });
+        expect(reportError).toHaveBeenCalled();
+    });
+
+    it('clearCache rethrows and reports on failure', async () => {
+        jest.spyOn(queryClient, 'clear').mockImplementation(() => {
+            throw 'boom';
+        });
+
+        await expect(clearCache()).rejects.toBeTruthy();
+        expect(reportError).toHaveBeenCalled();
     });
 });

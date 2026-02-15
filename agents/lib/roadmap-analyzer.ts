@@ -16,7 +16,7 @@ const logger = {
   info: (msg: string) => console.log(`[INFO] ${msg}`),
   warn: (msg: string) => console.log(`[WARN] ${msg}`),
   error: (msg: string) => console.error(`[ERROR] ${msg}`),
-  debug: (msg: string) => {} // Silent
+  debug: (msg: string) => { } // Silent
 };
 
 export class RoadmapAnalyzer {
@@ -59,9 +59,10 @@ export class RoadmapAnalyzer {
       planned_features: plannedFeatures,
       completion_percentage: features.length > 0 ? (completedFeatures / features.length) * 100 : 0,
       gaps,
-      recommendations: this.generateRecommendations(gaps, features),
-      last_updated: this.extractLastUpdated(roadmapContent),
-      data_freshness: this.assessDataFreshness(roadmapContent)
+      evidence: Object.fromEntries(implementationEvidence),
+      recommendations: [],
+      last_updated: new Date().toISOString(),
+      data_freshness: 'current'
     };
 
     logger.info(`Roadmap analysis complete: ${completedFeatures}/${features.length} features complete (${analysis.completion_percentage.toFixed(1)}%)`);
@@ -159,7 +160,8 @@ export class RoadmapAnalyzer {
       Comments: ['CommentsSection', 'useComments', 'services/comments', 'addComment'],
       'Pour Animation': ['Lottie', 'pour', 'Haptics'],
       'Cost Tracker': ['CostSummaryCard', 'costCalculator', 'beer_price', 'beer_price_to_events'],
-      'Push Notifications': ['expo-notifications', 'device_tokens', 'notificationProcessor', 'notifications.ts'],
+      'Safe Ride': ['safety.ts', 'SafeRideCard', 'estimateBAC', 'BACStats'],
+      'Push Notifications': ['expo-notifications', 'device_tokens', 'notificationProcessor', 'notifications.ts', 'processNotifications'],
       Badges: ['BadgeIcon', 'achievements', 'checkAchievements', 'badge_type'],
       Velocity: ['VelocityMetricCard', 'calculateVelocity', 'statsCalculator'],
       Heatmap: ['prepareTrendData', 'gifted-charts', 'heatmap'],
@@ -293,7 +295,7 @@ export class RoadmapAnalyzer {
       // Detect mismatch
       if (expectedActual !== actualStatus) {
         const gapSeverity = this.calculateGapSeverity(roadmapStatus, actualStatus);
-        
+
         gaps.push({
           feature_name: feature.name,
           roadmap_status: roadmapStatus,
@@ -357,7 +359,7 @@ export class RoadmapAnalyzer {
       recommendations.push(`❌ ${criticalGaps.length} critical gaps found - roadmap claims features are complete but implementation missing`);
     }
 
-    const outdatedMarkers = gaps.filter(g => 
+    const outdatedMarkers = gaps.filter(g =>
       g.roadmap_status !== 'complete' && g.actual_status === 'complete'
     );
     if (outdatedMarkers.length > 0) {

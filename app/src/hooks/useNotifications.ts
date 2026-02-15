@@ -1,12 +1,18 @@
 import { useState, useEffect } from 'react';
 import { registerForPushNotificationsAsync, unregisterPushToken } from '@/services/notifications';
 import { reportError } from '@/utils/logger';
+import { FEATURE_FLAGS } from '@/config/featureFlags';
 
 export function useNotifications(userId: string | null) {
   const [token, setToken] = useState<string | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   
   useEffect(() => {
+    if (!FEATURE_FLAGS.NOTIFICATIONS_ENABLED) {
+      setToken(null);
+      setIsRegistered(false);
+      return;
+    }
     if (!userId) {
       setToken(null);
       setIsRegistered(false);

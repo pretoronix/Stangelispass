@@ -304,7 +304,7 @@ app/
 - `@react-native-community/netinfo` - Network status detection
 - `react-native-view-shot` - Component screenshot capture
 - `expo-haptics` - Haptic feedback
-- `expo-av` - Audio playback (bottle opening sound)
+- `expo-audio` - Audio playback (bottle opening sound)
 - `expo-blur` - Native blur effects
 
 ### Development Tools

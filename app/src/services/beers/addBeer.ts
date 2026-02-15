@@ -75,6 +75,11 @@ export const addBeer = async (
         throw error;
     }
 
+    // ✅ CRASH PREVENTION: Ensure we got valid data back from insert
+    if (!newBeer || !newBeer.id) {
+        throw new Error('Failed to create beer: Supabase returned no data. Check database connection and RLS policies.');
+    }
+
     const recentBeers = await fetchRecentBeers(userId);
     const lifetimeCount = await fetchLifetimeCount(userId);
 

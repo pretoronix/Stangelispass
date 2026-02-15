@@ -47,7 +47,11 @@ export function CommentsList({ beerId, currentUserId, currentUserIsAdmin = false
                 },
                 onError: (error) => {
                     Alert.alert('Error', 'Failed to add comment. Please try again.');
-                    reportError(new Error('[CommentsList] Error adding comment:', error), { scope: 'CommentsList', action: 'replace_console' });
+                    reportError(new Error('[CommentsList] Error adding comment'), {
+                        scope: 'CommentsList',
+                        action: 'add_comment',
+                        metadata: { cause: error instanceof Error ? error.message : String(error) },
+                    });
                 },
             }
         );
@@ -66,7 +70,11 @@ export function CommentsList({ beerId, currentUserId, currentUserIsAdmin = false
                         deleteCommentMutation.mutate(commentId, {
                             onError: (error) => {
                                 Alert.alert('Error', 'Failed to delete comment. Please try again.');
-                                reportError(new Error('[CommentsList] Error deleting comment:', error), { scope: 'CommentsList', action: 'replace_console' });
+                                reportError(new Error('[CommentsList] Error deleting comment'), {
+                                    scope: 'CommentsList',
+                                    action: 'delete_comment',
+                                    metadata: { cause: error instanceof Error ? error.message : String(error) },
+                                });
                             },
                         });
                     },

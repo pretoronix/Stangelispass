@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
+import { Alert } from 'react-native';
 import {
     supabase,
     User,
@@ -10,25 +11,20 @@ import {
     getPermissionsForRole,
     getEventMembership,
     getEventMembers,
-    isMissingTableError,
-    createLeaderEventSnapshot,
 } from '@/services/supabase';
-import { reportError } from '@/utils/logger';
+import { logExpected, reportError } from '@/utils/logger';
 import { assertSupabaseConfigured } from '@/utils/preflight';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useOfflineMutations, OfflineMutation } from '@/hooks/useOfflineMutations';
 import { useOfflineQueueProcessor } from '@/hooks/useOfflineQueueProcessor';
 import { enqueueNewRoundNotifications } from '@/services/notifications';
-import {
-    buildLocalEvent,
-    getPassExpiresAt,
-    persistStoredUser,
-} from '@/providers/appProviderUtils';
+import { buildLocalEvent, persistStoredUser } from '@/providers/appProviderUtils';
 import {
     bootstrapAppProvider,
     subscribeEventMemberships,
     subscribeUsersAndEvents,
 } from '@/providers/appProviderLifecycle';
+import { closeEventInSupabase, startEventInSupabase } from '@/providers/appProviderActions';
 
 interface AppContextType {
     currentUser: User | null;
@@ -68,6 +64,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [eventPermissions, setEventPermissions] = useState<EventPermissions>(getPermissionsForRole(null, false));
     const [eventMembers, setEventMembers] = useState<EventMembership[]>([]);
     const offlineMutations = useOfflineMutations();
+    const configAlertShown = useRef(false);
 
     useOfflineQueueProcessor(offlineMutations);
 
@@ -158,7 +155,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             // If the error indicates missing tables in Supabase schema, set a local fallback
             const err: any = e;
             if (err?.code === 'PGRST205') {
-                console.log('[AppProvider] Supabase schema missing: events table not found — using local fallback event (expected)');
+                logExpected('Supabase schema missing: events table not found — using local fallback event', 'AppProvider');
                 // create a lightweight local active event so the UI can operate in offline mode
                 setActiveEvent(buildLocalEvent());
                 setRemoteAvailable(false);
@@ -180,36 +177,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            let resolvedPassType: Event['pass_type'] = passType;
-            if (passType !== 'free') {
-                try {
-                    const { count, error: countError } = await (supabase.from('events') as any)
-                        .select('*', { count: 'exact', head: true });
-                    if (countError) {
-                        if (!isMissingTableError(countError)) {
-                            throw countError;
-                        }
-                    } else if ((count as number) === 0) {
-                        resolvedPassType = 'free';
-                    }
-                } catch (countErr) {
-                    reportError(countErr as Error, { scope: 'app_provider', action: 'resolve_pass_type' });
-                }
-            }
-
-            const { data, error } = await (supabase.from('events') as any)
-                .insert({
-                    name,
-                    created_by: currentUser.id,
-                    is_active: true,
-                    pass_type: resolvedPassType,
-                    beer_price: beerPrice ?? 5.00,
-                    expires_at: getPassExpiresAt(resolvedPassType)
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
+            const data = await startEventInSupabase({
+                name,
+                userId: currentUser.id,
+                passType,
+                beerPrice,
+            });
             setActiveEvent(data);
             enqueueNewRoundNotifications(data.id, data.name, currentUser.id).catch(() => null);
         } catch (e) {
@@ -226,46 +199,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         try {
-            const { data: counts, error: countError } = await supabase
-                .from('users')
-                .select(`
-                    id,
-                    name,
-                    beers:beers!user_id(count)
-                `)
-                .filter('beers.event_id', 'eq', activeEvent.id);
-
-            if (!countError && counts && counts.length > 0) {
-                const winner: any = (counts as any[]).reduce((prev: any, current: any) => {
-                    const prevCount = prev.beers[0]?.count || 0;
-                    const currentCount = current.beers[0]?.count || 0;
-                    return (currentCount > prevCount) ? current : prev;
-                }, counts[0]);
-
-                const winnerCount = winner.beers[0]?.count || 0;
-                if (winnerCount > 0) {
-                    await (supabase
-                        .from('wall_of_fame') as any)
-                        .insert({
-                            event_id: activeEvent.id,
-                            winner_id: winner.id,
-                            total_stängeli: winnerCount
-                        });
-                }
-            }
-
-            try {
-                await createLeaderEventSnapshot(activeEvent.id);
-            } catch (snapshotError) {
-                reportError(snapshotError as Error, { scope: 'app_provider', action: 'leader_snapshot' });
-            }
-
-            const { error } = await (supabase
-                .from('events') as any)
-                .update({ is_active: false } as Partial<Event>)
-                .eq('id', activeEvent.id);
-
-            if (error) throw error;
+            await closeEventInSupabase(activeEvent);
             setShowRecap(true);
             setActiveEvent(null);
         } catch (e) {
@@ -281,6 +215,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
             reportError(e, { scope: 'app_provider', action: 'supabase_config' });
         }
         setSupabaseConfigured(configured);
+
+        if (!configured) {
+            setRemoteAvailable(false);
+            setActiveEvent(buildLocalEvent());
+            if (!configAlertShown.current) {
+                configAlertShown.current = true;
+                Alert.alert(
+                    'Configuration Required',
+                    'Supabase is not configured. The app will run in offline mode with limited features.'
+                );
+            }
+        } else {
+            // Lightweight health check: if the schema is missing or the API is blocked, degrade gracefully.
+            void (async () => {
+                try {
+                    const { error } = await (supabase as any)
+                        .from('users')
+                        .select('id', { head: true, count: 'exact' });
+                    if (error) throw error;
+                } catch (e) {
+                    reportError(e, { scope: 'app_provider', action: 'db_health_check' });
+                    setRemoteAvailable(false);
+                    setActiveEvent(buildLocalEvent());
+                }
+            })();
+        }
+
         void bootstrapAppProvider({
             setCurrentUserState,
             refreshUsers,

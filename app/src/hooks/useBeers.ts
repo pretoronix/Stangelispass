@@ -115,7 +115,11 @@ export const useBeers = () => {
                 setRawBeers(data || []);
             }
         } catch (e) {
-            reportError(new Error('Failed to fetch beer data:', e), { scope: 'useBeers', action: 'replace_console' });
+            reportError(new Error('Failed to fetch beer data'), {
+                scope: 'useBeers',
+                action: 'fetch_beer_data',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
         } finally {
             setLoading(false);
             setRefreshing(false);

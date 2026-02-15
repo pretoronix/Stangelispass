@@ -63,7 +63,11 @@ export function useExportData() {
                 }
             }
         } catch (e) {
-            reportError(new Error('Export failed:', e), { scope: 'useExportData', action: 'replace_console' });
+            reportError(new Error('Export failed'), {
+                scope: 'useExportData',
+                action: 'export',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             Alert.alert('Error', 'Failed to export data.');
         }
     };

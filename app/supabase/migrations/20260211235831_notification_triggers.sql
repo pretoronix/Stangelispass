@@ -129,3 +129,27 @@ CREATE TRIGGER on_beer_update_leader
 AFTER INSERT OR DELETE ON beers
 FOR EACH ROW
 EXECUTE FUNCTION update_event_leader();
+
+-- Trigger to call edge function on notification insertion
+-- Note: Replace <project-ref> and <service-key> with actual values via vault or secrets
+CREATE OR REPLACE FUNCTION trigger_process_notifications()
+RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM
+    net.http_post(
+      url := 'https://' || current_setting('app.supabase_project_ref') || '.supabase.co/functions/v1/processNotifications',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || current_setting('app.supabase_service_role_key')
+      ),
+      body := jsonb_build_object('id', NEW.id)
+    );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS on_notification_insert ON notifications;
+CREATE TRIGGER on_notification_insert
+AFTER INSERT ON notifications
+FOR EACH ROW
+EXECUTE FUNCTION trigger_process_notifications();

@@ -73,7 +73,7 @@ describe('processNotificationsBatch', () => {
     const notif = [{
       id: 'n4',
       event_id: 'e4',
-      target_user: 'u4',
+      target_user: null,
       payload: { type: 'milestone', milestone: 10, user_id: 'u4' },
       attempts: 0,
     }];
@@ -104,7 +104,206 @@ describe('processNotificationsBatch', () => {
     expect(calls.some(c => c.url.includes('/rest/v1/device_tokens'))).toBe(false);
   });
 
-  test('new_round disabled by admin_broadcasts pref -> skip send and mark processed', async () => {
+  test('unknown notification type -> treated as leader_change', async () => {
+    const notif = [{
+      id: 'n8',
+      event_id: 'e8',
+      target_user: 'u8',
+      payload: { type: 'weird' },
+      attempts: 0,
+    }];
+    const tokens = [{ token: 't8' }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (url.includes('/rest/v1/users?id=eq.u8')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [5], admin_broadcasts: true, new_round: true } }],
+          text: async (): Promise<string> => '[]',
+        };
+      }
+      if (url.includes('/rest/v1/device_tokens')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => tokens, text: async (): Promise<string> => JSON.stringify(tokens) };
+      }
+      if (url.includes('exp.host')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ data: 'ok' }), text: async (): Promise<string> => '{}' };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n8')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(true);
+    expect(calls.some(c => c.url.includes('exp.host'))).toBe(true);
+  });
+
+  test('admin_broadcast sends push using payload fields', async () => {
+    const notif = [{
+      id: 'n9',
+      event_id: 'e9',
+      target_user: 'u9',
+      payload: {
+        type: 'admin_broadcast',
+        title: 'Admin',
+        body: 'Hello',
+        data: { foo: 'bar' },
+        sound: 'default',
+        priority: 'high',
+      },
+      attempts: 0,
+    }];
+    const tokens = [{ token: 't9' }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (url.includes('/rest/v1/users?id=eq.u9')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [5], admin_broadcasts: true, new_round: true } }],
+          text: async (): Promise<string> => '[]',
+        };
+      }
+      if (url.includes('/rest/v1/device_tokens')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => tokens, text: async (): Promise<string> => JSON.stringify(tokens) };
+      }
+      if (url.includes('exp.host')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ data: 'ok' }), text: async (): Promise<string> => '{}' };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n9')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(true);
+    const pushCall = calls.find(c => c.url.includes('exp.host'));
+    expect(pushCall.init.body).toContain('"title":"Admin"');
+    expect(pushCall.init.body).toContain('"type":"admin_broadcast"');
+  });
+
+  test('milestone enabled -> sends push', async () => {
+    const notif = [{
+      id: 'n10',
+      event_id: 'e10',
+      target_user: 'u10',
+      payload: { type: 'milestone', milestone: 10, user_id: 'u10' },
+      attempts: 0,
+    }];
+    const tokens = [{ token: 't10' }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (url.includes('/rest/v1/users?id=eq.u10')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [10], admin_broadcasts: true, new_round: true } }],
+          text: async (): Promise<string> => '[]',
+        };
+      }
+      if (url.includes('/rest/v1/device_tokens')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => tokens, text: async (): Promise<string> => JSON.stringify(tokens) };
+      }
+      if (url.includes('exp.host')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ data: 'ok' }), text: async (): Promise<string> => '{}' };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n10')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(true);
+    expect(calls.some(c => c.url.includes('exp.host'))).toBe(true);
+  });
+
+  test('missing recipient -> mark processed and skip send', async () => {
+    const notif = [{ id: 'n6', event_id: 'e6', payload: { type: 'admin_broadcast', title: 'Hi', body: 'Yo' }, attempts: 0 }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n6')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(false);
+    expect(res.results[0].reason).toBe('missing recipient');
+    expect(calls.some(c => c.url.includes('/rest/v1/device_tokens'))).toBe(false);
+  });
+
+  test('markProcessed failures are tolerated', async () => {
+    const notif = [{ id: 'n11', event_id: 'e11', payload: { type: 'admin_broadcast', title: 'Hi', body: 'Yo' }, attempts: 0 }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n11')) {
+        throw new Error('patch failed');
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(false);
+    expect(res.results[0].reason).toBe('missing recipient');
+  });
+
+  test('prefs fetch failure -> uses defaults and can still mark processed', async () => {
+    const notif = [{ id: 'n7', new_leader: 'u7', event_id: 'e7', attempts: 0 }];
+    const calls: any[] = [];
+    const fetchFn = jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (url.includes('/rest/v1/notifications') && url.includes('processed=eq.false')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => notif, text: async (): Promise<string> => JSON.stringify(notif) };
+      }
+      if (url.includes('/rest/v1/users?id=eq.u7')) {
+        return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+      }
+      if (url.includes('/rest/v1/device_tokens')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => [], text: async (): Promise<string> => '[]' };
+      }
+      if (init?.method === 'PATCH' && url.includes('/rest/v1/notifications?id=eq.n7')) {
+        return { ok: true, status: 200, json: async (): Promise<any> => ({ processed: true }), text: async (): Promise<string> => '{}' };
+      }
+      return { ok: false, status: 404, json: async (): Promise<any> => null, text: async (): Promise<string> => 'not found' };
+    });
+
+    const res = await processNotificationsBatch({ fetchFn, supabaseUrl: 'https://supabase.test', serviceKey: 'key' });
+    expect(res.processed).toBe(1);
+    expect(res.results[0].success).toBe(true);
+    expect(res.results[0].reason).toBe('no tokens');
+  });
+
+  test('new_round disabled by new_round pref -> skip send and mark processed', async () => {
     const notif = [{
       id: 'n5',
       event_id: 'e5',
@@ -122,7 +321,7 @@ describe('processNotificationsBatch', () => {
         return {
           ok: true,
           status: 200,
-          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [5], admin_broadcasts: false } }],
+          json: async (): Promise<any> => [{ notification_prefs: { leader_change: true, milestones: [5], admin_broadcasts: true, new_round: false } }],
           text: async (): Promise<string> => '[]',
         };
       }

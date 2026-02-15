@@ -252,6 +252,18 @@ The following features have been successfully implemented and verified.
     -   `agents/scripts/run-swarm-analysis.mjs` - CLI tool
     -   `agents/docs/SWARM_AGENTS.md` - Documentation
 
+### ✅ Phase 15: Safe Ride Integration (COMPLETED)
+**Goal**: Promote responsible drinking with real-time safety monitoring.
+**Status**: ✅ **SHIPPED** - February 2026
+
+#### 11. Physiological BAC Estimator ✅
+- **Implementation**: `services/safety.ts` uses Widmark Formula (gender, weight, time).
+- **Features**: Real-time ‰ calculation and 'Time to 0' estimation.
+
+#### 12. Safe Ride Monitor UI ✅
+- **UI Component**: `SafeRideCard` with dynamic status indicators.
+- **Integration**: One-tap Uber/Taxi links integrated in Home Header.
+
 ---
 
 ## 🎯 Recommended Next Steps (Q1-Q2 2026)

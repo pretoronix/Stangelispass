@@ -37,7 +37,11 @@ export function useProfileData(currentUser: User | null, activeEvent: Event | nu
             setRoundBeers(getCurrentRoundBeers(userBeers, activeEvent?.id));
             setAchievements(userAchievements);
         } catch (e) {
-            reportError(new Error('Failed to fetch profile data:', e), { scope: 'profile', action: 'replace_console' });
+            reportError(new Error('Failed to fetch profile data'), {
+                scope: 'profile',
+                action: 'fetch_profile_data',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
         } finally {
             setLoading(false);
             setRefreshing(false);

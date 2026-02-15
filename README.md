@@ -96,8 +96,8 @@ docs/
 
 ## 🤝 Contributing
 
-1. Read [AGENTS.md](./AGENTS.md) for development guidelines
-2. Check [PROJECT_STATUS.md](./PROJECT_STATUS.md) for current state
+1. Read [docs/development/agents.md](./docs/development/agents.md) for development guidelines
+2. Check [docs/planning/project-status.md](./docs/planning/project-status.md) for current state
 3. Review relevant feature docs before changes
 4. Run tests before committing
 5. Update documentation with changes
@@ -107,7 +107,7 @@ docs/
 - **Documentation**: See `/docs/` directory
 - **Tests**: `cd app && npm test`
 - **Issues**: Check test output and logs
-- **Architecture**: See `HIGH_PRIORITY_REFACTORING.md`
+- **Architecture**: See [docs/refactoring/high-priority-items.md](./docs/refactoring/high-priority-items.md)
 
 ## 🎉 Recent Updates (February 2026)
 
@@ -122,4 +122,4 @@ docs/
 
 **Built with ❤️ and 🍺**
 
-For detailed information, see [PROJECT_STATUS.md](./PROJECT_STATUS.md)
+For detailed information, see [docs/planning/project-status.md](./docs/planning/project-status.md)

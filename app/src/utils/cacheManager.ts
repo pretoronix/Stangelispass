@@ -6,7 +6,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { queryClient } from '@/providers/QueryProvider';
-import { reportError } from '@/utils/logger';
+import { logInfo, reportError } from '@/utils/logger';
 
 const APP_VERSION = Constants.expoConfig?.version || '1.0.0';
 const CACHE_VERSION = 'v1';
@@ -43,7 +43,11 @@ export async function getCacheStats(): Promise<CacheStats> {
             lastUpdated: new Date(),
         };
     } catch (error) {
-        reportError(new Error('[CacheManager] Error getting cache stats:', error), { scope: 'cacheManager', action: 'replace_console' });
+        reportError(new Error('[CacheManager] Error getting cache stats'), {
+            scope: 'cacheManager',
+            action: 'get_cache_stats',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         return {
             sizeKB: 0,
             queriesCount: 0,
@@ -57,11 +61,18 @@ export async function getCacheStats(): Promise<CacheStats> {
  */
 export async function clearCache(): Promise<void> {
     try {
-        await queryClient.clear();
+        queryClient.clear();
         await AsyncStorage.removeItem(CACHE_KEY);
-        console.log('[CacheManager] Cache cleared successfully');
+        logInfo('[CacheManager] Cache cleared successfully', {
+            scope: 'cacheManager',
+            action: 'clear_cache',
+        });
     } catch (error) {
-        reportError(new Error('[CacheManager] Error clearing cache:', error), { scope: 'cacheManager', action: 'replace_console' });
+        reportError(new Error('[CacheManager] Error clearing cache'), {
+            scope: 'cacheManager',
+            action: 'clear_cache',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         throw error;
     }
 }
@@ -86,7 +97,11 @@ export async function checkAndClearIfOversized(maxSizeMB: number = 5): Promise<b
 
         return false;
     } catch (error) {
-        reportError(new Error('[CacheManager] Error checking cache size:', error), { scope: 'cacheManager', action: 'replace_console' });
+        reportError(new Error('[CacheManager] Error checking cache size'), {
+            scope: 'cacheManager',
+            action: 'check_cache_size',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         return false;
     }
 }
@@ -99,7 +114,11 @@ export async function getAllCacheKeys(): Promise<string[]> {
         const keys = await AsyncStorage.getAllKeys();
         return keys.filter(key => key.startsWith('STANGELISPASS_QUERY_CACHE_'));
     } catch (error) {
-        reportError(new Error('[CacheManager] Error getting cache keys:', error), { scope: 'cacheManager', action: 'replace_console' });
+        reportError(new Error('[CacheManager] Error getting cache keys'), {
+            scope: 'cacheManager',
+            action: 'get_cache_keys',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         return [];
     }
 }
@@ -112,11 +131,19 @@ export async function clearAllCacheVersions(): Promise<void> {
         const cacheKeys = await getAllCacheKeys();
         if (cacheKeys.length > 0) {
             await AsyncStorage.multiRemove(cacheKeys);
-            await queryClient.clear();
-            console.log('[CacheManager] Cleared all cache versions:', cacheKeys.length);
+            queryClient.clear();
+            logInfo('[CacheManager] Cleared all cache versions', {
+                scope: 'cacheManager',
+                action: 'clear_all_cache_versions',
+                metadata: { removedKeys: cacheKeys.length },
+            });
         }
     } catch (error) {
-        reportError(new Error('[CacheManager] Error clearing all cache versions:', error), { scope: 'cacheManager', action: 'replace_console' });
+        reportError(new Error('[CacheManager] Error clearing all cache versions'), {
+            scope: 'cacheManager',
+            action: 'clear_all_cache_versions',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         throw error;
     }
 }

@@ -27,10 +27,10 @@ module.exports = {
         global: {
             // Ratchet baseline: prevent coverage regressions without blocking the current state.
             // "Changed-files" enforcement is implemented in `scripts/coverageRatchet.mjs`.
-            branches: 40,
-            functions: 50,
-            lines: 50,
-            statements: 50,
+            branches: 41,
+            functions: 45,
+            lines: 54,
+            statements: 53,
         },
     },
 };

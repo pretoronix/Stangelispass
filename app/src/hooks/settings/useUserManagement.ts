@@ -21,9 +21,19 @@ export const useUserManagement = ({ currentUser, setCurrentUser, refreshUsers }:
         setCurrentUser(user);
         Alert.alert('User Selected', `You are now signed in as ${user.name}`);
         try {
-            registerForPushNotificationsAsync(user.id).catch((e) => reportError(new Error('Push register failed', e), { scope: 'useUserManagement', action: 'replace_console' }));
+            registerForPushNotificationsAsync(user.id).catch((e) =>
+                reportError(new Error('Push register failed'), {
+                    scope: 'useUserManagement',
+                    action: 'push_register',
+                    metadata: { cause: e instanceof Error ? e.message : String(e) },
+                })
+            );
         } catch (e) {
-            reportError(new Error('Push registration error', e), { scope: 'useUserManagement', action: 'replace_console' });
+            reportError(new Error('Push registration error'), {
+                scope: 'useUserManagement',
+                action: 'push_register',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
         }
     }, [setCurrentUser]);
 
@@ -42,9 +52,19 @@ export const useUserManagement = ({ currentUser, setCurrentUser, refreshUsers }:
             }
             await setCurrentUser(user);
             try {
-                registerForPushNotificationsAsync(user.id).catch((e) => reportError(new Error('Push register failed', e), { scope: 'useUserManagement', action: 'replace_console' }));
+                registerForPushNotificationsAsync(user.id).catch((e) =>
+                    reportError(new Error('Push register failed'), {
+                        scope: 'useUserManagement',
+                        action: 'push_register',
+                        metadata: { cause: e instanceof Error ? e.message : String(e) },
+                    })
+                );
             } catch (e) {
-                reportError(new Error('Push registration error', e), { scope: 'useUserManagement', action: 'replace_console' });
+                reportError(new Error('Push registration error'), {
+                    scope: 'useUserManagement',
+                    action: 'push_register',
+                    metadata: { cause: e instanceof Error ? e.message : String(e) },
+                });
             }
             playHapticSuccess();
             await refreshUsers();
@@ -71,7 +91,11 @@ export const useUserManagement = ({ currentUser, setCurrentUser, refreshUsers }:
             await updateUser(currentUser.id, field);
             setCurrentUser({ ...currentUser, ...field });
         } catch (e) {
-            reportError(new Error('Failed to update user field:', e), { scope: 'useUserManagement', action: 'replace_console' });
+            reportError(new Error('Failed to update user field'), {
+                scope: 'useUserManagement',
+                action: 'update_user_field',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             throw e;
         }
     }, [currentUser, setCurrentUser]);

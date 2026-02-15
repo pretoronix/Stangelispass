@@ -18,9 +18,15 @@ export async function registerForPushNotificationsAsync(userId: string) {
       return null;
     }
 
-    // Dynamically import `expo-notifications` to avoid executing web-specific
-    // initialization code (which accesses `localStorage`) at bundle time in Metro.
-    const Notifications = await import('expo-notifications');
+    // Load `expo-notifications` lazily to avoid web bundle-time initialization
+    // (some builds access `localStorage` during module init).
+    // Also: `require()` is easier to mock in Jest than dynamic `import()`.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const NotificationsImport: any = require('expo-notifications');
+    const Notifications: any =
+      NotificationsImport?.default?.default ??
+      NotificationsImport?.default ??
+      NotificationsImport;
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;

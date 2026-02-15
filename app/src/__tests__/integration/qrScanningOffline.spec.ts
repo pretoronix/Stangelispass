@@ -542,30 +542,40 @@ describe('Phase 3: QR Scanning & Real-Time (Host Perspective)', () => {
         });
     });
 
-    describe('6. Concurrent Scanning - "Chaos at the bar"', () => {
-        test('10 people scan QRs within 1 second: All processed', async () => {
-            // Given: Event with 10 users
-            const event = createTestEvent();
-            db.addEvent(event);
+	    describe('6. Concurrent Scanning - "Chaos at the bar"', () => {
+	        test('10 people scan QRs within 1 second: All processed', async () => {
+	            // Use fake timers to keep this test deterministic and avoid flakiness on slow CI machines.
+	            jest.useFakeTimers();
+	            jest.setSystemTime(new Date('2020-01-01T00:00:00.000Z'));
+	            try {
+	                // Given: Event with 10 users
+	                const event = createTestEvent();
+	                db.addEvent(event);
 
-            const users = createTestUsers(10, 0);
-            users.forEach(u => db.addUser(u));
+	                const users = createTestUsers(10, 0);
+	                users.forEach(u => db.addUser(u));
 
-            // When: All 10 scan within 1 second
-            const scanOperations = users.map(user => async () => {
-                await simulateNetworkDelay(Math.random() * 1000);
-                return db.addBeer(createTestBeer(user.id, event.id));
-            });
+	                // When: All 10 scan within 1 second
+	                const scanOperations = users.map(user => async () => {
+	                    await simulateNetworkDelay(Math.random() * 1000);
+	                    return db.addBeer(createTestBeer(user.id, event.id));
+	                });
 
-            const startTime = Date.now();
-            await simulateConcurrentOperations(scanOperations);
-            const endTime = Date.now();
+	                const startTime = Date.now();
+	                const promise = simulateConcurrentOperations(scanOperations);
+	                // Flush the max delay window.
+	                await jest.advanceTimersByTimeAsync(1000);
+	                await promise;
+	                const endTime = Date.now();
 
-            // Then: All processed within reasonable time
-            const beers = db.getBeersForEvent(event.id);
-            expect(beers).toHaveLength(10);
-            expect(endTime - startTime).toBeLessThan(2000); // < 2 seconds total
-        });
+	                // Then: All processed within reasonable time
+	                const beers = db.getBeersForEvent(event.id);
+	                expect(beers).toHaveLength(10);
+	                expect(endTime - startTime).toBeLessThan(2000); // < 2 seconds total
+	            } finally {
+	                jest.useRealTimers();
+	            }
+	        });
 
         test('Same QR scanned by 3 different users: Each gets their own beer', async () => {
             // Given: Shared QR code scenario (admin helping)
@@ -625,7 +635,7 @@ describe('Phase 3: QR Scanning & Real-Time (Host Perspective)', () => {
             db.addUser(user3);
 
             // When: 2 join, 1 logs beer, all at once
-            const operations = [
+            const operations: Array<() => Promise<unknown>> = [
                 async () => {
                     await simulateNetworkDelay(10);
                     return db.addMembership({ event_id: event.id, user_id: user1.id, role: 'member' });

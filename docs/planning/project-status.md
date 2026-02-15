@@ -1,6 +1,6 @@
 # Stängelispass - Project Status Report
 
-**Last Updated**: February 13, 2026  
+**Last Updated**: February 14, 2026  
 **Version**: 2.0.0  
 **Status**: Production Ready 🚀
 
@@ -114,12 +114,14 @@ Stängelispass is a social beer tracking app that has evolved from MVP to a feat
 
 ```
 ✅ TypeScript Compilation: 0 errors
-✅ ESLint: 0 errors, 1 pre-existing warning
-✅ Tests: 126/126 passing
-✅ Test Suites: 24/24 passing
-✅ Code Coverage: ~85% (critical paths 100%)
+✅ ESLint: 0 errors, 18 warnings
+✅ Tests: 367/367 passing
+✅ Test Suites: 55/55 passing
+✅ Code Coverage (Jest): Statements 58.62%, Branches 45.87%, Functions 48.91%, Lines 59.70%
 ✅ Bundle Size: Optimized with tree-shaking
 ```
+
+Coverage strategy: global gate is a baseline (anti-regression), strict enforcement is done via changed-files ratchet.
 
 ## 🚀 Performance Metrics
 

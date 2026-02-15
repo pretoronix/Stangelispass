@@ -5,6 +5,7 @@
 ### App Development
 - Install: `cd app && npm ci`
 - Tests: `cd app && npm test`
+- Coverage (baseline + changed-files gate): `cd app && node scripts/coverageRatchet.mjs` (default scope: `src/{services,utils,hooks,providers}`; set `COVERAGE_RATCHET_SCOPE=all` to include UI)
 - Lint: `cd app && npm run lint`
 - Typecheck: `cd app && npm run typecheck`
 - Start dev: `cd app && npm run start`
@@ -26,20 +27,14 @@ The Stängelispass project includes an advanced agentic AI workflow system with 
 ### 📊 Current Codebase Health
 
 **From Latest Analysis:**
-- TypeScript Coverage: **95%** 🟢
-- Test Coverage: **1%** 🔴 (101 files untested)
-- Complex Functions: **26 out of 219** (12%) 🟡
-- Code Smells: **2,682 total**
-  - 43 long functions (>50 lines)
-  - 2,362 deep nesting issues
-  - 65 'any' types
-  - 11 console statements
+- Jest: **41 suites**, **269 tests** passing
+- Jest coverage (global): **Statements 41.34%**, **Branches 33.12%**, **Functions 37.62%**, **Lines 42.31%**
+- Coverage strategy: global baseline gate + per-changed-file "ratchet" gate (see `app/scripts/coverageRatchet.mjs`)
 
 **Priority Actions:**
-1. Fix 43 long functions (AppProvider: 347 lines!)
-2. Improve test coverage from 1% to 80%+
-3. Replace 65 'any' types with specific types
-4. Add reportError() to improve error handling (currently 32%)
+1. Add tests for low-coverage hotspots (start with `src/app/*.tsx` and remaining `src/services/*`)
+2. Reduce complexity in large files (AppProvider/add/settings) only after adding tests for the touched paths
+3. Keep coverage from backsliding by running the ratchet gate locally and in CI
 
 ### Available Agents
 
@@ -138,7 +133,32 @@ Multi-agent AI collaboration system for strategic planning and documentation man
 
 **Voting Weight**: 1.5 (Medium influence)
 
+#### 7. UX/UX Auditor 🎨
+**Capabilities**: Aesthetic consistency, animation review, haptic validation.
+**Responsibilities**: Premium quality assurance, style consistency.
+
+#### 8. Social Engagement Agent 🍻
+**Capabilities**: Achievement design, viral loops, notification strategy.
+**Responsibilities**: Gamification optimization, community growth.
+
+#### 9. Safety & Compliance Guardian 🛡️
+**Capabilities**: GDPR audit, responsible drinking verification.
+**Responsibilities**: Legal/ethical oversight, privacy protection.
+
+#### 10. Performance & Sync Sentinel ⚡
+**Capabilities**: Sync optimization, query audit, offline-first stability.
+**Responsibilities**: Lag reduction, backend efficiency.
+
+**Voting Weights**: 1.5 - 2.0 (Role-dependent)
+
 ### Swarm Agent Workflows
+
+#### UX & Experience Review Workflow
+1. **Visual Audit**: Scan UI tokens and aesthetic consistency.
+2. **Social Evaluation**: Review gamification and social impact.
+3. **Performance Check**: Assess responsiveness and sync efficiency.
+4. **Consensus**: Multi-agent vote on "Delight Factor".
+5. **Execution**: Generate Daily Delight Report.
 
 #### Roadmap Update Workflow
 1. **Analysis**: Scan codebase for completed features
@@ -219,10 +239,11 @@ npm run swarm:analyze -- --no-dry-run
 ✅ **Hybrid Autonomy** - Safe actions auto-execute, complex ones need approval
 
 #### Swarm Agents ✨ NEW
-✅ **Multi-Agent Collaboration** - 4 specialized AI agents work together  
-✅ **Consensus Decision Making** - Weighted voting system (75% threshold)  
+✅ **Multi-Agent Collaboration** - 10 specialized AI agents work together  
+✅ **Consensus Decision Making** - Weighted voting system (70-80% threshold)  
 ✅ **Roadmap Analysis** - Automated gap detection vs. implementation  
 ✅ **Strategic Insights** - AI-driven feature recommendations  
+✅ **UX & Experience Audits** - Specialized performance and aesthetic reviews  
 ✅ **Documentation Sync** - Cross-document consistency validation  
 ✅ **Dry-Run Default** - Safe testing before applying changes  
 ✅ **Human-in-the-Loop** - Major decisions require approval
@@ -243,9 +264,9 @@ npm run swarm:analyze -- --no-dry-run
 
 ---
 
-**Total Agents**: 6 (2 Quality + 4 Swarm)  
+**Total Agents**: 12 (2 Quality + 10 Swarm)  
 **System Status**: ✅ Production Ready  
-**Last Updated**: February 13, 2026
+**Last Updated**: February 14, 2026
 
 ## Runbook
 1. Check Supabase config via `.env` in `app/` or Expo extras.

@@ -161,10 +161,10 @@ npm run swarm:brainstorm   # Feature ideation
 
 ## 📚 Documentation
 
-- **Quick Start**: See `AGENTS.md` for development commands
-- **Architecture**: See `HIGH_PRIORITY_REFACTORING.md` for technical details
+- **Quick Start**: See [docs/development/agents.md](./docs/development/agents.md) for development commands
+- **Architecture**: See [docs/refactoring/high-priority-items.md](./docs/refactoring/high-priority-items.md) for technical details
 - **Roadmap**: See `docs/strategy/feature_roadmap.md` for complete feature plans
-- **Status**: See `PROJECT_STATUS.md` for current state overview
+- **Status**: See [docs/planning/project-status.md](./docs/planning/project-status.md) for current state overview
 - **Deployment**: See `DEPLOYMENT_CHECKLIST.md` for production verification
 - **AI Agents**: See `agents/docs/SWARM_AGENTS.md` for swarm system details
 

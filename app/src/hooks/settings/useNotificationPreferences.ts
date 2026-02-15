@@ -10,10 +10,10 @@ interface UseNotificationPreferencesProps {
     notificationPrefs: NotificationPrefs;
 }
 
-export const useNotificationPreferences = ({ 
-    currentUser, 
-    setCurrentUser, 
-    notificationPrefs 
+export const useNotificationPreferences = ({
+    currentUser,
+    setCurrentUser,
+    notificationPrefs
 }: UseNotificationPreferencesProps) => {
     const updateNotificationPrefs = useCallback(async (nextPrefs: NotificationPrefs) => {
         if (!currentUser) return;
@@ -23,7 +23,11 @@ export const useNotificationPreferences = ({
         try {
             await updateUser(currentUser.id, { notification_prefs: nextPrefs } as Partial<User>);
         } catch (e) {
-            reportError(new Error('Failed to update notification prefs:', e), { scope: 'useNotificationPreferences', action: 'replace_console' });
+            reportError(new Error('Failed to update notification prefs'), {
+                scope: 'useNotificationPreferences',
+                action: 'update_prefs',
+                metadata: { cause: e instanceof Error ? e.message : String(e) },
+            });
             setCurrentUser(previousUser);
             Alert.alert('Error', 'Could not save notification settings.');
         }
@@ -53,11 +57,19 @@ export const useNotificationPreferences = ({
         });
     }, [notificationPrefs, updateNotificationPrefs]);
 
+    const toggleNewRound = useCallback((value: boolean) => {
+        updateNotificationPrefs({
+            ...notificationPrefs,
+            new_round: value,
+        });
+    }, [notificationPrefs, updateNotificationPrefs]);
+
     return {
         updateNotificationPrefs,
         toggleLeaderChange,
         toggleMilestone,
         toggleAdminBroadcasts,
+        toggleNewRound,
         milestones: MILESTONES,
     };
 };

@@ -28,7 +28,11 @@ export async function isLowEndDevice(): Promise<boolean> {
         // Default to capable if we can't determine
         return false;
     } catch (error) {
-        reportError(new Error('Device detection failed:', error), { scope: 'deviceInfo', action: 'replace_console' });
+        reportError(new Error('Device detection failed'), {
+            scope: 'deviceInfo',
+            action: 'detect_device',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         // On error, assume capable device
         return false;
     }
@@ -53,7 +57,11 @@ export async function shouldShowAnimations(): Promise<boolean> {
         const isLowEnd = await isLowEndDevice();
         return !isLowEnd;
     } catch (error) {
-        reportError(new Error('Failed to check animation preference:', error), { scope: 'deviceInfo', action: 'replace_console' });
+        reportError(new Error('Failed to check animation preference'), {
+            scope: 'deviceInfo',
+            action: 'check_animation_preference',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
         // Default to showing animations
         return true;
     }
@@ -63,6 +71,10 @@ export async function setAnimationPreference(enabled: boolean): Promise<void> {
     try {
         await AsyncStorage.setItem('enable_pour_animation', String(enabled));
     } catch (error) {
-        reportError(new Error('Failed to save animation preference:', error), { scope: 'deviceInfo', action: 'replace_console' });
+        reportError(new Error('Failed to save animation preference'), {
+            scope: 'deviceInfo',
+            action: 'set_animation_preference',
+            metadata: { cause: error instanceof Error ? error.message : String(error) },
+        });
     }
 }

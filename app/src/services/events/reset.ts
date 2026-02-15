@@ -3,33 +3,26 @@ import { isMissingTableError } from '../helpers';
 
 export const resetEventData = async (): Promise<{ table: string; ok: boolean; skipped?: boolean; error?: any }[]> => {
     const results: { table: string; ok: boolean; skipped?: boolean; error?: any }[] = [];
-    const tables = [
-        'beers',
-        'beer_stamps',
-        'achievements',
-        'notifications',
-        'device_tokens',
-        'wall_of_fame',
-        'event_leader_snapshots',
-        'event_game_stats',
-        'event_leader_state',
-        'event_memberships',
-        'events',
+    const tableConfigs = [
+        { table: 'beers', filterColumn: 'id' },
+        { table: 'beer_stamps', filterColumn: 'id' },
+        { table: 'achievements', filterColumn: 'id' },
+        { table: 'notifications', filterColumn: 'id' },
+        { table: 'device_tokens', filterColumn: 'id' },
+        { table: 'wall_of_fame', filterColumn: 'id' },
+        { table: 'event_leader_snapshots', filterColumn: 'id' },
+        { table: 'event_game_stats', filterColumn: 'event_id' },
+        { table: 'event_leader_state', filterColumn: 'event_id' },
+        { table: 'event_memberships', filterColumn: 'id' },
+        { table: 'events', filterColumn: 'id' },
     ];
-    const deleteFilters: Record<string, string> = {
-        event_game_stats: 'event_id',
-        event_leader_state: 'event_id',
-        event_leader_snapshots: 'event_id',
-        event_memberships: 'event_id',
-    };
 
-    for (const table of tables) {
+    for (const { table, filterColumn } of tableConfigs) {
         try {
-            const filterColumn = deleteFilters[table] || 'id';
             const { error } = await (supabase as any)
                 .from(table)
                 .delete()
-                .neq(filterColumn, '');
+                .not(filterColumn, 'is', null);
             if (error) {
                 if (isMissingTableError(error)) {
                     results.push({ table, ok: true, skipped: true });

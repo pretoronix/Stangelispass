@@ -1,6 +1,6 @@
 import { supabase } from './client';
 import { User, NotificationPrefs, DEFAULT_NOTIFICATION_PREFS } from './types';
-import { reportError } from '@/utils/logger';
+import { logExpected } from '@/utils/logger';
 
 // Re-export types for convenience
 export type { User, NotificationPrefs } from './types';
@@ -22,7 +22,7 @@ export const getUsers = async (): Promise<User[]> => {
 
         if (error) {
             if ((error as any).code === 'PGRST205') {
-                console.log('[users] table `users` not found. Returning empty users list. (expected)');
+                logExpected('table `users` not found. Returning empty users list.', 'users');
                 return [];
             }
             throw error;
@@ -31,7 +31,7 @@ export const getUsers = async (): Promise<User[]> => {
         return data || [];
     } catch (e) {
         // If any unexpected shape is encountered, return empty list to keep app running
-        console.log('[users] getUsers fallback due to error (expected):', e);
+        logExpected('getUsers fallback due to error', 'users');
         return [];
     }
 };
@@ -58,7 +58,7 @@ export const addUser = async (name: string, isAdmin: boolean = false): Promise<U
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            console.log('[users] table `users` not found. addUser skipped. (expected)');
+            logExpected('table `users` not found. addUser skipped.', 'users');
             return null;
         }
         throw error;
@@ -76,7 +76,7 @@ export const updateUser = async (userId: string, updates: Partial<User>): Promis
 
     if (error) {
         if ((error as any).code === 'PGRST205') {
-            console.log('[users] table `users` not found. updateUser skipped. (expected)');
+            logExpected('table `users` not found. updateUser skipped.', 'users');
             return null;
         }
         throw error;
@@ -100,9 +100,14 @@ export const normalizeNotificationPrefs = (input: any): NotificationPrefs => {
         ? prefs.admin_broadcasts
         : DEFAULT_NOTIFICATION_PREFS.admin_broadcasts;
 
+    const newRound = typeof prefs.new_round === 'boolean'
+        ? prefs.new_round
+        : DEFAULT_NOTIFICATION_PREFS.new_round;
+
     return {
         leader_change,
         milestones: [...new Set<number>(milestones)].sort((a, b) => a - b),
         admin_broadcasts: adminBroadcasts,
+        new_round: newRound,
     };
 };

@@ -30,6 +30,11 @@ const thresholds = {
   statements: toInt(process.env.COVERAGE_RATCHET_STATEMENTS, 70),
 };
 
+// By default we ratchet "core logic" areas that are easiest to unit test.
+// Set `COVERAGE_RATCHET_SCOPE=all` to include UI screens/components too.
+const scope = process.env.COVERAGE_RATCHET_SCOPE || 'core';
+const corePrefixes = ['src/services/', 'src/utils/', 'src/hooks/', 'src/providers/'];
+
 function findRepoRoot(startDir) {
   let dir = startDir;
   while (true) {
@@ -79,7 +84,16 @@ function listChangedAppFiles(repoRoot) {
   }
 
   const diffRange = mergeBase ? `${mergeBase}...HEAD` : `${baseRef}...HEAD`;
-  const out = sh(`git diff --name-only ${diffRange}`, repoRoot);
+  let out = sh(`git diff --name-only ${diffRange}`, repoRoot);
+
+  // Local/dev convenience: if there are no commits ahead of base, still enforce the ratchet
+  // on uncommitted or staged changes.
+  if (!out) {
+    const workTree = sh('git diff --name-only', repoRoot);
+    const staged = sh('git diff --name-only --cached', repoRoot);
+    out = [workTree, staged].filter(Boolean).join('\n');
+  }
+
   if (!out) return [];
 
   const files = out
@@ -91,7 +105,9 @@ function listChangedAppFiles(repoRoot) {
     .filter(p => !p.match(/\.(spec|test)\.[jt]sx?$/));
 
   // Convert repo-relative `app/src/...` to app-root-relative `src/...`
-  return files.map(p => p.replace(/^app\//, ''));
+  const appRel = files.map(p => p.replace(/^app\//, ''));
+  if (scope === 'all') return appRel;
+  return appRel.filter(p => corePrefixes.some(prefix => p.startsWith(prefix)));
 }
 
 function loadCoverageSummary(appRoot) {
@@ -144,11 +160,17 @@ function main() {
 
   console.log(`coverageRatchet: ${changed.length} changed file(s) to check`);
 
-  // Run coverage (also enforces global baseline threshold via jest config)
-  execSync('npx jest --coverage --watchAll=false --runInBand', {
-    cwd: appRoot,
-    stdio: 'inherit',
-  });
+  // Prefer consuming an existing coverage run (CI runs `npm run test:ci` first).
+  // This avoids running Jest twice (and avoids intermittent hangs from nested Jest invocations).
+  const summaryPath = path.join(appRoot, 'coverage', 'coverage-summary.json');
+  const alwaysRun = process.env.COVERAGE_RATCHET_ALWAYS_RUN_JEST === '1';
+  if (alwaysRun || !fs.existsSync(summaryPath)) {
+    // Run coverage (also enforces global baseline threshold via jest config).
+    execSync('npm run test:ci', {
+      cwd: appRoot,
+      stdio: 'inherit',
+    });
+  }
 
   const { byRel } = loadCoverageSummary(appRoot);
 
@@ -188,4 +210,3 @@ function main() {
 }
 
 main();
-

@@ -8,16 +8,18 @@ const DEFAULT_PREFS = {
   leader_change: true,
   milestones: [5, 10, 20],
   admin_broadcasts: true,
+  new_round: true,
 };
 
-const normalizePrefs = (raw: any): { leader_change: boolean; milestones: number[]; admin_broadcasts: boolean } => {
+const normalizePrefs = (raw: any): { leader_change: boolean; milestones: number[]; admin_broadcasts: boolean; new_round: boolean } => {
   if (!raw || typeof raw !== 'object') return DEFAULT_PREFS;
   const leader_change = typeof raw.leader_change === 'boolean' ? raw.leader_change : DEFAULT_PREFS.leader_change;
   const admin_broadcasts = typeof raw.admin_broadcasts === 'boolean' ? raw.admin_broadcasts : DEFAULT_PREFS.admin_broadcasts;
+  const new_round = typeof raw.new_round === 'boolean' ? raw.new_round : DEFAULT_PREFS.new_round;
   const milestones: number[] = Array.isArray(raw.milestones)
     ? raw.milestones.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n) && n > 0)
     : [...DEFAULT_PREFS.milestones];
-  return { leader_change, admin_broadcasts, milestones: [...new Set<number>(milestones)].sort((a, b) => a - b) };
+  return { leader_change, admin_broadcasts, new_round, milestones: [...new Set<number>(milestones)].sort((a, b) => a - b) };
 };
 
 const notificationTypeOf = (n: any): NotificationType => {
@@ -147,11 +149,13 @@ export async function processNotificationsBatch(opts: {
 
     const enabled = notificationType === 'leader_change'
       ? prefs.leader_change
-      : notificationType === 'admin_broadcast' || notificationType === 'new_round'
+      : notificationType === 'admin_broadcast'
         ? prefs.admin_broadcasts
-        : notificationType === 'milestone'
-          ? prefs.milestones.includes(Number(n?.payload?.milestone || 0))
-          : true;
+        : notificationType === 'new_round'
+          ? prefs.new_round
+          : notificationType === 'milestone'
+            ? prefs.milestones.includes(Number(n?.payload?.milestone || 0))
+            : true;
 
     if (!enabled) {
       await markProcessed();
