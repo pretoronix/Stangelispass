@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { colors } from '@/lib/theme';
 import { OptimisticItem } from '@/components/ui/OptimisticItem';
 
 /**
@@ -21,7 +22,7 @@ interface BeerLogItemProps {
 export function BeerLogItemExample({ beer }: BeerLogItemProps) {
     // Detect optimistic items by temporary ID
     const isOptimistic = beer.id.startsWith('temp-');
-    
+
     return (
         <OptimisticItem isOptimistic={isOptimistic} style={styles.container}>
             <View style={styles.content}>
@@ -31,7 +32,7 @@ export function BeerLogItemExample({ beer }: BeerLogItemProps) {
                 <Text style={styles.timestamp}>
                     {new Date(beer.created_at).toLocaleTimeString()}
                 </Text>
-                
+
                 {/* Show pending indicator for optimistic items */}
                 {isOptimistic && (
                     <Text style={styles.pending}>⏳ Saving...</Text>
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
     container: {
         padding: 12,
         marginVertical: 4,
-        backgroundColor: '#fff',
+        backgroundColor: colors.surface,
         borderRadius: 8,
     },
     content: {
@@ -56,16 +57,17 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 16,
         fontWeight: '600',
+        color: colors.textPrimary,
         flex: 1,
     },
     timestamp: {
         fontSize: 12,
-        color: '#666',
+        color: colors.textSecondary,
         marginLeft: 8,
     },
     pending: {
         fontSize: 12,
-        color: '#4CAF50',
+        color: colors.primary,
         fontStyle: 'italic',
         marginLeft: 8,
     },

@@ -163,4 +163,56 @@ describe('AppProvider', () => {
     expect(seen.current.remoteAvailable).toBe(false);
     expect(seen.current.activeEvent?.id).toBe('local');
   });
+
+  test('reports error when refreshUsers fails', async () => {
+    const { getUsers } = require('@/services/supabase');
+    (getUsers as jest.Mock).mockRejectedValueOnce(new Error('Fetch failed'));
+
+    const { AppProvider } = require('@/providers/AppProvider');
+    const { reportError } = require('@/utils/logger');
+
+    render(
+      <AppProvider>
+        <Text>test</Text>
+      </AppProvider>
+    );
+
+    // Bootstrap calls refreshUsers
+    await waitFor(() => expect(reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ action: 'Failed to refresh users' })
+    ));
+  });
+
+  test('reports error when closeEvent fails', async () => {
+    const { closeEventInSupabase } = require('@/providers/appProviderActions');
+    (closeEventInSupabase as jest.Mock).mockRejectedValueOnce(new Error('Close aborted'));
+
+    const { AppProvider, useApp } = require('@/providers/AppProvider');
+    const { reportError } = require('@/utils/logger');
+
+    const seen: any = { current: null };
+    function Consumer() {
+      const ctx = useApp();
+      useEffect(() => { seen.current = ctx; }, [ctx]);
+      return null;
+    }
+
+    render(
+      <AppProvider>
+        <Consumer />
+      </AppProvider>
+    );
+
+    await waitFor(() => expect(seen.current?.loading).toBe(false));
+
+    await act(async () => {
+      await seen.current.closeEvent();
+    });
+
+    expect(reportError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({ action: 'Failed to close event' })
+    );
+  });
 });

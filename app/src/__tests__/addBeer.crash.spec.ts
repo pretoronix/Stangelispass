@@ -139,39 +139,6 @@ describe('addBeer - Crash Prevention Tests', () => {
         it('should not crash when lifetime count query returns null', async () => {
             mockSupabase.from = jest.fn((table: string) => {
                 if (table === 'beers') {
-                    const selectMock = jest.fn();
-                    selectMock.mockImplementation((query: string) => {
-                        if (query === '*') {
-                            // For insert
-                            return {
-                                insert: jest.fn().mockReturnValue({
-                                    select: jest.fn().mockReturnValue({
-                                        single: jest.fn().mockResolvedValue({
-                                            data: {
-                                                id: 'beer-123',
-                                                user_id: 'user-123',
-                                                created_at: new Date().toISOString(),
-                                            },
-                                            error: null,
-                                        }),
-                                    }),
-                                }),
-                            };
-                        }
-                        // For count query
-                        return {
-                            eq: jest.fn().mockReturnValue({
-                                order: jest.fn().mockReturnValue({
-                                    limit: jest.fn().mockResolvedValue({
-                                        data: [],
-                                        count: null,  // ❌ Null count
-                                        error: null,
-                                    }),
-                                }),
-                            }),
-                        };
-                    });
-
                     return {
                         insert: jest.fn().mockReturnValue({
                             select: jest.fn().mockReturnValue({
@@ -185,7 +152,30 @@ describe('addBeer - Crash Prevention Tests', () => {
                                 }),
                             }),
                         }),
-                        select: selectMock,
+                        select: jest.fn().mockImplementation((_cols: string, opts?: any) => {
+                            // Count query (head: true) used by fetchLifetimeCount
+                            if (opts && opts.head) {
+                                return {
+                                    eq: jest.fn().mockResolvedValue({
+                                        data: [],
+                                        count: null, // ❌ Null count
+                                        error: null,
+                                    }),
+                                };
+                            }
+
+                            // Recent beers query used by fetchRecentBeers
+                            return {
+                                eq: jest.fn().mockReturnValue({
+                                    order: jest.fn().mockReturnValue({
+                                        limit: jest.fn().mockResolvedValue({
+                                            data: [],
+                                            error: null,
+                                        }),
+                                    }),
+                                }),
+                            };
+                        }),
                     };
                 }
                 if (table === 'achievements') {
@@ -240,7 +230,7 @@ describe('addBeer - Crash Prevention Tests', () => {
                             }),
                         }),
                         insert: jest.fn().mockRejectedValue({
-                            code: 'PGRST204',
+                            code: 'PGRST205',
                             message: 'table not found',
                         }),
                     };
@@ -262,7 +252,7 @@ describe('addBeer - Crash Prevention Tests', () => {
         it('should handle empty userId', async () => {
             await expect(
                 addBeer('', 'admin-456', 'event-789')
-            ).rejects.toThrow();
+            ).rejects.toThrow('userId is required to log a beer');
         });
 
         it('should handle empty addedBy', async () => {
@@ -301,9 +291,9 @@ describe('addBeer - Crash Prevention Tests', () => {
                 return {} as any;
             }) as any;
 
-            // Should not crash
-            const result = await addBeer('user-123', '', 'event-789');
-            expect(result.beer).toBeDefined();
+            await expect(
+                addBeer('user-123', '', 'event-789')
+            ).rejects.toThrow('addedBy is required to log a beer');
         });
     });
 });

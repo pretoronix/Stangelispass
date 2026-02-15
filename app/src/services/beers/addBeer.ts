@@ -53,6 +53,12 @@ export const addBeer = async (
     addedBy: string,
     eventId: string
 ): Promise<{ beer: Beer | null; newBadges: BadgeType[] }> => {
+    if (!userId) {
+        throw new Error('userId is required to log a beer');
+    }
+    if (!addedBy) {
+        throw new Error('addedBy is required to log a beer');
+    }
     if (!eventId) {
         throw new Error('eventId is required to log a beer');
     }
