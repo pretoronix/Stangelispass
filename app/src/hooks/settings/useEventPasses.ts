@@ -21,6 +21,7 @@ import {
 import { updateUser } from "@/services/users";
 import { reportError } from "@/utils/logger";
 import { getEventPricingType } from "@/utils/eventPricing";
+import { isPaymentsUiOnly } from "@/config/payments";
 
 interface UseEventPassesProps {
   currentUser: User | null;
@@ -165,6 +166,14 @@ export const useEventPasses = ({
         Alert.alert("Select User", "Please select a user before purchasing.");
         return;
       }
+      if (isPaymentsUiOnly()) {
+        const price = type === "day" ? "CHF 10" : "CHF 15";
+        Alert.alert(
+          "Payment (Preview)",
+          `${type === "day" ? "Single Event Pass" : "Weekend Unlimited Pass"} — ${price}\n\nPayments are not enabled yet. This is the UI preview only.`,
+        );
+        return;
+      }
       if (Platform.OS === "web") {
         Alert.alert(
           "Unavailable",
@@ -200,6 +209,19 @@ export const useEventPasses = ({
   const handlePurchaseLifetime = useCallback(async () => {
     if (!currentUser) {
       Alert.alert("Select User", "Please select a user before purchasing.");
+      return;
+    }
+    if (isPaymentsUiOnly()) {
+      // UI-only: mark supporter locally so the UI reflects it.
+      setCurrentUser({
+        ...(currentUser as any),
+        subscription_tier: "lifetime",
+        lifetime_pass: true,
+      } as User);
+      Alert.alert(
+        "Supporter (Preview)",
+        "Lifetime Supporter — CHF 100\n\nPayments are not enabled yet. This marks you as a supporter in the UI only.",
+      );
       return;
     }
     if (Platform.OS === "web") {

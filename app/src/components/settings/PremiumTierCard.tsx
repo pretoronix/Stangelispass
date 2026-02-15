@@ -64,18 +64,18 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
       {!isLifetime && (
         <>
           <Button
-            title="Buy Day Pass (CHF 10)"
+            title="Buy Single Event (CHF 10)"
             onPress={onBuyDayPass}
             style={styles.upgradeButton}
           />
           <Button
-            title="Buy Weekend Pass (CHF 15)"
+            title="Buy Weekend Unlimited (CHF 15)"
             onPress={onBuyWeekendPass}
             variant="ghost"
             style={styles.supporterButton}
           />
           <Button
-            title="Become a Supporter (Lifetime)"
+            title="Become a Supporter (CHF 100)"
             variant="ghost"
             onPress={onBuyLifetime}
             style={styles.supporterButton}

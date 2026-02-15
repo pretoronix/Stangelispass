@@ -23,8 +23,8 @@ describe("PremiumTierCard", () => {
     expect(getByText("1")).toBeTruthy();
     expect(getByText("2")).toBeTruthy();
     expect(getByText("3")).toBeTruthy();
-    expect(getByText(/Buy Day Pass/i)).toBeTruthy();
-    expect(getByText(/Buy Weekend Pass/i)).toBeTruthy();
+    expect(getByText(/Buy Single Event/i)).toBeTruthy();
+    expect(getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
     expect(getByText(/Supporter/i)).toBeTruthy();
   });
 
@@ -43,7 +43,7 @@ describe("PremiumTierCard", () => {
     );
 
     expect(getByText("Supporter (Lifetime)")).toBeTruthy();
-    expect(queryByText(/Buy Day Pass/i)).toBeNull();
-    expect(queryByText(/Buy Weekend Pass/i)).toBeNull();
+    expect(queryByText(/Buy Single Event/i)).toBeNull();
+    expect(queryByText(/Buy Weekend Unlimited/i)).toBeNull();
   });
 });

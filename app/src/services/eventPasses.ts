@@ -1,7 +1,8 @@
 import { supabase } from "./client";
-import { isMissingTableError } from "./helpers";
+import { isMissingColumnError, isMissingTableError } from "./helpers";
 import type { User } from "./types";
 import { getEventPricingType } from "@/utils/eventPricing";
+import { isPaymentsUiOnly } from "@/config/payments";
 
 export type EventCreditType = "day" | "weekend";
 
@@ -21,6 +22,11 @@ export const consumeEventCredit = async (
   userId: string,
   pricingType: EventCreditType,
 ) => {
+  if (isPaymentsUiOnly()) {
+    // UI-only mode: allow event start without touching the database.
+    return { ok: true, used: "free" as const };
+  }
+
   const { data, error } = await (supabase.from("users") as any)
     .select(
       "id, free_event_credits, paid_event_credits_day, paid_event_credits_weekend",
@@ -29,7 +35,7 @@ export const consumeEventCredit = async (
     .single();
 
   if (error) {
-    if (isMissingTableError(error)) {
+    if (isMissingTableError(error) || isMissingColumnError(error)) {
       return { ok: false, reason: "credits_unavailable" as const };
     }
     throw error;
@@ -43,7 +49,12 @@ export const consumeEventCredit = async (
     const { error: updateError } = await (supabase.from("users") as any)
       .update({ free_event_credits: freeCredits - 1 })
       .eq("id", userId);
-    if (updateError) throw updateError;
+    if (updateError) {
+      if (isMissingTableError(updateError) || isMissingColumnError(updateError)) {
+        return { ok: false, reason: "credits_unavailable" as const };
+      }
+      throw updateError;
+    }
     return { ok: true, used: "free" as const };
   }
 
@@ -51,7 +62,12 @@ export const consumeEventCredit = async (
     const { error: updateError } = await (supabase.from("users") as any)
       .update({ paid_event_credits_day: dayCredits - 1 })
       .eq("id", userId);
-    if (updateError) throw updateError;
+    if (updateError) {
+      if (isMissingTableError(updateError) || isMissingColumnError(updateError)) {
+        return { ok: false, reason: "credits_unavailable" as const };
+      }
+      throw updateError;
+    }
     return { ok: true, used: "day" as const };
   }
 
@@ -59,7 +75,12 @@ export const consumeEventCredit = async (
     const { error: updateError } = await (supabase.from("users") as any)
       .update({ paid_event_credits_weekend: weekendCredits - 1 })
       .eq("id", userId);
-    if (updateError) throw updateError;
+    if (updateError) {
+      if (isMissingTableError(updateError) || isMissingColumnError(updateError)) {
+        return { ok: false, reason: "credits_unavailable" as const };
+      }
+      throw updateError;
+    }
     return { ok: true, used: "weekend" as const };
   }
 
@@ -71,6 +92,11 @@ export const grantEventCredits = async (
   pricingType: EventCreditType,
   amount: number,
 ) => {
+  if (isPaymentsUiOnly()) {
+    // UI-only mode: don't touch the database yet.
+    return { ok: true };
+  }
+
   const column =
     pricingType === "day"
       ? "paid_event_credits_day"
@@ -81,7 +107,7 @@ export const grantEventCredits = async (
     .single();
 
   if (error) {
-    if (isMissingTableError(error)) {
+    if (isMissingTableError(error) || isMissingColumnError(error)) {
       return { ok: false, reason: "credits_unavailable" as const };
     }
     throw error;
@@ -93,7 +119,7 @@ export const grantEventCredits = async (
     .eq("id", userId);
 
   if (updateError) {
-    if (isMissingTableError(updateError)) {
+    if (isMissingTableError(updateError) || isMissingColumnError(updateError)) {
       return { ok: false, reason: "credits_unavailable" as const };
     }
     throw updateError;

@@ -10,7 +10,7 @@ export function useBeerLogToast(
 ) {
   const [visible, setVisible] = useState(false);
   const [message, setMessage] = useState("Beer logged!");
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastNotifiedId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -19,19 +19,23 @@ export function useBeerLogToast(
 
   useEffect(() => {
     if (!currentUserId || !activeEventId) return;
-    if (!isSupabaseConfigured()) return;
+    if (!isSupabaseConfigured) return;
 
     const channel = supabase
       .channel(`beer_log_toast_${activeEventId}_${currentUserId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "beers" },
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "beers",
+          filter: `event_id=eq.${activeEventId}`,
+        },
         (payload: any) => {
           try {
             const record = payload?.new;
             if (!record) return;
             if (record.user_id !== currentUserId) return;
-            if (record.event_id !== activeEventId) return;
             if (record.id && record.id === lastNotifiedId.current) return;
 
             lastNotifiedId.current = record.id || null;

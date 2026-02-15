@@ -26,12 +26,26 @@ export default async function execute(context: AgentExecutionContext): Promise<S
   let statementsReplaced = 0;
   const changesMade: string[] = [];
 
+  const shouldSkipFile = (absolutePath: string) => {
+    const normalized = absolutePath.replace(/\\/g, '/');
+    // Never rewrite the logger implementation itself; it intentionally uses console.*
+    if (normalized.endsWith('/utils/logger.ts') || normalized.endsWith('/utils/logger.tsx')) {
+      return true;
+    }
+    return false;
+  };
+
+  const hasReportErrorImport = (content: string) =>
+    /import\s+\{\s*reportError\s*\}\s+from\s+['"]@\/utils\/logger['"];/.test(content);
+
   for (const file of files) {
+    if (shouldSkipFile(file)) continue;
+
     const content = fs.readFileSync(file, 'utf-8');
     const relativePath = path.relative(process.cwd(), file);
 
-    // Check if file already imports reportError
-    const hasReportError = content.includes("from '@/utils/logger'");
+    // Check if file already imports reportError (any quote style)
+    const hasReportError = hasReportErrorImport(content);
     
     // Find console statements
     const consoleMatches = content.match(/console\.(error|warn|log)\(/g);

@@ -370,9 +370,9 @@ describe("GUI Integrity Tests", () => {
     it("shows event pass purchase options", async () => {
       render(<SettingsScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(screen.getByText(/Buy Day Pass/i)).toBeTruthy(),
+        expect(screen.getByText(/Buy Single Event/i)).toBeTruthy(),
       );
-      expect(screen.getByText(/Buy Weekend Pass/i)).toBeTruthy();
+      expect(screen.getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
       expect(screen.getByText(/Supporter/i)).toBeTruthy();
     });
 
