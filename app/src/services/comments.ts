@@ -1,7 +1,7 @@
 import { supabase } from "./client";
 import { Comment, CommentInput, CommentUpdate } from "./types";
 import { isMissingTableError } from "./helpers";
-import { reportError } from "@/utils/logger";
+import { logExpected, reportError } from "@/utils/logger";
 
 /**
  * Comments operations module
@@ -25,8 +25,9 @@ export const getComments = async (beerId: string): Promise<Comment[]> => {
 
   if (error) {
     if (isMissingTableError(error)) {
-      console.log(
-        "[Comments] table `comments` not found. Returning empty array. (expected)",
+      logExpected(
+        "table `comments` not found. Returning empty array.",
+        "comments",
       );
       return [];
     }
@@ -96,7 +97,8 @@ export const addComment = async (input: CommentInput): Promise<Comment> => {
     throw new Error("Comment text must be 500 characters or less");
   }
 
-  const { data, error } = await (supabase.from("comments") as any)
+  const { data, error } = await supabase
+    .from("comments")
     .insert({
       beer_id: input.beer_id,
       user_id: input.user_id,
@@ -129,7 +131,8 @@ export const updateComment = async (
     throw new Error("Comment text must be 500 characters or less");
   }
 
-  const { data, error } = await (supabase.from("comments") as any)
+  const { data, error } = await supabase
+    .from("comments")
     .update({ text: update.text.trim() })
     .eq("id", commentId)
     .select(

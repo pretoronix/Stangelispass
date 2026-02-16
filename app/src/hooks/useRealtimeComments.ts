@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/services/client";
 import { COMMENT_QUERY_KEYS } from "./useCommentsQuery";
-import { reportError } from "@/utils/logger";
+import { logInfo, reportError } from "@/utils/logger";
 
 /**
  * Real-time subscription hook for comments
@@ -28,7 +28,11 @@ export function useRealtimeComments(beerId: string, enabled = true) {
           filter: `beer_id=eq.${beerId}`,
         },
         (payload) => {
-          console.log("[Comments] New comment received:", payload.new);
+          logInfo("New comment received", {
+            scope: "useRealtimeComments",
+            action: "insert",
+            metadata: { beerId, commentId: payload?.new?.id },
+          });
           queryClient.invalidateQueries({
             queryKey: COMMENT_QUERY_KEYS.byBeer(beerId),
           });
@@ -46,7 +50,11 @@ export function useRealtimeComments(beerId: string, enabled = true) {
           filter: `beer_id=eq.${beerId}`,
         },
         (payload) => {
-          console.log("[Comments] Comment updated:", payload.new);
+          logInfo("Comment updated", {
+            scope: "useRealtimeComments",
+            action: "update",
+            metadata: { beerId, commentId: payload?.new?.id },
+          });
           queryClient.invalidateQueries({
             queryKey: COMMENT_QUERY_KEYS.byBeer(beerId),
           });
@@ -61,7 +69,11 @@ export function useRealtimeComments(beerId: string, enabled = true) {
           filter: `beer_id=eq.${beerId}`,
         },
         (payload) => {
-          console.log("[Comments] Comment deleted:", payload.old);
+          logInfo("Comment deleted", {
+            scope: "useRealtimeComments",
+            action: "delete",
+            metadata: { beerId, commentId: payload?.old?.id },
+          });
           queryClient.invalidateQueries({
             queryKey: COMMENT_QUERY_KEYS.byBeer(beerId),
           });
@@ -72,7 +84,11 @@ export function useRealtimeComments(beerId: string, enabled = true) {
       )
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
-          console.log(`[Comments] Subscribed to ${channelName}`);
+          logInfo("Subscribed to comments channel", {
+            scope: "useRealtimeComments",
+            action: "subscribe",
+            metadata: { beerId, channelName },
+          });
         } else if (status === "CHANNEL_ERROR") {
           reportError(err || new Error("Channel subscription error"), {
             scope: "useRealtimeComments",
@@ -81,16 +97,28 @@ export function useRealtimeComments(beerId: string, enabled = true) {
           });
         } else if (status === "TIMED_OUT") {
           reportError(
-            new Error(`[Comments] Subscription timed out for ${channelName}`),
-            { scope: "useRealtimeComments", action: "replace_console" },
+            new Error("Subscription timed out for comments channel"),
+            {
+              scope: "useRealtimeComments",
+              action: "subscribe_timeout",
+              metadata: { beerId, channelName, status },
+            },
           );
         } else if (status === "CLOSED") {
-          console.log(`[Comments] Channel closed: ${channelName}`);
+          logInfo("Comments channel closed", {
+            scope: "useRealtimeComments",
+            action: "closed",
+            metadata: { beerId, channelName },
+          });
         }
       });
 
     return () => {
-      console.log(`[Comments] Unsubscribing from ${channelName}`);
+      logInfo("Unsubscribing from comments channel", {
+        scope: "useRealtimeComments",
+        action: "unsubscribe",
+        metadata: { beerId, channelName },
+      });
       supabase.removeChannel(channel);
     };
   }, [beerId, enabled, queryClient]);

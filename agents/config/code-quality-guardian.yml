@@ -31,6 +31,7 @@ triggers:
       - generate_quality_report
       - analyze_complexity
       - suggest_refactoring
+      - typecheck
     enabled: true
 
 actions:
@@ -75,6 +76,12 @@ actions:
     script: scripts/suggest-refactoring.ts
     approval_required: false
     timeout_seconds: 90
+
+  typecheck:
+    type: advisory
+    command: cd app && npm run typecheck
+    rollback_on_failure: false
+    timeout_seconds: 300
 
 permissions:
   - read:code

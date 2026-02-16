@@ -1,0 +1,48 @@
+name: dependency-hygiene
+version: 1.0.0
+description: Flags potentially unused dependencies to keep the codebase lean
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - detect_unused_deps
+    enabled: true
+
+  - event: daily_cron
+    schedule: "0 2 * * *"
+    actions:
+      - detect_unused_deps
+    enabled: true
+
+actions:
+  detect_unused_deps:
+    type: advisory
+    script: scripts/detect-unused-deps.ts
+    approval_required: false
+    timeout_seconds: 180
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - deps_scanned
+    - unused_candidates
+    - files_scanned
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-15T20:00:00Z"
+  updated_at: "2026-02-15T20:00:00Z"
+  tags:
+    - dependencies
+    - hygiene
+    - advisory

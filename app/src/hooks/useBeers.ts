@@ -21,10 +21,81 @@ export interface UserBeerCount {
   leadChanges?: number;
 }
 
+type BeerStatRow = {
+  user_id: string;
+  beer_count: number;
+  points: number;
+  streak_count: number;
+  longest_streak: number;
+  lead_changes: number;
+};
+
+const buildMergedStats = (
+  users: User[],
+  stats: BeerStatRow[],
+): UserBeerCount[] => {
+  const statsByUser = new Map(stats.map((stat) => [stat.user_id, stat]));
+
+  const merged = users.map((user): UserBeerCount => {
+    const stat = statsByUser.get(user.id);
+    return {
+      userId: user.id,
+      name: user.name,
+      count: stat?.beer_count ?? 0,
+      isAdmin: !!user.is_admin,
+      points: stat?.points ?? 0,
+      streakCount: stat?.streak_count ?? 0,
+      longestStreak: stat?.longest_streak ?? 0,
+      leadChanges: stat?.lead_changes ?? 0,
+    };
+  });
+
+  return merged.sort((a, b) => {
+    const pointsDiff = (b.points || 0) - (a.points || 0);
+    if (pointsDiff !== 0) return pointsDiff;
+    return b.count - a.count;
+  });
+};
+
+const computeTotalBeers = (counts: UserBeerCount[]) =>
+  counts.reduce((sum, u) => sum + u.count, 0);
+
+const resolveLeaderInfo = (
+  counts: UserBeerCount[],
+  leaderUserId?: string | null,
+) => {
+  const fallback = counts[0] || null;
+  if (!leaderUserId) return fallback;
+  return counts.find((u) => u.userId === leaderUserId) || fallback;
+};
+
+const computeLeaderLead = (
+  counts: UserBeerCount[],
+  leaderInfo: UserBeerCount | null,
+) => {
+  if (!leaderInfo) return 0;
+  if (counts.length <= 1) return leaderInfo.points || 0;
+  const runnerUp = counts.find((u) => u.userId !== leaderInfo.userId);
+  const lead = runnerUp
+    ? (leaderInfo.points || 0) - (runnerUp.points || 0)
+    : leaderInfo.points || 0;
+  return Math.max(lead, 0);
+};
+
+const computeHotStreak = (counts: UserBeerCount[]) => {
+  const hot = counts.reduce((best: UserBeerCount | null, current) => {
+    if (!best) return current;
+    const bestStreak = best.streakCount || 0;
+    const currentStreak = current.streakCount || 0;
+    return currentStreak > bestStreak ? current : best;
+  }, null);
+  return hot && (hot.streakCount || 0) > 0 ? hot : null;
+};
+
 export const useBeers = () => {
   const { activeEvent } = useApp();
   const [beerCounts, setBeerCounts] = useState<UserBeerCount[]>([]);
-  const [rawBeers, setRawBeers] = useState<any[]>([]);
+  const [rawBeers, setRawBeers] = useState<{ created_at: string }[]>([]);
   const [totalBeers, setTotalBeers] = useState(0);
   const [leaderInfo, setLeaderInfo] = useState<UserBeerCount | null>(null);
   const [leaderLead, setLeaderLead] = useState(0);
@@ -35,88 +106,7 @@ export const useBeers = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      if (activeEvent?.id) {
-        const [statsResult, leaderResult, users] = await Promise.all([
-          getEventGameStats(activeEvent.id),
-          getEventLeaderState(activeEvent.id),
-          getUsers(),
-        ]);
-
-        if (!statsResult.missingTable) {
-          setGameStatsAvailable(true);
-          const statsByUser = new Map(
-            statsResult.stats.map((stat) => [stat.user_id, stat]),
-          );
-
-          const merged = (users || []).map((user: User): UserBeerCount => {
-            const stat = statsByUser.get(user.id);
-            return {
-              userId: user.id,
-              name: user.name,
-              count: stat?.beer_count ?? 0,
-              isAdmin: !!user.is_admin,
-              points: stat?.points ?? 0,
-              streakCount: stat?.streak_count ?? 0,
-              longestStreak: stat?.longest_streak ?? 0,
-              leadChanges: stat?.lead_changes ?? 0,
-            };
-          });
-
-          const sorted = merged.sort((a: UserBeerCount, b: UserBeerCount) => {
-            const pointsDiff = (b.points || 0) - (a.points || 0);
-            if (pointsDiff !== 0) return pointsDiff;
-            return b.count - a.count;
-          });
-
-          setBeerCounts(sorted);
-          setTotalBeers(
-            sorted.reduce((sum: number, u: UserBeerCount) => sum + u.count, 0),
-          );
-
-          const leaderFallback = sorted[0] || null;
-          const leaderFromState = leaderResult.leader?.user_id
-            ? sorted.find(
-                (u: UserBeerCount) => u.userId === leaderResult.leader?.user_id,
-              ) || leaderFallback
-            : leaderFallback;
-          setLeaderInfo(leaderFromState || null);
-
-          if (sorted.length > 1 && leaderFromState) {
-            const runnerUp = sorted.find(
-              (u: UserBeerCount) => u.userId !== leaderFromState.userId,
-            );
-            const lead = runnerUp
-              ? (leaderFromState.points || 0) - (runnerUp.points || 0)
-              : leaderFromState.points || 0;
-            setLeaderLead(Math.max(lead, 0));
-          } else {
-            setLeaderLead(leaderFromState?.points || 0);
-          }
-
-          const hot = sorted.reduce(
-            (best: UserBeerCount | null, current: UserBeerCount) => {
-              if (!best) return current;
-              const bestStreak = best.streakCount || 0;
-              const currentStreak = current.streakCount || 0;
-              if (currentStreak > bestStreak) return current;
-              return best;
-            },
-            null,
-          );
-          setHotStreak(hot && (hot.streakCount || 0) > 0 ? hot : null);
-        } else {
-          setGameStatsAvailable(false);
-          const counts = (await getBeerCountByUser(
-            activeEvent.id,
-          )) as UserBeerCount[];
-          const sorted = counts.sort((a, b) => b.count - a.count);
-          setBeerCounts(sorted);
-          setTotalBeers(sorted.reduce((sum, u) => sum + u.count, 0));
-          setLeaderInfo(sorted[0] || null);
-          setLeaderLead(sorted[0]?.count || 0);
-          setHotStreak(null);
-        }
-      } else {
+      if (!activeEvent?.id) {
         setGameStatsAvailable(false);
         setBeerCounts([]);
         setTotalBeers(0);
@@ -124,16 +114,48 @@ export const useBeers = () => {
         setLeaderLead(0);
         setHotStreak(null);
         setRawBeers([]);
+        return;
       }
 
-      // Fetch raw beers for velocity calculation if there's an active event
-      if (activeEvent?.id) {
-        const { data } = await supabase
-          .from("beers")
-          .select("created_at")
-          .eq("event_id", activeEvent.id);
-        setRawBeers(data || []);
+      const [statsResult, leaderResult, users] = await Promise.all([
+        getEventGameStats(activeEvent.id),
+        getEventLeaderState(activeEvent.id),
+        getUsers(),
+      ]);
+
+      if (!statsResult.missingTable) {
+        setGameStatsAvailable(true);
+        const sorted = buildMergedStats(
+          users || [],
+          statsResult.stats as BeerStatRow[],
+        );
+        const leaderFromState = resolveLeaderInfo(
+          sorted,
+          leaderResult.leader?.user_id,
+        );
+        setBeerCounts(sorted);
+        setTotalBeers(computeTotalBeers(sorted));
+        setLeaderInfo(leaderFromState);
+        setLeaderLead(computeLeaderLead(sorted, leaderFromState));
+        setHotStreak(computeHotStreak(sorted));
+      } else {
+        setGameStatsAvailable(false);
+        const counts = (await getBeerCountByUser(
+          activeEvent.id,
+        )) as UserBeerCount[];
+        const sorted = counts.sort((a, b) => b.count - a.count);
+        setBeerCounts(sorted);
+        setTotalBeers(computeTotalBeers(sorted));
+        setLeaderInfo(sorted[0] || null);
+        setLeaderLead(sorted[0]?.count || 0);
+        setHotStreak(null);
       }
+
+      const { data } = await supabase
+        .from("beers")
+        .select("created_at")
+        .eq("event_id", activeEvent.id);
+      setRawBeers(data || []);
     } catch (e) {
       reportError(new Error("Failed to fetch beer data"), {
         scope: "useBeers",

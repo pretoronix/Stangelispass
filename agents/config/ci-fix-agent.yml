@@ -1,0 +1,47 @@
+name: ci-fix-agent
+version: 1.0.0
+description: Uses gh CLI to triage CI failures and summarize failing checks
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - triage_ci
+    enabled: true
+
+  - event: pr_opened
+    actions:
+      - triage_ci
+    enabled: true
+
+actions:
+  triage_ci:
+    type: advisory
+    script: scripts/ci-fix.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - gh_available
+    - gh_authed
+    - checks_loaded
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-15T20:05:00Z"
+  updated_at: "2026-02-15T20:05:00Z"
+  tags:
+    - ci
+    - github
+    - advisory

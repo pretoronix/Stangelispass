@@ -1,0 +1,41 @@
+name: ios-debug-agent
+version: 1.0.0
+description: Provides iOS/Expo debugging guidance and environment hints
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - ios_debug
+    enabled: true
+
+actions:
+  ios_debug:
+    type: advisory
+    script: scripts/ios-debug.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - ios_dir
+    - expo_config
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-15T20:05:00Z"
+  updated_at: "2026-02-15T20:05:00Z"
+  tags:
+    - ios
+    - debug
+    - advisory

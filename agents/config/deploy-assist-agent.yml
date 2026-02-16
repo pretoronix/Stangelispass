@@ -1,0 +1,39 @@
+name: deploy-assist-agent
+version: 1.0.0
+description: Detects deployment configs and suggests next steps
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - deploy_assist
+    enabled: true
+
+actions:
+  deploy_assist:
+    type: advisory
+    script: scripts/deploy-assist.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - configs_found
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-15T20:05:00Z"
+  updated_at: "2026-02-15T20:05:00Z"
+  tags:
+    - deploy
+    - advisory

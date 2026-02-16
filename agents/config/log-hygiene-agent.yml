@@ -1,0 +1,47 @@
+name: log-hygiene-agent
+version: 1.0.0
+description: Flags console usage in app code (excluding tests/logger)
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - log_hygiene_scan
+    enabled: true
+
+  - event: daily_cron
+    schedule: "0 4 * * *"
+    actions:
+      - log_hygiene_scan
+    enabled: true
+
+actions:
+  log_hygiene_scan:
+    type: advisory
+    script: scripts/log-hygiene.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - console_usages
+    - files_with_console
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-16T19:20:00Z"
+  updated_at: "2026-02-16T19:20:00Z"
+  tags:
+    - logging
+    - hygiene
+    - advisory

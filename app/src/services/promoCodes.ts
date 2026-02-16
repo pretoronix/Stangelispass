@@ -19,7 +19,8 @@ export type PromoCode = {
 
 export const listPromoCodes = async (): Promise<PromoCode[]> => {
   try {
-    const { data, error } = await (supabase.from("promo_codes") as any)
+    const { data, error } = await supabase
+      .from("promo_codes")
       .select("*")
       .order("created_at", { ascending: false });
     if (error) {
@@ -49,7 +50,8 @@ export const createPromoCode = async (
     created_by: createdBy || null,
   };
 
-  const { data, error } = await (supabase.from("promo_codes") as any)
+  const { data, error } = await supabase
+    .from("promo_codes")
     .insert(payload)
     .select()
     .single();
@@ -73,7 +75,8 @@ export const redeemPromoCode = async (
   user?: User | null;
 }> => {
   try {
-    const { data, error } = await (supabase.from("promo_codes") as any)
+    const { data, error } = await supabase
+      .from("promo_codes")
       .select("*")
       .eq("code", code)
       .maybeSingle();
@@ -90,7 +93,8 @@ export const redeemPromoCode = async (
     if (promo.expires_at && new Date(promo.expires_at) < new Date())
       return { ok: false, reason: "expired" };
 
-    const { error: updateError } = await (supabase.from("promo_codes") as any)
+    const { error: updateError } = await supabase
+      .from("promo_codes")
       .update({
         redeemed_by: userId,
         redeemed_at: new Date().toISOString(),

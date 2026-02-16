@@ -1,6 +1,6 @@
 import { supabase } from "../client";
 import { isMissingTableError } from "../helpers";
-import { reportError } from "@/utils/logger";
+import { logExpected, reportError } from "@/utils/logger";
 
 export const getWallOfFame = async (): Promise<any[]> => {
   const { data, error } = await supabase
@@ -16,8 +16,9 @@ export const getWallOfFame = async (): Promise<any[]> => {
 
   if (error) {
     if (isMissingTableError(error)) {
-      console.log(
-        "[Events] table `wall_of_fame` not found. Returning empty wall of fame. (expected)",
+      logExpected(
+        "table `wall_of_fame` not found. Returning empty wall of fame.",
+        "events",
       );
       return [];
     }
@@ -31,7 +32,8 @@ export const addToWallOfFame = async (
   winnerId: string,
   totalBeers: number,
 ): Promise<any> => {
-  const { data, error } = await (supabase.from("wall_of_fame") as any)
+  const { data, error } = await supabase
+    .from("wall_of_fame")
     .insert({
       event_id: eventId,
       winner_id: winnerId,
@@ -42,8 +44,9 @@ export const addToWallOfFame = async (
 
   if (error) {
     if (isMissingTableError(error)) {
-      console.log(
-        "[Events] table `wall_of_fame` not found. addToWallOfFame skipped. (expected)",
+      logExpected(
+        "table `wall_of_fame` not found. addToWallOfFame skipped.",
+        "events",
       );
       return null;
     }

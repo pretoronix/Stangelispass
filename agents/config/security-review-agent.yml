@@ -1,0 +1,45 @@
+name: security-review-agent
+version: 1.0.0
+description: Flags changed JS/TS files and prompts for security review
+autonomy: hybrid
+enabled: true
+
+triggers:
+  - event: manual
+    actions:
+      - security_review
+    enabled: true
+
+  - event: daily_cron
+    schedule: "0 3 * * *"
+    actions:
+      - security_review
+    enabled: true
+
+actions:
+  security_review:
+    type: advisory
+    script: scripts/security-review.ts
+    approval_required: false
+    timeout_seconds: 120
+
+permissions:
+  - read:code
+
+monitoring:
+  log_level: info
+  metrics:
+    - files_changed
+  alerts:
+    on_failure: true
+    on_success: false
+    channels:
+      - console
+
+metadata:
+  author: Agent System
+  created_at: "2026-02-15T20:05:00Z"
+  updated_at: "2026-02-15T20:05:00Z"
+  tags:
+    - security
+    - advisory
