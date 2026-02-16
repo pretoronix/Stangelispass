@@ -12,8 +12,7 @@ import { logExpected, reportError } from "@/utils/logger";
  * Get all comments for a specific beer
  */
 export const getComments = async (beerId: string): Promise<Comment[]> => {
-  const { data, error } = await supabase
-    .from("comments")
+  const { data, error } = await (supabase.from("comments") as any)
     .select(
       `
             *,
@@ -43,8 +42,7 @@ export const getComments = async (beerId: string): Promise<Comment[]> => {
 export const getCommentsByEvent = async (
   eventId: string,
 ): Promise<Comment[]> => {
-  const { data, error } = await supabase
-    .from("comments")
+  const { data, error } = await (supabase.from("comments") as any)
     .select(
       `
             *,
@@ -69,8 +67,7 @@ export const getCommentsByEvent = async (
  * Get comment count for a specific beer
  */
 export const getCommentCount = async (beerId: string): Promise<number> => {
-  const { count, error } = await supabase
-    .from("comments")
+  const { count, error } = await (supabase.from("comments") as any)
     .select("*", { count: "exact", head: true })
     .eq("beer_id", beerId);
 
@@ -97,8 +94,7 @@ export const addComment = async (input: CommentInput): Promise<Comment> => {
     throw new Error("Comment text must be 500 characters or less");
   }
 
-  const { data, error } = await supabase
-    .from("comments")
+  const { data, error } = await (supabase.from("comments") as any)
     .insert({
       beer_id: input.beer_id,
       user_id: input.user_id,
@@ -131,8 +127,7 @@ export const updateComment = async (
     throw new Error("Comment text must be 500 characters or less");
   }
 
-  const { data, error } = await supabase
-    .from("comments")
+  const { data, error } = await (supabase.from("comments") as any)
     .update({ text: update.text.trim() })
     .eq("id", commentId)
     .select(
@@ -151,8 +146,7 @@ export const updateComment = async (
  * Delete a comment
  */
 export const deleteComment = async (commentId: string): Promise<void> => {
-  const { error } = await supabase
-    .from("comments")
+  const { error } = await (supabase.from("comments") as any)
     .delete()
     .eq("id", commentId);
 

@@ -73,6 +73,21 @@ describe("scanPayload (utils)", () => {
       });
     });
 
+    it("parses PARTICIPANT_LOG payloads", () => {
+      const payload = JSON.stringify({
+        type: QR_ACTIONS.PARTICIPANT_LOG,
+        userId: "a12345678",
+        eventId: "b12345678",
+        v: QR_PAYLOAD_VERSION,
+      });
+      expect(parseScanPayload(payload)).toEqual({
+        type: "beer_log",
+        userId: "a12345678",
+        eventId: "b12345678",
+        version: QR_PAYLOAD_VERSION,
+      });
+    });
+
     it("handles malformed JSON and falls back", () => {
       expect(parseScanPayload("not-json")).toEqual({ type: "unknown" });
       expect(parseScanPayload('{"incomplete":')).toEqual({ type: "unknown" });
@@ -81,6 +96,26 @@ describe("scanPayload (utils)", () => {
     it("rejects invalid IDs in JSON", () => {
       const payload = JSON.stringify({ userId: "short", eventId: "short" });
       expect(parseScanPayload(payload)).toEqual({ type: "unknown" });
+    });
+
+    it("rejects PARTICIPANT_LOG payloads with missing ids", () => {
+      expect(
+        parseScanPayload(
+          JSON.stringify({
+            type: QR_ACTIONS.PARTICIPANT_LOG,
+            userId: "a12345678",
+          }),
+        ),
+      ).toEqual({ type: "unknown" });
+
+      expect(
+        parseScanPayload(
+          JSON.stringify({
+            type: QR_ACTIONS.PARTICIPANT_LOG,
+            eventId: "b12345678",
+          }),
+        ),
+      ).toEqual({ type: "unknown" });
     });
   });
 });

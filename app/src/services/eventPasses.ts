@@ -27,8 +27,7 @@ export const consumeEventCredit = async (
     return { ok: true, used: "free" as const };
   }
 
-  const { data, error } = await supabase
-    .from("users")
+  const { data, error } = await (supabase.from("users") as any)
     .select(
       "id, free_event_credits, paid_event_credits_day, paid_event_credits_weekend",
     )
@@ -47,8 +46,7 @@ export const consumeEventCredit = async (
   const weekendCredits = Number(data?.paid_event_credits_weekend ?? 0);
 
   if (freeCredits > 0) {
-    const { error: updateError } = await supabase
-      .from("users")
+    const { error: updateError } = await (supabase.from("users") as any)
       .update({ free_event_credits: freeCredits - 1 })
       .eq("id", userId);
     if (updateError) {
@@ -64,8 +62,7 @@ export const consumeEventCredit = async (
   }
 
   if (pricingType === "day" && dayCredits > 0) {
-    const { error: updateError } = await supabase
-      .from("users")
+    const { error: updateError } = await (supabase.from("users") as any)
       .update({ paid_event_credits_day: dayCredits - 1 })
       .eq("id", userId);
     if (updateError) {
@@ -81,8 +78,7 @@ export const consumeEventCredit = async (
   }
 
   if (pricingType === "weekend" && weekendCredits > 0) {
-    const { error: updateError } = await supabase
-      .from("users")
+    const { error: updateError } = await (supabase.from("users") as any)
       .update({ paid_event_credits_weekend: weekendCredits - 1 })
       .eq("id", userId);
     if (updateError) {
@@ -114,8 +110,7 @@ export const grantEventCredits = async (
     pricingType === "day"
       ? "paid_event_credits_day"
       : "paid_event_credits_weekend";
-  const { data, error } = await supabase
-    .from("users")
+  const { data, error } = await (supabase.from("users") as any)
     .select(`id, ${column}`)
     .eq("id", userId)
     .single();
@@ -128,8 +123,7 @@ export const grantEventCredits = async (
   }
 
   const current = Number(data?.[column] ?? 0);
-  const { error: updateError } = await supabase
-    .from("users")
+  const { error: updateError } = await (supabase.from("users") as any)
     .update({ [column]: current + amount })
     .eq("id", userId);
 

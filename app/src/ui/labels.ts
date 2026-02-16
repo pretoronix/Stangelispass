@@ -9,11 +9,19 @@ export const labels = {
     scan: { testID: "home.scan", accessibilityLabel: "Scan QR" },
     endRound: { testID: "home.end_round", accessibilityLabel: "End round" },
     invite: { testID: "home.invite", accessibilityLabel: "Invite friends" },
+    shareLeaderboard: {
+      testID: "home.share_leaderboard",
+      accessibilityLabel: "Share leaderboard",
+    },
   },
   add: {
     addBeer: { testID: "add.add_beer", accessibilityLabel: "Add beer" },
     stampQr: { testID: "add.stamp_qr", accessibilityLabel: "Stamp QR" },
     userQr: { testID: "add.user_qr", accessibilityLabel: "User QR" },
+    participantQr: {
+      testID: "add.participant_qr",
+      accessibilityLabel: "Participant QR",
+    },
     shareQr: { testID: "add.share_qr", accessibilityLabel: "Share QR" },
   },
   settings: {

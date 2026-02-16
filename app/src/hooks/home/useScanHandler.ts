@@ -18,6 +18,62 @@ interface EventPermissions {
   canManageLogs: boolean;
 }
 
+const refreshSafely = async (refresh: () => void) => {
+  try {
+    refresh();
+  } catch (refreshError) {
+    reportError(refreshError as Error, {
+      scope: "useScanHandler",
+      action: "post_action_refresh",
+    });
+  }
+};
+
+const validateParticipantQr = (
+  payloadEventId: string | undefined,
+  activeEventId: string | undefined,
+  canManageLogs: boolean,
+) => {
+  if (!payloadEventId) {
+    return true;
+  }
+  if (!canManageLogs) {
+    Alert.alert(
+      "Not Authorized",
+      "Only organizers can scan participant QR codes.",
+    );
+    return false;
+  }
+  if (!activeEventId) {
+    Alert.alert(
+      "No Active Round",
+      "This QR code is not linked to an active round.",
+    );
+    return false;
+  }
+  if (payloadEventId !== activeEventId) {
+    Alert.alert("Wrong Round", "This QR code belongs to a different event.");
+    return false;
+  }
+  return true;
+};
+
+const notifyNewBadges = (badgeKeys: string[]) => {
+  if (badgeKeys.length === 0) return;
+  const badgeNames = badgeKeys
+    .map((b) => BADGES[b]?.name || "Unknown")
+    .filter(Boolean)
+    .join(", ");
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+    () => null,
+  );
+  Alert.alert(
+    "🏆 Achievement Unlocked!",
+    `You earned: ${badgeNames}\n\nBeer logged via scan!`,
+    [{ text: "Woohoo!" }],
+  );
+};
+
 export function useScanHandler(
   currentUser: User | null,
   activeEvent: Event | null,
@@ -30,6 +86,7 @@ export function useScanHandler(
   setScanning: (value: boolean) => void,
   refresh: () => void,
 ) {
+  let lastScan: { data: string; ts: number } | null = null;
   const handleUnknownPayload = (data: string) => {
     addBreadcrumb("handleScan_unknown_payload", { data });
     Alert.alert("Invalid QR", "This code is not recognized by Stangelispass.");
@@ -119,14 +176,7 @@ export function useScanHandler(
       Alert.alert("Error", "An error occurred while redeeming the stamp.");
     } finally {
       setScanning(false);
-      try {
-        refresh();
-      } catch (refreshError) {
-        reportError(refreshError as Error, {
-          scope: "useScanHandler",
-          action: "post_redeem_refresh",
-        });
-      }
+      await refreshSafely(refresh);
     }
   };
 
@@ -141,21 +191,22 @@ export function useScanHandler(
       );
       return;
     }
+    if (
+      !validateParticipantQr(
+        payload.eventId,
+        activeEvent?.id,
+        eventPermissions.canManageLogs,
+      )
+    ) {
+      return;
+    }
+
     const effectiveEventId = payload.eventId || activeEvent?.id;
     if (!effectiveEventId) {
       Alert.alert(
         "No Active Round",
         "This QR code is not linked to an active round.",
       );
-      return;
-    }
-
-    if (
-      activeEvent?.id &&
-      payload.eventId &&
-      payload.eventId !== activeEvent.id
-    ) {
-      Alert.alert("Wrong Round", "This QR code belongs to a different event.");
       return;
     }
 
@@ -178,20 +229,7 @@ export function useScanHandler(
       audioService.playPsst();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => null);
 
-      if (newBadges.length > 0) {
-        const badgeNames = newBadges
-          .map((b) => BADGES[b]?.name || "Unknown")
-          .filter(Boolean)
-          .join(", ");
-        Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Success,
-        ).catch(() => null);
-        Alert.alert(
-          "🏆 Achievement Unlocked!",
-          `You earned: ${badgeNames}\n\nBeer logged via scan!`,
-          [{ text: "Woohoo!" }],
-        );
-      }
+      notifyNewBadges(newBadges);
     } catch (e) {
       reportError(e as Error, {
         scope: "useScanHandler",
@@ -200,19 +238,17 @@ export function useScanHandler(
       Alert.alert("Error", "Failed to log beer. Please try again.");
     } finally {
       setScanning(false);
-      try {
-        refresh();
-      } catch (refreshError) {
-        reportError(refreshError as Error, {
-          scope: "useScanHandler",
-          action: "post_log_refresh",
-        });
-      }
+      await refreshSafely(refresh);
     }
   };
 
   const handleScan = async (data: string) => {
     try {
+      const now = Date.now();
+      if (lastScan && lastScan.data === data && now - lastScan.ts < 800) {
+        return;
+      }
+      lastScan = { data, ts: now };
       addBreadcrumb("handleScan_start", { dataLength: data?.length });
       const payload = parseScanPayload(data);
       if (payload.type === "unknown") {

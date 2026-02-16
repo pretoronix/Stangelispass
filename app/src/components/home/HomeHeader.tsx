@@ -19,6 +19,7 @@ type HomeHeaderProps = {
   onScan: () => void;
   onEnd: () => void;
   onInvite: () => void;
+  onShareLeaderboard: () => void;
   onBroadcast: () => void;
   startRoundPriceLabel: string;
   activeEventDurationLabel: string;
@@ -48,6 +49,7 @@ export function HomeHeader({
   onScan,
   onEnd,
   onInvite,
+  onShareLeaderboard,
   onBroadcast,
   startRoundPriceLabel,
   activeEventDurationLabel,
@@ -140,6 +142,17 @@ export function HomeHeader({
                 style={styles.inviteButton}
               />
             )}
+            <Button
+              title="Share Leaderboard"
+              testID={labels.home.shareLeaderboard.testID}
+              accessibilityLabel={
+                labels.home.shareLeaderboard.accessibilityLabel
+              }
+              onPress={onShareLeaderboard}
+              icon="share-social-outline"
+              variant="ghost"
+              style={styles.shareLeaderboardButton}
+            />
             {eventPermissions.canManageEvent && currentUser && (
               <Button
                 title="Notify All"

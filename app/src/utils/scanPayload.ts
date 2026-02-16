@@ -11,6 +11,8 @@ export type ParsedScanPayload =
   | { type: "beer_log"; userId: string; eventId?: string; version?: number }
   | { type: "unknown" };
 
+const MAX_QR_PAYLOAD_LENGTH = 2048;
+
 const isLikelyId = (value: string | undefined) => {
   if (!value) return false;
   // Accept UUIDs and local sentinel IDs used by offline fallback.
@@ -24,6 +26,9 @@ const isLikelyStampId = (value: string | undefined) => {
 
 export function parseScanPayload(raw: string): ParsedScanPayload {
   if (!raw || typeof raw !== "string") {
+    return { type: "unknown" };
+  }
+  if (raw.length > MAX_QR_PAYLOAD_LENGTH) {
     return { type: "unknown" };
   }
 
@@ -64,6 +69,21 @@ export function parseScanPayload(raw: string): ParsedScanPayload {
         if (eventId && !isLikelyId(eventId)) return { type: "unknown" };
         return { type: "beer_log", userId, eventId, version };
       }
+    }
+
+    if (parsed.type === QR_ACTIONS.PARTICIPANT_LOG) {
+      if (
+        typeof parsed.userId !== "string" ||
+        typeof parsed.eventId !== "string"
+      ) {
+        return { type: "unknown" };
+      }
+      const userId = parsed.userId.trim();
+      const eventId = parsed.eventId.trim();
+      if (!isLikelyId(userId) || !isLikelyId(eventId)) {
+        return { type: "unknown" };
+      }
+      return { type: "beer_log", userId, eventId, version };
     }
 
     if (typeof parsed.type === "string") {

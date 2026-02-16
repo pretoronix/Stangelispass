@@ -232,6 +232,10 @@ export const homeScreenStyles = StyleSheet.create({
     height: 32,
     paddingHorizontal: spacing.sm,
   },
+  shareLeaderboardButton: {
+    height: 32,
+    paddingHorizontal: spacing.sm,
+  },
   broadcastButton: {
     height: 32,
     paddingHorizontal: spacing.sm,

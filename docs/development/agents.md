@@ -17,6 +17,103 @@
 - **Manual:** `npm run agent:manual` - All analysis actions
 - **Dry-run:** `npm run agent:dry-run` - Preview without changes
 
+## Local Codex Skills
+
+### Install
+- `skill-installer` is preinstalled (system skill). Use it to install curated skills into `$CODEX_HOME/skills`.
+- `gh-address-comments` is installed at `$CODEX_HOME/skills/gh-address-comments`.
+- Install/refresh command: `python3 /Users/ppf/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo openai/skills --path skills/.curated/gh-address-comments`
+- After installing or updating a skill, restart Codex to pick up changes.
+
+### Use
+- `gh-address-comments`: Address PR review comments using `gh` CLI for the current branch. Ensure `gh auth login` has been run, then verify with `gh auth status` before running `scripts/fetch_comments.py`.
+- `skill-installer`: Use when installing curated or repo-sourced skills for Codex.
+
+### Skills Usage Workflow (Ad hoc)
+
+**Core rule**: Follow the trigger. Run the checklist. Stop at exit criteria.
+
+**Tools covered**:
+- `gh-address-comments`
+- `skill-installer`
+
+**Prerequisites**:
+- `gh` installed and on PATH
+- Run once per machine: `gh auth login`
+- Guardrail: run `gh` commands only in approved network-enabled environments
+
+**Trigger definitions**:
+- `gh-address-comments` runs only if:
+  - A PR exists on the remote host, and
+  - The PR has review comments or requested changes
+- `skill-installer` runs only if:
+  - A required skill is missing, or
+  - A human explicitly requests a skill update
+- Do not run for preinstalled system skills
+
+**Workflow A — No PR exists**:
+- Steps: make changes, commit, push, create PR (main to main if allowed or fork to upstream), then wait for review
+- Exit: PR exists and is waiting for comments
+
+**Workflow B — PR exists with comments (`gh-address-comments`)**:
+- Guardrails: PR review comments only; no unrelated refactors; no auto-merge
+- Checklist:
+  1. `gh auth status`
+  2. Run `fetch_comments.py`
+  3. Summarize threads by file/intent and classify (must/should/nice)
+  4. Ask for selection if ambiguous; record scope if obvious
+  5. Implement fixes on main; keep commits small
+  6. Run quality checks
+  7. Re-run `fetch_comments.py` to confirm all addressed
+- Exit criteria:
+  - All selected threads addressed
+  - Quality checks pass
+  - No blocking items remain
+
+**Failure paths**:
+- Auth failure: run `gh auth login`, then retry
+- No PR: use Workflow A
+- No comments: stop
+- Ambiguous PR: require PR URL
+
+**Workflow C — Install missing skill (`skill-installer`)**:
+- Guardrails: only curated skills, no overwrite
+- Checklist:
+  1. Run install command
+  2. Confirm destination directory exists
+  3. Restart Codex
+  4. Confirm the skill is available
+- Outcome: existing destination means "already installed"
+
+**Main-only repo implications**:
+- Do not infer a PR from git state
+- Always use explicit PR URL or `gh pr list`
+- Confirm target remote
+
+**Standard variables (placeholders)**:
+```bash
+export PR_URL="https://github.com/<org>/<repo>/pull/<number>"
+export PR_NUMBER="<number>"
+```
+
+**AI guardrails (condensed)**:
+- Must: capture current state before changes; keep commits small; run quality checks after each fix block
+- Must not: force push; rewrite history; mass refactor unless requested by a reviewer
+
+**Minimal definition of done**:
+- Must-fix threads addressed or explicitly deferred with reason
+- Quality checks pass
+- No unrelated changes
+
+**Commands**:
+- `gh auth login`
+- `gh auth status`
+- `scripts/fetch_comments.py`
+- `python3 /Users/ppf/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py --repo openai/skills --path skills/.curated/gh-address-comments`
+
+### Git Ignore
+- If you install skills into the repo (for example, `./skills` or `./.codex/skills`), keep those paths in `.gitignore` to avoid accidental commits.
+
 ## Agent System ✅ PRODUCTION READY
 
 The Stängelispass project includes an advanced agentic AI workflow system with two complementary subsystems:

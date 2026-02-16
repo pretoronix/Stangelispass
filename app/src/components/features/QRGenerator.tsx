@@ -7,47 +7,64 @@ import { QR_ACTIONS, QR_PAYLOAD_VERSION } from "@/constants/qr";
 interface QRGeneratorProps {
   userId: string;
   userName: string;
+  eventName?: string;
+  participantName?: string;
   eventId?: string;
   stampId?: string;
-  mode?: "stamp" | "log";
+  mode?: "stamp" | "log" | "participant_log";
   onQrRef?: (ref: any) => void;
 }
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({
   userId,
   userName,
+  eventName,
+  participantName,
   eventId,
   stampId,
   mode = "stamp",
   onQrRef,
 }) => {
   const payloadObject =
-    mode === "log"
+    mode === "participant_log"
       ? {
-          type: QR_ACTIONS.JOIN_EVENT,
+          type: QR_ACTIONS.PARTICIPANT_LOG,
           eventId: eventId || "",
-          eventName: userName,
+          userId,
           v: QR_PAYLOAD_VERSION,
         }
-      : stampId
-        ? { type: QR_ACTIONS.STAMP_BEER, stampId, v: QR_PAYLOAD_VERSION }
-        : {
-            type: QR_ACTIONS.STAMP_BEER,
-            userId,
+      : mode === "log"
+        ? {
+            type: QR_ACTIONS.JOIN_EVENT,
             eventId: eventId || "",
+            eventName: userName,
             v: QR_PAYLOAD_VERSION,
-          };
+          }
+        : stampId
+          ? { type: QR_ACTIONS.STAMP_BEER, stampId, v: QR_PAYLOAD_VERSION }
+          : {
+              type: QR_ACTIONS.STAMP_BEER,
+              userId,
+              eventId: eventId || "",
+              v: QR_PAYLOAD_VERSION,
+            };
 
   const payload = JSON.stringify(payloadObject);
 
+  const displayName = participantName || userName;
+  const displayEventName = eventName || "";
   const labelText =
-    mode === "log"
-      ? `Scan to join ${userName}'s round`
-      : `Stamp +1 beer for ${userName}`;
+    mode === "participant_log"
+      ? `${displayName} — ${displayEventName}`
+      : mode === "log"
+        ? `Scan to join ${userName}'s round`
+        : `Stamp +1 beer for ${userName}`;
   const hintText =
-    mode === "log"
-      ? "Others scan this to participate in your round"
-      : "Show this to the participant to claim one beer";
+    mode === "participant_log"
+      ? "Organizer scans to log a beer"
+      : mode === "log"
+        ? "Others scan this to participate in your round"
+        : "Show this to the participant to claim one beer";
 
   return (
     <View style={styles.container}>
@@ -58,6 +75,7 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
           size={200}
           color={colors.textPrimary}
           backgroundColor={colors.surface}
+          quietZone={8}
           getRef={onQrRef}
         />
       </View>

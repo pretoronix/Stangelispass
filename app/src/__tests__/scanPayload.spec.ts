@@ -42,6 +42,22 @@ describe("parseScanPayload", () => {
     });
   });
 
+  test("parses PARTICIPANT_LOG payload", () => {
+    const payload = JSON.stringify({
+      type: "PARTICIPANT_LOG",
+      userId: "11111111-1111-1111-1111-111111111111",
+      eventId: "22222222-2222-2222-2222-222222222222",
+      v: 1,
+    });
+
+    expect(parseScanPayload(payload)).toEqual({
+      type: "beer_log",
+      userId: "11111111-1111-1111-1111-111111111111",
+      eventId: "22222222-2222-2222-2222-222222222222",
+      version: 1,
+    });
+  });
+
   test("parses one-time STAMP_BEER payload with stamp id", () => {
     const payload = JSON.stringify({
       type: "STAMP_BEER",
@@ -75,6 +91,34 @@ describe("parseScanPayload", () => {
         JSON.stringify({
           type: "SOMETHING_ELSE",
           userId: "11111111-1111-1111-1111-111111111111",
+          eventId: "22222222-2222-2222-2222-222222222222",
+        }),
+      ),
+    ).toEqual({ type: "unknown" });
+
+    expect(
+      parseScanPayload(
+        JSON.stringify({
+          type: "PARTICIPANT_LOG",
+          eventId: "22222222-2222-2222-2222-222222222222",
+        }),
+      ),
+    ).toEqual({ type: "unknown" });
+
+    expect(
+      parseScanPayload(
+        JSON.stringify({
+          type: "PARTICIPANT_LOG",
+          userId: "11111111-1111-1111-1111-111111111111",
+        }),
+      ),
+    ).toEqual({ type: "unknown" });
+
+    expect(
+      parseScanPayload(
+        JSON.stringify({
+          type: "PARTICIPANT_LOG",
+          userId: "bad",
           eventId: "22222222-2222-2222-2222-222222222222",
         }),
       ),

@@ -195,6 +195,9 @@ describe("UI labels", () => {
       expect(withEvent.getByTestId(labels.home.scan.testID)).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.export.testID)).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.invite.testID)).toBeTruthy();
+      expect(
+        withEvent.getByTestId(labels.home.shareLeaderboard.testID),
+      ).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.whoPays.testID)).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.endRound.testID)).toBeTruthy();
     });
@@ -209,6 +212,7 @@ describe("UI labels", () => {
       expect(getByTestId(labels.add.addBeer.testID)).toBeTruthy();
       expect(getByTestId(labels.add.stampQr.testID)).toBeTruthy();
       expect(getByTestId(labels.add.userQr.testID)).toBeTruthy();
+      expect(getByTestId(labels.add.participantQr.testID)).toBeTruthy();
     });
 
     await act(async () => {

@@ -12,9 +12,11 @@ interface SelectedUserCardProps {
   loading: boolean;
   canIssueStamps: boolean;
   hasActiveEvent: boolean;
+  showParticipantQr: boolean;
   onAddBeer: () => void;
   onStampQr: () => void;
   onUserQr: () => void;
+  onParticipantQr: () => void;
 }
 
 export function SelectedUserCard({
@@ -22,9 +24,11 @@ export function SelectedUserCard({
   loading,
   canIssueStamps,
   hasActiveEvent,
+  showParticipantQr,
   onAddBeer,
   onStampQr,
   onUserQr,
+  onParticipantQr,
 }: SelectedUserCardProps) {
   return (
     <Card style={styles.selectedCard}>
@@ -66,6 +70,17 @@ export function SelectedUserCard({
           disabled={!hasActiveEvent}
           style={styles.actionButton}
         />
+        {showParticipantQr && (
+          <Button
+            title="Participant QR (Organizer Scan)"
+            icon="qr-code"
+            variant="ghost"
+            testID={labels.add.participantQr.testID}
+            accessibilityLabel={labels.add.participantQr.accessibilityLabel}
+            onPress={onParticipantQr}
+            style={styles.actionButton}
+          />
+        )}
       </View>
     </Card>
   );
@@ -102,9 +117,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
   },
   actionButton: {
-    flex: 1,
+    flexGrow: 1,
+    flexBasis: "48%",
   },
 });

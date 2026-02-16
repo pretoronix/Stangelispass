@@ -23,6 +23,8 @@ coverage/
 
 # Agent artifacts
 agents/.backups/
+skills/
+.codex/skills/
 
 # App workspace caches
 app/node_modules/

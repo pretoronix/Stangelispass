@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   Dimensions,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -43,6 +44,7 @@ import {
   getEventDurationLabel,
   getStartRoundPriceLabel,
 } from "@/utils/home/homeHelpers";
+import { getLeaderboardLinks } from "@/utils/links";
 
 // Extracted styles
 import { homeScreenStyles as styles } from "@/styles/screens/homeScreenStyles";
@@ -137,6 +139,32 @@ export default function HomeScreen() {
 
   // Event handlers
   const handleWhoPays = () => selectRandomPayer(beerCounts);
+  const handleShareLeaderboard = async () => {
+    if (!activeEvent?.id) {
+      Alert.alert(
+        "No Active Round",
+        "Start a round before sharing the leaderboard.",
+      );
+      return;
+    }
+
+    const { nativeUrl, webUrl } = getLeaderboardLinks(activeEvent.id);
+
+    if (Platform.OS === "web") {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(webUrl);
+        Alert.alert("Link Copied", "Leaderboard link copied to clipboard.");
+        return;
+      }
+      Alert.alert("Leaderboard Link", webUrl);
+      return;
+    }
+
+    await Share.share({
+      message: webUrl,
+      url: nativeUrl,
+    });
+  };
   const handleStartRound = async () => {
     if (!currentUser) {
       eventActions.openNamePrompt("start_round");
@@ -283,6 +311,7 @@ export default function HomeScreen() {
                 onScan={() => setScanning(true)}
                 onEnd={closeEvent}
                 onInvite={() => setShowInvite(true)}
+                onShareLeaderboard={handleShareLeaderboard}
                 onBroadcast={() => setShowBroadcast(true)}
                 startRoundPriceLabel={startRoundPriceLabel}
                 activeEventDurationLabel={activeEventDurationLabel}

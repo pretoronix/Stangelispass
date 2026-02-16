@@ -17,6 +17,7 @@ import { shouldShowAnimations } from "@/utils/deviceInfo";
 import { reportError } from "@/utils/logger";
 import { AddUserGrid } from "@/components/add/AddUserGrid";
 import { AddQrModal } from "@/components/add/AddQrModal";
+import { captureView } from "@/utils/shareImage";
 
 export default function AddBeerScreen() {
   const {
@@ -32,9 +33,12 @@ export default function AddBeerScreen() {
   const [showQR, setShowQR] = useState(false);
   const [stampLoading, setStampLoading] = useState(false);
   const [stampId, setStampId] = useState<string | undefined>(undefined);
-  const [qrMode, setQrMode] = useState<"stamp" | "log">("stamp");
+  const [qrMode, setQrMode] = useState<"stamp" | "log" | "participant_log">(
+    "stamp",
+  );
   const [shareLoading, setShareLoading] = useState(false);
   const qrRef = useRef<any>(null);
+  const qrViewRef = useRef<View | null>(null);
   const [showAnimation, setShowAnimation] = useState(false);
   const [useFullAnimation, setUseFullAnimation] = useState(true);
 
@@ -55,12 +59,19 @@ export default function AddBeerScreen() {
       Alert.alert("Unavailable", "Sharing QR codes is not supported on web.");
       return false;
     }
+    if (qrMode === "participant_log") {
+      if (!qrViewRef.current) {
+        Alert.alert("Unavailable", "QR code image is not ready yet.");
+        return false;
+      }
+      return true;
+    }
     if (!qrRef.current || typeof qrRef.current.toDataURL !== "function") {
       Alert.alert("Unavailable", "QR code image is not ready yet.");
       return false;
     }
     return true;
-  }, [selectedUser]);
+  }, [qrMode, selectedUser]);
 
   const buildQrImageUri = useCallback(async (userId: string) => {
     const base64 = await new Promise<string | null>((resolve) => {
@@ -96,7 +107,11 @@ export default function AddBeerScreen() {
     setShareLoading(true);
     let fileUri: string | null = null;
     try {
-      fileUri = await buildQrImageUri(selectedUser.id);
+      if (qrMode === "participant_log") {
+        fileUri = await captureView(qrViewRef, { format: "png", quality: 1 });
+      } else {
+        fileUri = await buildQrImageUri(selectedUser.id);
+      }
       if (!fileUri) return;
 
       if (await Sharing.isAvailableAsync()) {
@@ -120,7 +135,7 @@ export default function AddBeerScreen() {
         });
       }
     }
-  }, [buildQrImageUri, selectedUser, validateShareQr]);
+  }, [buildQrImageUri, captureView, qrMode, selectedUser, validateShareQr]);
 
   const handleAddBeer = useCallback(async () => {
     if (!selectedUser || !currentUser) return;
@@ -292,6 +307,27 @@ export default function AddBeerScreen() {
     openQrModal();
   }, [activeEvent, openQrModal, selectedUser]);
 
+  const handleParticipantQr = useCallback(() => {
+    setQrMode("participant_log");
+    if (!activeEvent) {
+      Alert.alert(
+        "No Active Round",
+        "Start a round before sharing participant QR codes.",
+      );
+      return;
+    }
+    if (!eventPermissions.canManageLogs) {
+      Alert.alert(
+        "Not Authorized",
+        "Only organizers can generate participant QR codes.",
+      );
+      return;
+    }
+    if (!selectedUser) return;
+    setStampId(undefined);
+    openQrModal();
+  }, [activeEvent, eventPermissions.canManageLogs, openQrModal, selectedUser]);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
@@ -315,9 +351,13 @@ export default function AddBeerScreen() {
             loading={loading}
             canIssueStamps={eventPermissions.canIssueStamps && !stampLoading}
             hasActiveEvent={!!activeEvent}
+            showParticipantQr={
+              !!activeEvent && eventPermissions.canManageLogs && !stampLoading
+            }
             onAddBeer={handleAddBeer}
             onStampQr={handleStampQr}
             onUserQr={handleUserQr}
+            onParticipantQr={handleParticipantQr}
           />
         )}
 
@@ -325,6 +365,7 @@ export default function AddBeerScreen() {
           visible={showQR}
           onClose={closeQrModal}
           selectedUser={selectedUser}
+          eventName={activeEvent?.name}
           eventId={activeEvent?.id}
           stampId={stampId}
           mode={qrMode}
@@ -333,6 +374,7 @@ export default function AddBeerScreen() {
           onQrRef={(ref) => {
             qrRef.current = ref;
           }}
+          qrViewRef={qrViewRef}
         />
 
         {/* Pour Animation */}

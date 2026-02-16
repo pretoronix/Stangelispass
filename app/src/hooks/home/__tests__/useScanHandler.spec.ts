@@ -178,6 +178,110 @@ describe("useScanHandler", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("blocks participant QR scan for non-organizers", async () => {
+    (parseScanPayload as jest.Mock).mockReturnValueOnce({
+      type: "beer_log",
+      userId: "u2",
+      eventId: "e1",
+    });
+
+    const setScanning = jest.fn();
+    const refresh = jest.fn();
+
+    const { handleScan } = useScanHandler(
+      { id: "u1" },
+      { id: "e1" },
+      { canManageLogs: false },
+      jest.fn(),
+      setScanning,
+      refresh,
+    );
+
+    await handleScan("x");
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Not Authorized",
+      expect.stringContaining("organizers"),
+    );
+    expect(addBeer).not.toHaveBeenCalled();
+  });
+
+  it("alerts when organizer scans without an active event", async () => {
+    (parseScanPayload as jest.Mock).mockReturnValueOnce({
+      type: "beer_log",
+      userId: "u2",
+      eventId: "e1",
+    });
+
+    const { handleScan } = useScanHandler(
+      { id: "u1" },
+      null,
+      { canManageLogs: true },
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+
+    await handleScan("x");
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "No Active Round",
+      expect.any(String),
+    );
+    expect(addBeer).not.toHaveBeenCalled();
+  });
+
+  it("alerts when organizer scans the wrong round", async () => {
+    (parseScanPayload as jest.Mock).mockReturnValueOnce({
+      type: "beer_log",
+      userId: "u2",
+      eventId: "e2",
+    });
+
+    const { handleScan } = useScanHandler(
+      { id: "u1" },
+      { id: "e1" },
+      { canManageLogs: true },
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+    );
+
+    await handleScan("x");
+
+    expect(alertSpy).toHaveBeenCalledWith("Wrong Round", expect.any(String));
+    expect(addBeer).not.toHaveBeenCalled();
+  });
+
+  it("debounces duplicate scans within the window", async () => {
+    (parseScanPayload as jest.Mock).mockReturnValue({
+      type: "beer_log",
+      userId: "u2",
+      eventId: "e1",
+    });
+    (addBeer as jest.Mock).mockResolvedValue({ newBadges: [] });
+
+    const setScanning = jest.fn();
+    const refresh = jest.fn();
+    const { handleScan } = useScanHandler(
+      { id: "u1" },
+      { id: "e1" },
+      { canManageLogs: true },
+      jest.fn(),
+      setScanning,
+      refresh,
+    );
+
+    const nowSpy = jest.spyOn(Date, "now");
+    nowSpy.mockReturnValue(1000);
+    await handleScan("same");
+    nowSpy.mockReturnValue(1500);
+    await handleScan("same");
+    nowSpy.mockRestore();
+
+    expect(addBeer).toHaveBeenCalledTimes(1);
+  });
+
   it("handles haptics failures and still completes badge path", async () => {
     (parseScanPayload as jest.Mock).mockReturnValueOnce({
       type: "beer_log",

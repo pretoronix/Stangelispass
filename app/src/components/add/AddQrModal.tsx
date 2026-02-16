@@ -10,24 +10,28 @@ type AddQrModalProps = {
   visible: boolean;
   onClose: () => void;
   selectedUser: User | null;
+  eventName?: string;
   eventId?: string;
   stampId?: string;
-  mode: "stamp" | "log";
+  mode: "stamp" | "log" | "participant_log";
   onShareQr: () => void;
   shareLoading: boolean;
   onQrRef: (ref: any) => void;
+  qrViewRef?: React.RefObject<View | null>;
 };
 
 export function AddQrModal({
   visible,
   onClose,
   selectedUser,
+  eventName,
   eventId,
   stampId,
   mode,
   onShareQr,
   shareLoading,
   onQrRef,
+  qrViewRef,
 }: AddQrModalProps) {
   return (
     <Modal
@@ -39,14 +43,18 @@ export function AddQrModal({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           {selectedUser && (
-            <QRGenerator
-              userId={selectedUser.id}
-              userName={selectedUser.name}
-              eventId={eventId}
-              stampId={stampId}
-              mode={mode}
-              onQrRef={onQrRef}
-            />
+            <View ref={qrViewRef} collapsable={false}>
+              <QRGenerator
+                userId={selectedUser.id}
+                userName={selectedUser.name}
+                participantName={selectedUser.name}
+                eventName={eventName}
+                eventId={eventId}
+                stampId={stampId}
+                mode={mode}
+                onQrRef={onQrRef}
+              />
+            </View>
           )}
           <Button
             title="Share QR"
