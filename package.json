@@ -19,7 +19,10 @@
     "swarm:docs": "node agents/scripts/run-swarm-analysis.mjs documentation_sync",
     "swarm:brainstorm": "node agents/scripts/run-swarm-analysis.mjs feature_brainstorm",
     "swarm:dry-run": "node agents/scripts/run-swarm-analysis.mjs",
-    "swarm:weekly": "npm run swarm:roadmap -- --no-dry-run && npm run swarm:brainstorm -- --no-dry-run"
+    "swarm:weekly": "npm run swarm:roadmap -- --no-dry-run && npm run swarm:brainstorm -- --no-dry-run",
+    "enforce-tests": "cd app && npm test -- --onlyChanged --passWithNoTests",
+    "full-test-run": "cd app && npm test -- --coverage --watchAll=false",
+    "generate-tests": "npm run agent:manual -- --action generate_component_tests"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

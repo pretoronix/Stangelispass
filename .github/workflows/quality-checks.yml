@@ -1,0 +1,36 @@
+name: Quality Checks (PR & Push)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install App Dependencies
+        run: cd app && npm ci
+
+      - name: Typecheck
+        run: cd app && npm run typecheck
+
+      - name: Linting
+        run: cd app && npm run lint
+
+      - name: Run Quality Agent (Dry Run for PRs)
+        run: npm run agent:dry-run
