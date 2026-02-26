@@ -10,13 +10,20 @@ import {
   getWallOfFame,
   addToWallOfFame,
   EventRole,
+  Event,
+  startEventInSupabase,
+  closeEventInSupabase,
 } from "@/services/events";
+import { supabase } from "@/services/supabase";
+import { isMissingTableError } from "@/services/helpers";
+import { enqueueNewRoundNotifications } from "@/services/notifications";
 
 /**
  * React Query hooks for event operations
  */
 
 export const QUERY_KEYS = {
+  activeEvent: ["active-event"] as const,
   eventMembership: (eventId: string, userId: string) =>
     ["event-membership", eventId, userId] as const,
   eventGameStats: (eventId: string) => ["event-game-stats", eventId] as const,
@@ -25,6 +32,41 @@ export const QUERY_KEYS = {
   eventMembers: (eventId: string) => ["event-members", eventId] as const,
   wallOfFame: ["wall-of-fame"] as const,
 };
+
+type ActiveEventQueryResult = {
+  event: Event | null;
+  missingSchema: boolean;
+};
+
+export function useActiveEventQuery(enabled = true) {
+  return useQuery<ActiveEventQueryResult>({
+    queryKey: QUERY_KEYS.activeEvent,
+    queryFn: async () => {
+      const from = (supabase as any).from && (supabase as any).from("events");
+      if (!from || typeof from.select !== "function") {
+        return { event: null, missingSchema: true };
+      }
+
+      const { data, error } = await from
+        .select("*")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        if (isMissingTableError(error)) {
+          return { event: null, missingSchema: true };
+        }
+        throw error;
+      }
+
+      return { event: (data as Event | null) || null, missingSchema: false };
+    },
+    enabled,
+    staleTime: 10 * 1000,
+  });
+}
 
 export function useEventMembership(
   eventId: string,
@@ -159,6 +201,32 @@ export function useAddToWallOfFame() {
       totalBeers: number;
     }) => addToWallOfFame(eventId, winnerId, totalBeers),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.wallOfFame });
+    },
+  });
+}
+
+export function useStartEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: startEventInSupabase,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeEvent });
+      enqueueNewRoundNotifications(data.id, data.name, data.created_by).catch(
+        () => null,
+      );
+    },
+  });
+}
+
+export function useCloseEvent() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: closeEventInSupabase,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.activeEvent });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.wallOfFame });
     },
   });

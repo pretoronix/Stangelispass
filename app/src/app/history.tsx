@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,39 +11,31 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, typography } from "@/lib/theme";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { supabase, Beer, getBeers, removeBeer } from "@/services/supabase";
+import { supabase, Beer } from "@/services/supabase";
 import { useApp } from "@/providers/AppProvider";
 import * as Haptics from "expo-haptics";
 import { BeerLogItemWithComments } from "@/components/features/BeerLogItemWithComments";
 import { reportError } from "@/utils/logger";
 import { useLiveBeerLogPreference } from "@/hooks/settings";
+import {
+  useInfiniteBeersQuery,
+  useRemoveBeer,
+  BEER_QUERY_KEYS,
+} from "@/hooks/query";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function HistoryScreen() {
   const { activeEvent, eventPermissions, currentUser } = useApp();
   const liveBeerLogPreference = useLiveBeerLogPreference();
-  const [beers, setBeers] = useState<Beer[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const data = await getBeers(activeEvent?.id);
-      setBeers(data ?? []);
-    } catch (e) {
-      reportError(new Error("Failed to fetch beers"), {
-        scope: "history",
-        action: "fetch_beers",
-        metadata: { cause: e instanceof Error ? e.message : String(e) },
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [activeEvent?.id]);
+  const queryClient = useQueryClient();
+  const removeBeerMutation = useRemoveBeer();
+  const beersQuery = useInfiniteBeersQuery(activeEvent?.id, 50);
+  const beers = useMemo<Beer[]>(
+    () => (beersQuery.data?.pages ?? []).flat(),
+    [beersQuery.data],
+  );
 
   useEffect(() => {
-    fetchData();
-
     if (!liveBeerLogPreference.enabled) return;
 
     const channel = supabase
@@ -52,7 +44,9 @@ export default function HistoryScreen() {
         "postgres_changes",
         { event: "*", schema: "public", table: "beers" },
         () => {
-          fetchData();
+          queryClient.invalidateQueries({
+            queryKey: BEER_QUERY_KEYS.beers(activeEvent?.id),
+          });
         },
       )
       .subscribe();
@@ -60,12 +54,17 @@ export default function HistoryScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fetchData, liveBeerLogPreference.enabled]);
+  }, [activeEvent?.id, liveBeerLogPreference.enabled, queryClient]);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchData();
-  }, [fetchData]);
+    beersQuery.refetch().catch((e) => {
+      reportError(new Error("Failed to refresh beers"), {
+        scope: "history",
+        action: "refresh_beers",
+        metadata: { cause: e instanceof Error ? e.message : String(e) },
+      });
+    });
+  }, [beersQuery]);
 
   const handleRemove = async (beerId: string) => {
     if (!eventPermissions.canManageLogs) {
@@ -77,7 +76,7 @@ export default function HistoryScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
         () => null,
       );
-      await removeBeer(beerId);
+      await removeBeerMutation.mutateAsync(beerId);
     } catch (e) {
       Alert.alert("Error", "Failed to remove beer.");
     }
@@ -94,7 +93,7 @@ export default function HistoryScreen() {
     );
   };
 
-  if (loading && !refreshing) {
+  if (beersQuery.isLoading && !beersQuery.isRefetching) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -112,7 +111,7 @@ export default function HistoryScreen() {
           contentContainerStyle={styles.listContent as any}
           refreshControl={
             <RefreshControl
-              refreshing={refreshing}
+              refreshing={beersQuery.isRefetching}
               onRefresh={onRefresh}
               tintColor={colors.primary}
             />
@@ -131,6 +130,19 @@ export default function HistoryScreen() {
               />
               <Text style={styles.emptyText}>History is empty.</Text>
             </View>
+          }
+          onEndReached={() => {
+            if (beersQuery.hasNextPage && !beersQuery.isFetchingNextPage) {
+              beersQuery.fetchNextPage().catch(() => null);
+            }
+          }}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            beersQuery.isFetchingNextPage ? (
+              <View style={styles.loadingMore}>
+                <ActivityIndicator size="small" color={colors.primary} />
+              </View>
+            ) : null
           }
         />
       </View>
@@ -171,5 +183,9 @@ const styles = StyleSheet.create({
     ...typography.subtitle,
     marginTop: spacing.md,
     color: colors.textMuted,
+  },
+  loadingMore: {
+    paddingVertical: spacing.md,
+    alignItems: "center",
   },
 });

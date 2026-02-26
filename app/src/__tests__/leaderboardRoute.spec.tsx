@@ -1,7 +1,7 @@
 import React from "react";
 import { render, waitFor } from "@testing-library/react-native";
 
-const mockGetBeerCountByUser = jest.fn(async () => [
+const mockGetBeerCountByEventMembers = jest.fn(async () => [
   { userId: "u1", name: "Alice", count: 2 },
 ]);
 const mockEq = jest.fn().mockReturnThis();
@@ -21,7 +21,7 @@ jest.mock("@/services/supabase", () => ({
       })),
     })),
   },
-  getBeerCountByUser: mockGetBeerCountByUser,
+  getBeerCountByEventMembers: mockGetBeerCountByEventMembers,
 }));
 
 jest.mock("@/components/features/LeaderboardItem", () => ({
@@ -36,6 +36,14 @@ describe("PublicLeaderboardScreen", () => {
 
     await waitFor(() => {
       expect(mockEq).toHaveBeenCalledWith("id", "e1");
+    });
+  });
+
+  it("loads leaderboard using event members", async () => {
+    render(<PublicLeaderboardScreen />);
+
+    await waitFor(() => {
+      expect(mockGetBeerCountByEventMembers).toHaveBeenCalledWith("e1");
     });
   });
 });

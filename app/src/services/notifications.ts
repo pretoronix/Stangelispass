@@ -6,6 +6,88 @@ import { NotificationTemplates } from "./notificationTemplates";
 import { getEventMembers } from "./events";
 import { reportError, logExpected } from "@/utils/logger";
 
+const MISSING_TABLE_CODES = new Set(["PGRST205", "42P01"]);
+
+const isMissingTableError = (error: any) =>
+  !!error?.code && MISSING_TABLE_CODES.has(error.code);
+
+const loadExpoNotificationsModule = () => {
+  const NotificationsImport: any = require("expo-notifications");
+  return (
+    NotificationsImport?.default?.default ??
+    NotificationsImport?.default ??
+    NotificationsImport
+  );
+};
+
+const resolveExpoProjectId = () =>
+  (Constants as any)?.expoConfig?.extra?.eas?.projectId ||
+  (Constants as any)?.easConfig?.projectId;
+
+const getExpoPushToken = async (Notifications: any, projectId?: string) => {
+  const tokenData = projectId
+    ? await Notifications.getExpoPushTokenAsync({ projectId })
+    : await Notifications.getExpoPushTokenAsync();
+  return tokenData?.data ?? null;
+};
+
+const upsertPushToken = async (userId: string, token: string) => {
+  const { error } = await supabase
+    .from("device_tokens")
+    .upsert([{ user_id: userId, token }] as any)
+    .select();
+  return error ?? null;
+};
+
+const validateBroadcastMessage = (message: string) => {
+  if (!message || message.length === 0) {
+    return "Message cannot be empty";
+  }
+  if (message.length > 100) {
+    return "Message too long (max 100 characters)";
+  }
+  return null;
+};
+
+const fetchMembershipRole = async (eventId: string, userId: string) => {
+  const { data: membership } = await (supabase.from("event_memberships") as any)
+    .select("role")
+    .eq("event_id", eventId)
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  return (membership as any)?.role ?? null;
+};
+
+const isAdminRole = (role: string | null) =>
+  role === "owner" || role === "admin";
+
+const fetchSenderName = async (senderId: string) => {
+  const { data: sender } = await (supabase.from("users") as any)
+    .select("name")
+    .eq("id", senderId)
+    .single();
+  return (sender as any)?.name ?? null;
+};
+
+const fetchOptedInUsers = async (recipientIds: string[]) => {
+  if (recipientIds.length === 0) return [];
+  const { data: users } = await (supabase.from("users") as any)
+    .select("id, notification_prefs")
+    .in("id", recipientIds);
+  return (users || []).filter((user: any) => {
+    const prefs = user.notification_prefs as any;
+    return prefs?.admin_broadcasts !== false;
+  });
+};
+
+const insertNotifications = async (notifications: any[]) => {
+  const { error } = await supabase
+    .from("notifications")
+    .insert(notifications as any);
+  return error ?? null;
+};
+
 // Register the device for Expo push notifications and store the token in Supabase
 export async function registerForPushNotificationsAsync(userId: string) {
   try {
@@ -25,11 +107,7 @@ export async function registerForPushNotificationsAsync(userId: string) {
     // (some builds access `localStorage` during module init).
     // Also: `require()` is easier to mock in Jest than dynamic `import()`.
 
-    const NotificationsImport: any = require("expo-notifications");
-    const Notifications: any =
-      NotificationsImport?.default?.default ??
-      NotificationsImport?.default ??
-      NotificationsImport;
+    const Notifications: any = loadExpoNotificationsModule();
 
     const { status: existingStatus } =
       await Notifications.getPermissionsAsync();
@@ -47,26 +125,14 @@ export async function registerForPushNotificationsAsync(userId: string) {
       return null;
     }
 
-    const projectId =
-      (Constants as any)?.expoConfig?.extra?.eas?.projectId ||
-      (Constants as any)?.easConfig?.projectId;
-
-    const tokenData = projectId
-      ? await Notifications.getExpoPushTokenAsync({ projectId })
-      : await Notifications.getExpoPushTokenAsync();
-    const token = tokenData?.data;
+    const projectId = resolveExpoProjectId();
+    const token = await getExpoPushToken(Notifications, projectId);
     if (!token) return null;
 
     // Upsert token into Supabase `device_tokens` table
-    const { error } = await supabase
-      .from("device_tokens")
-      .upsert([{ user_id: userId, token }] as any)
-      .select();
+    const error = await upsertPushToken(userId, token);
     if (error) {
-      if (
-        (error as any)?.code === "PGRST205" ||
-        (error as any)?.code === "42P01"
-      ) {
+      if (isMissingTableError(error)) {
         logExpected(
           "table `device_tokens` not found. Push token not persisted.",
           "Notifications",
@@ -134,32 +200,14 @@ export async function sendAdminBroadcast(
   try {
     // 1. Validate message
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || trimmedMessage.length === 0) {
-      return { success: false, count: 0, error: "Message cannot be empty" };
-    }
-    if (trimmedMessage.length > 100) {
-      return {
-        success: false,
-        count: 0,
-        error: "Message too long (max 100 characters)",
-      };
+    const validationError = validateBroadcastMessage(trimmedMessage);
+    if (validationError) {
+      return { success: false, count: 0, error: validationError };
     }
 
     // 2. Check sender is event admin
-    const { data: membership } = await (
-      supabase.from("event_memberships") as any
-    )
-      .select("role")
-      .eq("event_id", eventId)
-      .eq("user_id", senderId)
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (
-      !membership ||
-      ((membership as any).role !== "owner" &&
-        (membership as any).role !== "admin")
-    ) {
+    const role = await fetchMembershipRole(eventId, senderId);
+    if (!role || !isAdminRole(role)) {
       reportError(new Error("Unauthorized broadcast attempt"), {
         scope: "notifications",
         action: "sendAdminBroadcast",
@@ -174,12 +222,8 @@ export async function sendAdminBroadcast(
     }
 
     // 3. Get sender name
-    const { data: sender } = await (supabase.from("users") as any)
-      .select("name")
-      .eq("id", senderId)
-      .single();
-
-    if (!sender) {
+    const senderName = await fetchSenderName(senderId);
+    if (!senderName) {
       return { success: false, count: 0, error: "Sender not found" };
     }
 
@@ -194,14 +238,7 @@ export async function sendAdminBroadcast(
     }
 
     // 5. Filter by opt-in preference
-    const { data: users } = await (supabase.from("users") as any)
-      .select("id, notification_prefs")
-      .in("id", recipientIds);
-
-    const optedInUsers = (users || []).filter((user: any) => {
-      const prefs = user.notification_prefs as any;
-      return prefs?.admin_broadcasts !== false;
-    });
+    const optedInUsers = await fetchOptedInUsers(recipientIds);
 
     if (optedInUsers.length === 0) {
       return { success: true, count: 0 };
@@ -210,7 +247,7 @@ export async function sendAdminBroadcast(
     // 6. Create notification template
     const template = NotificationTemplates.adminBroadcast(
       trimmedMessage,
-      (sender as any).name,
+      senderName,
       eventId,
     );
 
@@ -229,15 +266,9 @@ export async function sendAdminBroadcast(
       payload,
     }));
 
-    const { error: insertError } = await supabase
-      .from("notifications")
-      .insert(notifications as any);
-
+    const insertError = await insertNotifications(notifications);
     if (insertError) {
-      if (
-        (insertError as any)?.code === "PGRST205" ||
-        (insertError as any)?.code === "42P01"
-      ) {
+      if (isMissingTableError(insertError)) {
         reportError(
           new Error(
             "Cannot send broadcast: Supabase table `notifications` does not exist.",
@@ -282,7 +313,6 @@ export async function enqueueNewRoundNotifications(
     const { data: users } = await (supabase.from("users") as any).select(
       "id, notification_prefs",
     );
-
     const optedInUsers = (users || []).filter((user: any) => {
       if (user.id === senderId) return false;
       const prefs = user.notification_prefs as any;
@@ -310,15 +340,10 @@ export async function enqueueNewRoundNotifications(
       payload,
     }));
 
-    const { error: insertError } = await supabase
-      .from("notifications")
-      .insert(notifications as any);
+    const insertError = await insertNotifications(notifications);
 
     if (insertError) {
-      if (
-        (insertError as any)?.code === "PGRST205" ||
-        (insertError as any)?.code === "42P01"
-      ) {
+      if (isMissingTableError(insertError)) {
         reportError(
           new Error(
             "Cannot enqueue new round notifications: Supabase table `notifications` does not exist.",

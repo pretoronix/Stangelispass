@@ -10,6 +10,7 @@ export {
   getBeersByUser,
   removeBeer,
   getBeerCountByUser,
+  getBeerCountByEventMembers,
   getUserAchievements,
 } from "./beers/beerQueries";
 

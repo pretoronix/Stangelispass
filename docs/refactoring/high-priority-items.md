@@ -1,6 +1,6 @@
 # High-Priority Refactoring Complete ✅
 
-**Last Updated**: February 13, 2026
+**Last Updated**: February 16, 2026
 
 ## Overview
 
@@ -13,7 +13,7 @@ Successfully completed all three high-priority refactoring tasks plus additional
 6. ✅ Integrated comments system with real-time updates
 7. ✅ Added React Query DevTools for development
 
-## Project Status Update (Feb 13, 2026)
+## Project Status Update (Feb 16, 2026)
 
 ### ✅ Completed
 - Service modularization (`services/*` split + `services/supabase.ts` re-export)
@@ -23,12 +23,8 @@ Successfully completed all three high-priority refactoring tasks plus additional
 - Comments system with real-time updates
 - AppProvider lifecycle extraction for maintainability
 - Connection monitoring (NetInfo + OfflineBanner)
-
-### 🟡 In Progress
-- Migrate AppProvider data flows to React Query hooks
-- Remove/retire legacy hooks (`useBeers`, `useUsers`)
-
-### 🟢 Planned
+- AppProvider data flows migrated to React Query hooks
+- Legacy hooks (`useBeers`, `useUsers`) deprecated and removed from production usage
 - Query prefetching for top screens
 - Pagination/infinite scroll for large lists
 - Offline persistence of React Query cache
@@ -84,6 +80,7 @@ useUpdateUser()         // Update user mutation
 **Beer Queries** (`hooks/useBeersQuery.ts`):
 ```typescript
 useBeersQuery(eventId)        // Get beers for event
+useInfiniteBeersQuery(eventId) // Infinite scroll for history
 useBeersByUser(userId)        // Get user's beer history
 useBeerCounts(eventId)        // Get leaderboard counts
 useUserAchievements(userId)   // Get user badges
@@ -222,8 +219,8 @@ app/src/
 │   ├── useEventsQuery.ts    # Event query hooks
 │   ├── useEventPermissions.ts # Permission hooks
 │   ├── useCurrentUser.ts    # Current user hook
-│   ├── useBeers.ts          # (existing - can be deprecated)
-│   └── useUsers.ts          # (existing - can be deprecated)
+│   ├── useBeers.ts          # (deprecated legacy hook)
+│   └── useUsers.ts          # (deprecated legacy hook)
 └── providers/
     ├── QueryProvider.tsx    # React Query provider
     └── AppProvider.tsx      # App context (existing)
@@ -234,7 +231,7 @@ app/src/
 Latest verification:
 
 ```bash
-✅ Tests: 225/225 passing (last run: 2026-02-13)
+✅ Tests: 432 passed, 17 skipped (last run: 2026-02-16)
 ✅ Backward Compatibility: 100%
 ⚠️ TypeScript/ESLint: Not re-validated in this pass
 ```
@@ -288,65 +285,33 @@ Latest verification:
 2. ✅ **Optimistic updates** - Implemented for beer add/remove mutations
 3. ✅ **Pour Animation** - Added delightful visual feedback for beer logging
 
-### Enhancement Implementation Plans
+### Recent Enhancement Implementations
 
-#### 1. Migrate AppProvider to React Query hooks (Immediate)
-**Goal**: Replace manual refresh flows with query hooks to reduce state duplication.  
-**Files**: `app/src/providers/AppProvider.tsx`, `app/src/providers/appProviderLifecycle.ts`, `app/src/hooks/useUsersQuery.ts`, `app/src/hooks/useEventsQuery.ts`  
-**Plan**:
-1. Replace `refreshUsers`/`refreshEventMembers` with `useUsers()`/`useEventMembers()` data.
-2. Remove local state that duplicates query data (keep only UI/selection state).
-3. Use `queryClient.invalidateQueries` where refresh was required.
-4. Keep subscriptions, but route updates to cache invalidation instead of local state setters.
-5. Update context shape to expose query data + loading states.
-6. Add/update tests for AppProvider data flows (use existing `appProviderLifecycle.spec.ts` and add AppProvider unit coverage if needed).
+#### 1. Migrate AppProvider to React Query hooks ✅
+**Outcome**: AppProvider now sources users and event members via query hooks and refetches via React Query.  
 **Acceptance**:
-- No manual data fetching left in AppProvider.
-- Subscriptions still trigger fresh data via query invalidation.
+- No manual user/member fetch logic remains in AppProvider.
+- Subscriptions trigger query refetches instead of local state setters.
 
-#### 2. Deprecate legacy hooks (Immediate)
-**Goal**: Remove duplicate data access patterns to reduce confusion.  
-**Files**: `app/src/hooks/useBeers.ts`, `app/src/hooks/useUsers.ts`, call sites across app  
-**Plan**:
-1. Inventory remaining imports of `useBeers`/`useUsers` with `rg`.
-2. Replace usage with `useBeersQuery`/`useUsers` from query hooks.
-3. Mark legacy hooks as deprecated (or remove if no usage).
-4. Update documentation to reference query hooks only.
+#### 2. Deprecate legacy hooks ✅
+**Outcome**: `useBeers`/`useUsers` are deprecated and no longer used in production code.  
 **Acceptance**:
-- No production files import the legacy hooks.
+- No production files import legacy hooks.
 
-#### 3. Query prefetching for top screens (Planned)
-**Goal**: Reduce perceived load time when navigating between tabs.  
-**Files**: `app/src/app/_layout.tsx`, `app/src/hooks/home/*`, `app/src/providers/AppProvider.tsx`  
-**Plan**:
-1. Identify top navigation flows (Home → Add → History).
-2. Prefetch `useBeerCounts`, `useEventMembers`, and history list on tab focus.
-3. Use `queryClient.prefetchQuery` with conservative stale times.
-4. Add a small metrics log (dev-only) to validate prefetch effectiveness.
+#### 3. Query prefetching for top screens ✅
+**Outcome**: Home/Add/History data warmed via `queryClient.prefetchQuery` on active event.  
 **Acceptance**:
-- Tab switches show cached data in < 100ms for repeated visits.
+- Cached data available immediately on tab navigation.
 
-#### 4. Pagination / infinite scroll (Planned)
-**Goal**: Handle large history lists without heavy memory usage.  
-**Files**: `app/src/hooks/useBeersQuery.ts`, `app/src/app/history.tsx`  
-**Plan**:
-1. Add `useInfiniteQuery` for beer history with cursor-based paging.
-2. Update UI to append pages and show a loading footer.
-3. Add server-side ordering and limit in `getBeers` service.
-4. Add tests for paging behavior.
+#### 4. Pagination / infinite scroll for history ✅
+**Outcome**: History list uses `useInfiniteBeersQuery` with cursor-based paging.  
 **Acceptance**:
-- History screen handles 1000+ entries without slowdowns.
+- History handles large datasets with incremental loading.
 
-#### 5. Offline persistence for React Query cache (Planned)
-**Goal**: Keep cached data across app restarts and improve offline UX.  
-**Files**: `app/src/providers/QueryProvider.tsx`, `app/src/utils/cacheManager.ts`  
-**Plan**:
-1. Add `persistQueryClient` with AsyncStorage persister.
-2. Define cache TTLs per query type (fast-changing vs static).
-3. Provide a manual “Clear Cache” action in settings.
-4. Add tests for hydration + cache clearing.
+#### 5. Offline persistence for React Query ✅
+**Outcome**: Persistent cache with versioned keys and clear-cache controls.  
 **Acceptance**:
-- Cached data restores on app restart without network.
+- Cache restores after restart; old versions cleared safely.
 
 ## Breaking Changes
 

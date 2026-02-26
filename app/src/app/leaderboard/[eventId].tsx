@@ -3,7 +3,7 @@ import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { colors } from "@/lib/theme";
-import { getBeerCountByUser, supabase } from "@/services/supabase";
+import { getBeerCountByEventMembers, supabase } from "@/services/supabase";
 import { reportError } from "@/utils/logger";
 import { LeaderboardItem } from "@/components/features/LeaderboardItem";
 
@@ -42,7 +42,7 @@ export default function PublicLeaderboardScreen() {
           return;
         }
 
-        const counts = await getBeerCountByUser(eventId);
+        const counts = await getBeerCountByEventMembers(eventId);
         if (!active) return;
         setEventName((data as EventRow).name);
         setLeaderboard(counts || []);

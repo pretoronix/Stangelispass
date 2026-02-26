@@ -6,7 +6,7 @@ import { reportError } from "@/utils/logger";
 const mockGetEventGameStats = jest.fn();
 const mockGetEventLeaderState = jest.fn();
 const mockGetUsers = jest.fn();
-const mockGetBeerCountByUser = jest.fn();
+const mockGetBeerCountByEventMembers = jest.fn();
 
 const mockFrom = jest.fn();
 const mockChannel = jest.fn();
@@ -25,7 +25,8 @@ jest.mock("@/services/supabase", () => ({
   getEventGameStats: (...args: any[]) => mockGetEventGameStats(...args),
   getEventLeaderState: (...args: any[]) => mockGetEventLeaderState(...args),
   getUsers: (...args: any[]) => mockGetUsers(...args),
-  getBeerCountByUser: (...args: any[]) => mockGetBeerCountByUser(...args),
+  getBeerCountByEventMembers: (...args: any[]) =>
+    mockGetBeerCountByEventMembers(...args),
 }));
 
 describe("useBeers", () => {
@@ -106,9 +107,9 @@ describe("useBeers", () => {
     mockGetUsers.mockResolvedValueOnce([
       { id: "u1", name: "Alice", is_admin: true },
     ]);
-    mockGetBeerCountByUser.mockResolvedValueOnce([
-      { userId: "u2", name: "Bob", count: 2, isAdmin: false },
+    mockGetBeerCountByEventMembers.mockResolvedValueOnce([
       { userId: "u1", name: "Alice", count: 5, isAdmin: true },
+      { userId: "u2", name: "Bob", count: 2, isAdmin: false },
     ]);
 
     const { result } = renderHook(() => useBeers());

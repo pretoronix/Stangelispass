@@ -1,14 +1,21 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import {
   getBeers,
   getBeersByUser,
   addBeer,
   removeBeer,
-  getBeerCountByUser,
+  getBeerCountByEventMembers,
   getUserAchievements,
   createBeerStamp,
   redeemBeerStamp,
 } from "@/services/beers";
+import type { Beer } from "@/services/supabase";
 
 /**
  * React Query hooks for beer operations
@@ -17,6 +24,10 @@ import {
 export const QUERY_KEYS = {
   beers: (eventId?: string) =>
     eventId ? ["beers", eventId] : (["beers"] as const),
+  beersInfinite: (eventId?: string, pageSize?: number) =>
+    eventId
+      ? (["beers", eventId, "infinite", pageSize] as const)
+      : (["beers", "infinite", pageSize] as const),
   beersByUser: (userId: string) => ["beers", "user", userId] as const,
   beerCounts: (eventId?: string) =>
     eventId ? ["beer-counts", eventId] : (["beer-counts"] as const),
@@ -28,6 +39,26 @@ export function useBeersQuery(eventId?: string) {
     queryKey: QUERY_KEYS.beers(eventId),
     queryFn: () => getBeers(eventId),
     staleTime: 10 * 1000, // Fresh for 10s
+  });
+}
+
+export function useInfiniteBeersQuery(eventId?: string, pageSize: number = 50) {
+  return useInfiniteQuery<
+    Beer[],
+    Error,
+    InfiniteData<Beer[], string | undefined>,
+    ReturnType<typeof QUERY_KEYS.beersInfinite>,
+    string | undefined
+  >({
+    queryKey: QUERY_KEYS.beersInfinite(eventId, pageSize),
+    queryFn: ({ pageParam }) =>
+      getBeers(eventId, { limit: pageSize, cursor: pageParam }),
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.length < pageSize) return undefined;
+      return lastPage[lastPage.length - 1]?.created_at || undefined;
+    },
+    initialPageParam: undefined,
+    staleTime: 10 * 1000,
   });
 }
 
@@ -43,7 +74,8 @@ export function useBeersByUser(userId: string, enabled = true) {
 export function useBeerCounts(eventId?: string) {
   return useQuery({
     queryKey: QUERY_KEYS.beerCounts(eventId),
-    queryFn: () => getBeerCountByUser(eventId),
+    queryFn: () => getBeerCountByEventMembers(eventId as string),
+    enabled: !!eventId,
     staleTime: 5 * 1000, // Very fresh for leaderboard
   });
 }

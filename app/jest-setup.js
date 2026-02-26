@@ -21,6 +21,11 @@ jest.mock('@tanstack/query-async-storage-persister', () => ({
   }),
 }));
 
+// Mock PersistQueryClientProvider to avoid state updates during tests.
+jest.mock('@tanstack/react-query-persist-client', () => ({
+  PersistQueryClientProvider: ({ children }) => children,
+}));
+
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(() => Promise.resolve()),

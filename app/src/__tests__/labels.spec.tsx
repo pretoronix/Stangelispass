@@ -62,18 +62,36 @@ const mockUseAppState = {
   offlineQueueProcessing: false,
 };
 
-jest.mock("@/hooks/useBeers", () => ({
-  useBeers: () => ({
-    beerCounts: [],
-    rawBeers: [],
-    totalBeers: 0,
-    leaderInfo: null,
-    leaderLead: 0,
-    hotStreak: null,
-    gameStatsAvailable: false,
-    loading: false,
-    refreshing: false,
-    refresh: jest.fn(),
+jest.mock("@/hooks/query", () => ({
+  useBeersQuery: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useBeerCounts: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventMembers: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventGameStats: () => ({
+    data: { stats: [], missingTable: true },
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventLeaderState: () => ({
+    data: { leader: null, missingTable: true },
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
   }),
 }));
 
@@ -122,6 +140,13 @@ jest.mock("@/services/audio", () => ({
 }));
 
 jest.mock("@/services/supabase", () => ({
+  supabase: {
+    channel: jest.fn(() => ({
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn(() => ({})),
+    })),
+    removeChannel: jest.fn(),
+  },
   addBeer: jest.fn(() => Promise.resolve({ newBadges: [] })),
   getBeers: jest.fn(() => Promise.resolve([])),
   addUser: jest.fn(() =>

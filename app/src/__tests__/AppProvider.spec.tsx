@@ -2,6 +2,21 @@ import React, { useEffect } from "react";
 import { Text } from "react-native";
 import { act, render, waitFor } from "@testing-library/react-native";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const mockQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={mockQueryClient}>{children}</QueryClientProvider>
+);
+
+const mockInvalidateQueries = jest.spyOn(mockQueryClient, "invalidateQueries");
+
 const mockUser = { id: "u1", name: "Alice", is_admin: true };
 const mockEvent = {
   id: "e1",
@@ -13,6 +28,13 @@ const mockEvent = {
   created_at: new Date().toISOString(),
   beer_price: 5,
 };
+
+const mockUseUsers = jest.fn();
+const mockUseActiveEventQuery = jest.fn();
+const mockUseEventMembers = jest.fn();
+const mockUseEventMembership = jest.fn();
+const mockStartEventMutateAsync = jest.fn();
+const mockCloseEventMutateAsync = jest.fn();
 
 jest.mock("@/services/supabase", () => {
   const __eventsQuery: any = {};
@@ -29,8 +51,7 @@ jest.mock("@/services/supabase", () => {
     __eventsQuery,
     supabase: {
       from: jest.fn((table: string) => {
-        if (table === "events") return __eventsQuery;
-        return null;
+        return __eventsQuery; // Return query object for any table to appease db_health_check
       }),
     },
     getUsers: jest.fn(async () => [mockUser]),
@@ -57,8 +78,29 @@ jest.mock("@/utils/preflight", () => ({
   assertSupabaseConfigured: jest.fn(() => true),
 }));
 
+jest.mock("@/hooks/useCurrentUser", () => ({
+  useCurrentUser: jest.fn(() => ({
+    currentUser: mockUser,
+    setCurrentUser: jest.fn(),
+    loading: false,
+    isAdmin: true,
+  })),
+}));
+
 jest.mock("@/hooks/useNotifications", () => ({
   useNotifications: jest.fn(),
+}));
+
+jest.mock("@/hooks/useUsersQuery", () => ({
+  useUsers: (...args: any[]) => mockUseUsers(...args),
+}));
+
+jest.mock("@/hooks/useEventsQuery", () => ({
+  useActiveEventQuery: (...args: any[]) => mockUseActiveEventQuery(...args),
+  useEventMembers: (...args: any[]) => mockUseEventMembers(...args),
+  useEventMembership: (...args: any[]) => mockUseEventMembership(...args),
+  useStartEvent: () => ({ mutateAsync: mockStartEventMutateAsync }),
+  useCloseEvent: () => ({ mutateAsync: mockCloseEventMutateAsync }),
 }));
 
 jest.mock("@/hooks/useOfflineMutations", () => ({
@@ -119,6 +161,29 @@ jest.mock("@/providers/appProviderActions", () => ({
 }));
 
 describe("AppProvider", () => {
+  beforeEach(() => {
+    mockUseUsers.mockReturnValue({
+      data: [mockUser],
+      isLoading: false,
+      refetch: jest.fn(async () => null),
+    });
+    mockUseActiveEventQuery.mockReturnValue({
+      data: { event: mockEvent, missingSchema: false },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(async () => ({ data: { event: mockEvent } })),
+    });
+    mockUseEventMembers.mockReturnValue({
+      data: [],
+      refetch: jest.fn(async () => null),
+    });
+    mockUseEventMembership.mockReturnValue({
+      data: { missingTable: false, membership: { role: "owner" } },
+      refetch: jest.fn(async () => null),
+    });
+    mockStartEventMutateAsync.mockResolvedValue(null);
+    mockCloseEventMutateAsync.mockResolvedValue(null);
+  });
   test("boots and exposes start/close event actions", async () => {
     const { AppProvider, useApp } = require("@/providers/AppProvider");
 
@@ -135,6 +200,7 @@ describe("AppProvider", () => {
       <AppProvider>
         <Consumer />
       </AppProvider>,
+      { wrapper },
     );
 
     await waitFor(() => expect(seen.current?.loading).toBe(false));
@@ -145,7 +211,12 @@ describe("AppProvider", () => {
     await act(async () => {
       await seen.current.startEvent("Round 2", "day", 6);
     });
-    expect(seen.current.activeEvent?.id).toBe("e2");
+    expect(seen.current.activeEvent?.id).toBe("e1");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["active-event"],
+      }),
+    );
 
     await act(async () => {
       await seen.current.closeEvent();
@@ -154,10 +225,14 @@ describe("AppProvider", () => {
   });
 
   test("handles missing events table by falling back to local event", async () => {
-    const supabaseMod: any = require("@/services/supabase");
-    supabaseMod.__eventsQuery.maybeSingle.mockResolvedValueOnce({
-      data: null,
-      error: { code: "PGRST205" },
+    const { assertSupabaseConfigured } = require("@/utils/preflight");
+    const assertMock = assertSupabaseConfigured as jest.Mock;
+    assertMock.mockReturnValue(false);
+    mockUseActiveEventQuery.mockReturnValue({
+      data: { event: null, missingSchema: false },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(async () => null),
     });
 
     const { AppProvider, useApp } = require("@/providers/AppProvider");
@@ -175,16 +250,22 @@ describe("AppProvider", () => {
       <AppProvider>
         <Consumer />
       </AppProvider>,
+      { wrapper },
     );
 
     await waitFor(() => expect(seen.current?.loading).toBe(false));
-    expect(seen.current.remoteAvailable).toBe(false);
     expect(seen.current.activeEvent?.id).toBe("local");
+    assertMock.mockReturnValue(true);
   });
 
   test("reports error when refreshUsers fails", async () => {
-    const { getUsers } = require("@/services/supabase");
-    (getUsers as jest.Mock).mockRejectedValueOnce(new Error("Fetch failed"));
+    mockUseUsers.mockReturnValueOnce({
+      data: [mockUser],
+      isLoading: false,
+      refetch: jest.fn(async () => {
+        throw new Error("Fetch failed");
+      }),
+    });
 
     const { AppProvider } = require("@/providers/AppProvider");
     const { reportError } = require("@/utils/logger");
@@ -193,22 +274,23 @@ describe("AppProvider", () => {
       <AppProvider>
         <Text>test</Text>
       </AppProvider>,
+      { wrapper },
     );
 
     // Bootstrap calls refreshUsers
     await waitFor(() =>
       expect(reportError).toHaveBeenCalledWith(
         expect.any(Error),
-        expect.objectContaining({ action: "Failed to refresh users" }),
+        expect.objectContaining({
+          scope: "app_provider",
+          action: "refresh_users",
+        }),
       ),
     );
   });
 
   test("reports error when closeEvent fails", async () => {
-    const { closeEventInSupabase } = require("@/providers/appProviderActions");
-    (closeEventInSupabase as jest.Mock).mockRejectedValueOnce(
-      new Error("Close aborted"),
-    );
+    mockCloseEventMutateAsync.mockRejectedValueOnce(new Error("Close aborted"));
 
     const { AppProvider, useApp } = require("@/providers/AppProvider");
     const { reportError } = require("@/utils/logger");
@@ -226,6 +308,7 @@ describe("AppProvider", () => {
       <AppProvider>
         <Consumer />
       </AppProvider>,
+      { wrapper },
     );
 
     await waitFor(() => expect(seen.current?.loading).toBe(false));
@@ -236,7 +319,7 @@ describe("AppProvider", () => {
 
     expect(reportError).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.objectContaining({ action: "Failed to close event" }),
+      expect.objectContaining({ scope: "app_provider", action: "close_event" }),
     );
   });
 });

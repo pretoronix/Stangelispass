@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   supabase,
-  getBeerCountByUser,
+  getBeerCountByEventMembers,
   getEventGameStats,
   getEventLeaderState,
   getUsers,
@@ -92,6 +92,10 @@ const computeHotStreak = (counts: UserBeerCount[]) => {
   return hot && (hot.streakCount || 0) > 0 ? hot : null;
 };
 
+/**
+ * @deprecated Use React Query hooks from `useBeersQuery` and `useEventsQuery`.
+ * This hook remains for backward compatibility only.
+ */
 export const useBeers = () => {
   const { activeEvent } = useApp();
   const [beerCounts, setBeerCounts] = useState<UserBeerCount[]>([]);
@@ -140,14 +144,13 @@ export const useBeers = () => {
         setHotStreak(computeHotStreak(sorted));
       } else {
         setGameStatsAvailable(false);
-        const counts = (await getBeerCountByUser(
+        const counts = (await getBeerCountByEventMembers(
           activeEvent.id,
         )) as UserBeerCount[];
-        const sorted = counts.sort((a, b) => b.count - a.count);
-        setBeerCounts(sorted);
-        setTotalBeers(computeTotalBeers(sorted));
-        setLeaderInfo(sorted[0] || null);
-        setLeaderLead(sorted[0]?.count || 0);
+        setBeerCounts(counts);
+        setTotalBeers(computeTotalBeers(counts));
+        setLeaderInfo(counts[0] || null);
+        setLeaderLead(counts[0]?.count || 0);
         setHotStreak(null);
       }
 

@@ -4,6 +4,14 @@ import { AppProvider } from "@/providers/AppProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+jest.mock("@tanstack/react-query", () => {
+  const actual = jest.requireActual("@tanstack/react-query");
+  return {
+    ...actual,
+    useQueryClient: () => ({ invalidateQueries: jest.fn() }),
+  };
+});
+
 // Mock Expo Router
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: jest.fn() }),
@@ -60,22 +68,57 @@ jest.mock("@/providers/AppProvider", () => ({
   useApp: () => mockAppContext,
 }));
 
-const defaultBeersContext = {
-  beerCounts: [] as any[],
-  rawBeers: [] as any[],
-  totalBeers: 0,
-  leaderInfo: null as any,
-  leaderLead: 0,
-  hotStreak: null as any,
-  gameStatsAvailable: false,
-  loading: false,
-  refreshing: false,
-  refresh: jest.fn(),
-};
-let mockBeersContext = { ...defaultBeersContext };
+let mockBeersData: any[] = [];
+let mockBeerCountsData: any[] = [];
+let mockEventMembersData: any[] = [];
+let mockGameStatsData: any = { stats: [], missingTable: true };
+let mockLeaderStateData: any = { leader: null, missingTable: true };
+const mockRefetch = jest.fn();
 
-jest.mock("@/hooks/useBeers", () => ({
-  useBeers: () => mockBeersContext,
+jest.mock("@/hooks/query", () => ({
+  useBeersQuery: () => ({
+    data: mockBeersData,
+    isLoading: false,
+    isRefetching: false,
+    refetch: mockRefetch,
+  }),
+  useBeerCounts: () => ({
+    data: mockBeerCountsData,
+    isLoading: false,
+    isRefetching: false,
+    refetch: mockRefetch,
+  }),
+  useEventMembers: () => ({
+    data: mockEventMembersData,
+    isLoading: false,
+    isRefetching: false,
+    refetch: mockRefetch,
+  }),
+  useEventGameStats: () => ({
+    data: mockGameStatsData,
+    isLoading: false,
+    isRefetching: false,
+    refetch: mockRefetch,
+  }),
+  useEventLeaderState: () => ({
+    data: mockLeaderStateData,
+    isLoading: false,
+    isRefetching: false,
+    refetch: mockRefetch,
+  }),
+  useInfiniteBeersQuery: () => ({
+    data: { pages: [[]] },
+    isLoading: false,
+    isRefetching: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: mockRefetch,
+  }),
+  useRemoveBeer: () => ({ mutateAsync: jest.fn() }),
+  BEER_QUERY_KEYS: {
+    beers: (eventId?: string) => (eventId ? ["beers", eventId] : ["beers"]),
+  },
 }));
 
 jest.mock("@/hooks/useNetworkStatus", () => ({
@@ -264,7 +307,12 @@ describe("GUI Integrity Tests", () => {
       ...defaultAppContext,
       eventPermissions: { ...defaultAppContext.eventPermissions },
     };
-    mockBeersContext = { ...defaultBeersContext };
+    mockBeersData = [];
+    mockBeerCountsData = [];
+    mockEventMembersData = [];
+    mockGameStatsData = { stats: [], missingTable: true };
+    mockLeaderStateData = { leader: null, missingTable: true };
+    mockRefetch.mockClear();
   });
 
   describe("Home Screen", () => {
@@ -287,7 +335,7 @@ describe("GUI Integrity Tests", () => {
 
     it("renders leaderboard with multiple users", () => {
       mockAppContext.activeEvent = { id: "e1", name: "Friday Beers" };
-      mockBeersContext.beerCounts = [
+      mockBeerCountsData = [
         { userId: "u1", name: "Alice", count: 5 },
         { userId: "u2", name: "Bob", count: 3 },
       ];

@@ -10,6 +10,22 @@ import { addBeer } from "@/services/supabase";
 import { startEventInSupabase } from "@/providers/appProviderActions";
 import { labels } from "@/ui/labels";
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={createTestQueryClient()}>
+    {children}
+  </QueryClientProvider>
+);
+
 // Mock dependencies
 jest.mock("react-native", () => {
   const rn = jest.requireActual("react-native");
@@ -37,6 +53,11 @@ const mockEventsQuery: any = {
   maybeSingle: jest.fn().mockResolvedValue({ data: mockEvent, error: null }),
 };
 
+const mockUseUsers = jest.fn();
+const mockUseActiveEventQuery = jest.fn();
+const mockUseEventMembers = jest.fn();
+const mockUseEventMembership = jest.fn();
+
 jest.mock("@/services/supabase", () => ({
   ...jest.requireActual("@/services/supabase"),
   __eventsQuery: mockEventsQuery,
@@ -59,12 +80,19 @@ jest.mock("@/services/supabase", () => ({
     canResetEventData: true,
   })),
   supabase: {
+    channel: jest.fn(() => ({
+      on: jest.fn().mockReturnThis(),
+      subscribe: jest.fn(() => ({})),
+    })),
+    removeChannel: jest.fn(),
     from: jest.fn((table: string) => ({
-      select: mockEventsQuery.select,
-      eq: mockEventsQuery.eq,
-      order: mockEventsQuery.order,
-      limit: mockEventsQuery.limit,
-      maybeSingle: mockEventsQuery.maybeSingle,
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      maybeSingle: jest
+        .fn()
+        .mockResolvedValue({ data: mockEvent, error: null }),
     })),
   },
 }));
@@ -95,23 +123,64 @@ jest.mock("@/hooks/useNotifications", () => ({
   useNotifications: jest.fn(),
 }));
 
+jest.mock("@/hooks/useCurrentUser", () => ({
+  useCurrentUser: jest.fn(() => ({
+    currentUser: mockUser,
+    setCurrentUser: jest.fn(async () => null),
+    loading: false,
+    isAdmin: true,
+  })),
+}));
+
+jest.mock("@/hooks/useUsersQuery", () => ({
+  useUsers: (...args: any[]) => mockUseUsers(...args),
+}));
+
+const mockMutateAsync = jest.fn();
+
+jest.mock("@/hooks/useEventsQuery", () => ({
+  useActiveEventQuery: (...args: any[]) => mockUseActiveEventQuery(...args),
+  useEventMembers: (...args: any[]) => mockUseEventMembers(...args),
+  useEventMembership: (...args: any[]) => mockUseEventMembership(...args),
+  useStartEvent: () => ({ mutateAsync: mockMutateAsync }),
+  useCloseEvent: () => ({ mutateAsync: jest.fn() }),
+}));
+
 jest.mock("@/hooks/useNetworkStatus", () => ({
   useNetworkStatus: jest.fn(() => ({ isOnline: true })),
 }));
 
-jest.mock("@/hooks/useBeers", () => ({
-  useBeers: jest.fn(() => ({
-    beerCounts: [],
-    rawBeers: [],
-    totalBeers: 0,
-    leaderInfo: null,
-    leaderLead: 0,
-    hotStreak: null,
-    gameStatsAvailable: false,
-    loading: false,
-    refreshing: false,
-    refresh: jest.fn(),
-  })),
+jest.mock("@/hooks/query", () => ({
+  useBeersQuery: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useBeerCounts: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventMembers: () => ({
+    data: [],
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventGameStats: () => ({
+    data: { stats: [], missingTable: true },
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
+  useEventLeaderState: () => ({
+    data: { leader: null, missingTable: true },
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock("@/hooks/home/useLeaderboardAnnouncements", () => ({
@@ -233,6 +302,25 @@ jest.mock("@/components/add/SelectedUserCard", () => {
 describe("UI Error Handling", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseUsers.mockReturnValue({
+      data: [mockUser],
+      isLoading: false,
+      refetch: jest.fn(async () => null),
+    });
+    mockUseActiveEventQuery.mockReturnValue({
+      data: { event: mockEvent, missingSchema: false },
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(async () => null),
+    });
+    mockUseEventMembers.mockReturnValue({
+      data: [],
+      refetch: jest.fn(async () => null),
+    });
+    mockUseEventMembership.mockReturnValue({
+      data: { missingTable: false, membership: { role: "owner" } },
+      refetch: jest.fn(async () => null),
+    });
     mockEventsQuery.maybeSingle.mockResolvedValue({
       data: mockEvent,
       error: null,
@@ -247,7 +335,7 @@ describe("UI Error Handling", () => {
         return null;
       };
 
-      expect(() => render(<BuggyComponent />)).toThrow(
+      expect(() => render(<BuggyComponent />, { wrapper })).toThrow(
         "useApp must be used within AppProvider",
       );
       spy.mockRestore();
@@ -288,6 +376,7 @@ describe("UI Error Handling", () => {
         <AppProvider>
           <AddBeerScreen />
         </AppProvider>,
+        { wrapper },
       );
 
       // Wait for data load
@@ -310,17 +399,23 @@ describe("UI Error Handling", () => {
     });
 
     it("HomeScreen: alerts on startEvent failure", async () => {
+      mockUseActiveEventQuery.mockReturnValue({
+        data: { event: null, missingSchema: false },
+        isLoading: false,
+        isError: false,
+        refetch: jest.fn(async () => null),
+      });
       mockEventsQuery.maybeSingle.mockResolvedValue({
         data: null,
         error: null,
       });
-      const mockStartEvent = startEventInSupabase as jest.Mock;
-      mockStartEvent.mockRejectedValueOnce(new Error("Start failed"));
+      mockMutateAsync.mockRejectedValueOnce(new Error("Start failed"));
 
       const { getByTestId } = render(
         <AppProvider>
           <HomeScreen />
         </AppProvider>,
+        { wrapper },
       );
 
       await act(async () => {

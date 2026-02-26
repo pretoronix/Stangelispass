@@ -14,6 +14,7 @@ export {
 // Beer hooks
 export {
   useBeersQuery,
+  useInfiniteBeersQuery,
   useBeersByUser,
   useBeerCounts,
   useUserAchievements,
@@ -26,6 +27,7 @@ export {
 
 // Event hooks
 export {
+  useActiveEventQuery,
   useEventMembership,
   useEventGameStats,
   useEventLeaderState,

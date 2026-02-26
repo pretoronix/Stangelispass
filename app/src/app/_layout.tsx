@@ -1,4 +1,5 @@
 import "../polyfills";
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 import { AppProvider } from "@/providers/AppProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -8,6 +9,16 @@ import { OfflineBanner } from "@/components/ui/OfflineBanner";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { useNotificationHandler } from "@/hooks/useNotificationHandler";
+import { useApp } from "@/providers/AppProvider";
+import { queryClient } from "@/providers/QueryProvider";
+import { getBeers, getBeerCountByEventMembers } from "@/services/beers";
+import {
+  getEventMembers,
+  getEventGameStats,
+  getEventLeaderState,
+} from "@/services/events";
+import { BEER_QUERY_KEYS, EVENT_QUERY_KEYS } from "@/hooks/query";
+import { logInfo, reportError } from "@/utils/logger";
 
 export default function RootLayout() {
   return (
@@ -25,6 +36,60 @@ export default function RootLayout() {
 
 function RootLayoutContent() {
   useNotificationHandler();
+  const { activeEvent } = useApp();
+
+  useEffect(() => {
+    if (!activeEvent?.id) return;
+    const eventId = activeEvent.id;
+    const pageSize = 50;
+
+    const prefetch = async () => {
+      try {
+        await Promise.all([
+          queryClient.prefetchQuery({
+            queryKey: BEER_QUERY_KEYS.beers(eventId),
+            queryFn: () => getBeers(eventId),
+          }),
+          queryClient.prefetchQuery({
+            queryKey: BEER_QUERY_KEYS.beersInfinite(eventId, pageSize),
+            queryFn: () => getBeers(eventId, { limit: pageSize }),
+          }),
+          queryClient.prefetchQuery({
+            queryKey: BEER_QUERY_KEYS.beerCounts(eventId),
+            queryFn: () => getBeerCountByEventMembers(eventId),
+          }),
+          queryClient.prefetchQuery({
+            queryKey: EVENT_QUERY_KEYS.eventMembers(eventId),
+            queryFn: () => getEventMembers(eventId),
+          }),
+          queryClient.prefetchQuery({
+            queryKey: EVENT_QUERY_KEYS.eventGameStats(eventId),
+            queryFn: () => getEventGameStats(eventId),
+          }),
+          queryClient.prefetchQuery({
+            queryKey: EVENT_QUERY_KEYS.eventLeaderState(eventId),
+            queryFn: () => getEventLeaderState(eventId),
+          }),
+        ]);
+
+        if (__DEV__) {
+          logInfo("[Prefetch] Warmed event queries", {
+            scope: "prefetch",
+            action: "warm_cache",
+            metadata: { eventId },
+          });
+        }
+      } catch (e) {
+        reportError(new Error("Prefetch failed"), {
+          scope: "prefetch",
+          action: "warm_cache",
+          metadata: { cause: e instanceof Error ? e.message : String(e) },
+        });
+      }
+    };
+
+    prefetch().catch(() => null);
+  }, [activeEvent?.id]);
 
   return (
     <>

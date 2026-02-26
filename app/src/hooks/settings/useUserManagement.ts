@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Alert, Platform } from "react-native";
+import { Alert } from "react-native";
 import { User, addUser, updateUser } from "@/services/supabase";
 import { registerForPushNotificationsAsync } from "@/services/notifications";
 import {
@@ -91,7 +91,7 @@ export const useUserManagement = ({
       Alert.alert("Error", "Failed to add user");
       reportError(e as Error, {
         scope: "useUserManagement",
-        action: "replace_console",
+        action: "add_user",
       });
     } finally {
       setLoading(false);

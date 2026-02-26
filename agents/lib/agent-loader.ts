@@ -98,9 +98,10 @@ export class AgentLoader {
    */
   static validateManifest(data: any): { valid: boolean; errors?: any[] } {
     const valid = validateManifest(data);
+    const errors = valid ? undefined : validateManifest.errors ?? undefined;
     return {
       valid,
-      errors: valid ? undefined : validateManifest.errors,
+      errors: errors as any[] | undefined,
     };
   }
 }

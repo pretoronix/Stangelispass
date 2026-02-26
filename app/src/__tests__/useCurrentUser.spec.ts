@@ -3,6 +3,24 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { reportError } from "@/utils/logger";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(
+    QueryClientProvider,
+    { client: createTestQueryClient() },
+    children,
+  );
 
 function setPlatformOS(os: "web" | "ios") {
   try {
@@ -12,6 +30,8 @@ function setPlatformOS(os: "web" | "ios") {
     (Platform as any).OS = os;
   }
 }
+
+const mockUser = { id: "u1", name: "Alice", is_admin: true };
 
 describe("useCurrentUser", () => {
   const originalOS = Platform.OS;
@@ -37,7 +57,7 @@ describe("useCurrentUser", () => {
     };
     (global as any).window = { localStorage: storage };
 
-    const { result } = renderHook(() => useCurrentUser());
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser?.id).toBe("u1");
@@ -68,7 +88,7 @@ describe("useCurrentUser", () => {
     };
     (global as any).window = { localStorage: storage };
 
-    const { result } = renderHook(() => useCurrentUser());
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser).toBeNull();
@@ -82,7 +102,7 @@ describe("useCurrentUser", () => {
       JSON.stringify({ id: "u1", name: "Alice", is_admin: false }),
     );
 
-    const { result } = renderHook(() => useCurrentUser());
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser?.id).toBe("u1");
@@ -106,7 +126,7 @@ describe("useCurrentUser", () => {
     setPlatformOS("ios");
     (SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce("fail");
 
-    const { result } = renderHook(() => useCurrentUser());
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(reportError).toHaveBeenCalled();
@@ -119,23 +139,34 @@ describe("useCurrentUser", () => {
       new Error("nope"),
     );
 
-    const { result } = renderHook(() => useCurrentUser());
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let thrown: unknown = null;
+    let thrown: any = null;
     try {
       await act(async () => {
-        await result.current.setCurrentUser({
-          id: "u1",
-          name: "Alice",
-          is_admin: false,
-        } as any);
+        await result.current.setCurrentUser(mockUser as any);
       });
     } catch (e) {
       thrown = e;
     }
 
-    expect(thrown).toBeTruthy();
+    expect(thrown).not.toBeNull();
     expect(reportError).toHaveBeenCalled();
+  });
+});
+
+describe("useCurrentUser (Basic)", () => {
+  it("successfully fetches and returns user data", async () => {
+    setPlatformOS("ios");
+    (SecureStore.getItemAsync as jest.Mock).mockResolvedValueOnce(
+      JSON.stringify(mockUser),
+    );
+
+    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.currentUser).toEqual(mockUser);
+    expect(result.current.isAdmin).toBe(true);
   });
 });

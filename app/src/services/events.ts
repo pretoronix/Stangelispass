@@ -28,3 +28,4 @@ export { getWallOfFame, addToWallOfFame } from "./events/wallOfFame";
 export { createLeaderEventSnapshot } from "./events/leaderSnapshots";
 
 export { resetEventData } from "./events/reset";
+export { startEventInSupabase, closeEventInSupabase } from "./events/lifecycle";

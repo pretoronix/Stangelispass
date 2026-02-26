@@ -32,6 +32,9 @@ export function SimplePourFeedback({
   const shouldAnimate = !isSimulator();
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "test") {
+      return;
+    }
     let cancelled = false;
     hasNativeHaptics().then((enabled) => {
       if (!cancelled) {

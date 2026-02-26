@@ -9,12 +9,12 @@ import {
   Alert,
   Modal,
   Dimensions,
-  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
-import { useBeers } from "@/hooks/useBeers";
+import { useHomeEventData } from "@/hooks/home/useHomeEventData";
+import { useHomeSubscriptions } from "@/hooks/home/useHomeSubscriptions";
 import { LeaderboardItem } from "@/components/features/LeaderboardItem";
 import { useApp } from "@/providers/AppProvider";
 import { BlurView } from "expo-blur";
@@ -24,14 +24,18 @@ import { calculateVelocity, prepareTrendData } from "@/utils/statsCalculator";
 import { InviteModal } from "@/components/features/InviteModal";
 import { BroadcastModal } from "@/components/notifications/BroadcastModal";
 import { Confetti } from "@/components/animations/Confetti";
+import { HomeModals } from "@/components/home/HomeModals";
+import { HomeEmptyState } from "@/components/home/HomeEmptyState";
 import { usePacePreset } from "@/hooks/usePacePreset";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 // Extracted hooks
+import { useHomeActions } from "@/hooks/home/useHomeActions";
 import { useLeaderboardAnnouncements } from "@/hooks/home/useLeaderboardAnnouncements";
 import { useScanHandler } from "@/hooks/home/useScanHandler";
 import { useEventActions } from "@/hooks/home/useEventActions";
 import { useExportData } from "@/hooks/home/useExportData";
+import { useHomeStats } from "@/hooks/home/useHomeStats";
 
 // Extracted components
 import { StartRoundPrompt } from "@/components/home/StartRoundPrompt";
@@ -53,19 +57,19 @@ import { homeScreenStyles as styles } from "@/styles/screens/homeScreenStyles";
 import { estimateBAC } from "@/services/safety";
 import { SafeRideCard } from "@/components/features/SafeRideCard";
 
+const showNoActiveRound = (message: string) => {
+  Alert.alert("No Active Round", message);
+};
+
+const showAdminRequired = (message: string) => {
+  Alert.alert("Admin Required", message);
+};
+
+const showPassRequired = (message: string) => {
+  Alert.alert("Pass Required", message);
+};
+
 export default function HomeScreen() {
-  const {
-    beerCounts,
-    rawBeers,
-    totalBeers,
-    leaderInfo,
-    leaderLead,
-    hotStreak,
-    gameStatsAvailable,
-    loading,
-    refreshing,
-    refresh,
-  } = useBeers();
   const {
     currentUser,
     setCurrentUser,
@@ -77,12 +81,27 @@ export default function HomeScreen() {
     eventPermissions,
   } = useApp();
 
+  // Business logic & data hooks
+  const {
+    beerCounts,
+    rawBeers,
+    totalBeers,
+    leaderInfo,
+    leaderLead,
+    hotStreak,
+    gameStatsAvailable,
+    loading,
+    refreshing,
+    refresh,
+  } = useHomeEventData(activeEvent?.id);
+
+  useHomeSubscriptions(activeEvent?.id, refresh);
+
   const [scanning, setScanning] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [showBroadcast, setShowBroadcast] = useState(false);
   const pacePreset = usePacePreset();
 
-  // Custom hooks for business logic
   const {
     leaderAnnouncement,
     streakAnnouncement,
@@ -110,86 +129,43 @@ export default function HomeScreen() {
     refresh,
   );
 
-  // Calculate metrics
-  const groupVelocity = calculateVelocity(
-    rawBeers.map((b) => b.created_at),
-    activeEvent?.created_at,
-  );
-  const trendData = prepareTrendData(rawBeers.map((b) => b.created_at));
-  const beerPriceFromEvent = activeEvent?.beer_price ?? 5.0;
-  const totalBill = calculateBill(totalBeers, beerPriceFromEvent);
-  const winner = leaderInfo ?? beerCounts[0];
-  const startRoundPriceLabel = getStartRoundPriceLabel();
-  const activeEventDurationLabel = getEventDurationLabel(
-    activeEvent?.pass_type,
-  );
-
-  // Safety Stats
-  const currentUserStats = beerCounts.find((b) => b.userId === currentUser?.id);
-  const bacStats = estimateBAC(
-    currentUserStats?.count || 0,
-    activeEvent?.created_at ? new Date(activeEvent.created_at) : new Date(),
+  // Derive all metrics and labels via hook
+  const {
+    groupVelocity,
+    trendData,
+    totalBill,
+    winner,
+    startRoundPriceLabel,
+    activeEventDurationLabel,
+    bacStats,
+  } = useHomeStats({
+    activeEvent,
     currentUser,
-  );
+    rawBeers,
+    totalBeers,
+    leaderInfo,
+    beerCounts,
+  });
 
-  const handleSavePace = React.useCallback(() => {
-    if (groupVelocity <= 0) return;
-    pacePreset.savePace(groupVelocity);
-  }, [groupVelocity, pacePreset.savePace]);
-
-  // Event handlers
-  const handleWhoPays = () => selectRandomPayer(beerCounts);
-  const handleShareLeaderboard = async () => {
-    if (!activeEvent?.id) {
-      Alert.alert(
-        "No Active Round",
-        "Start a round before sharing the leaderboard.",
-      );
-      return;
-    }
-
-    const { nativeUrl, webUrl } = getLeaderboardLinks(activeEvent.id);
-
-    if (Platform.OS === "web") {
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(webUrl);
-        Alert.alert("Link Copied", "Leaderboard link copied to clipboard.");
-        return;
-      }
-      Alert.alert("Leaderboard Link", webUrl);
-      return;
-    }
-
-    await Share.share({
-      message: webUrl,
-      url: nativeUrl,
-    });
-  };
-  const handleStartRound = async () => {
-    if (!currentUser) {
-      eventActions.openNamePrompt("start_round");
-      return;
-    }
-    if (!eventPermissions.canManageEvent) {
-      Alert.alert(
-        "Admin Required",
-        "Only admins can start a round and invite others.",
-      );
-      return;
-    }
-    try {
-      await startEvent("Night Out", "day");
-    } catch (_e) {
-      if ((_e as Error)?.message === "NO_EVENT_CREDITS") {
-        Alert.alert(
-          "Pass Required",
-          "No event passes available. Purchase a day or weekend pass in Settings.",
-        );
-        return;
-      }
-      Alert.alert("Error", "Failed to start round. Please try again.");
-    }
-  };
+  const {
+    handleSavePace,
+    handleWhoPays,
+    handleShareLeaderboard,
+    handleStartRound,
+  } = useHomeActions({
+    currentUser,
+    activeEvent,
+    eventPermissions,
+    startEvent: startEvent as any,
+    eventActions,
+    groupVelocity,
+    savePace: pacePreset.savePace,
+    beerCounts,
+    selectRandomPayer,
+    showAdminRequired,
+    showNoActiveRound,
+    showPassRequired,
+  });
 
   if (loading && !refreshing) {
     return (
@@ -201,57 +177,23 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* MVP Recap Modal */}
-      <MVPModal
-        visible={showRecap}
-        onClose={() => setShowRecap(false)}
-        winnerName={winner?.name || "Unknown"}
-        totalBeers={winner?.count || 0}
+      <HomeModals
+        showRecap={showRecap}
+        setShowRecap={setShowRecap}
+        winner={winner}
+        scanning={scanning}
+        setScanning={setScanning}
+        handleScan={handleScan}
+        eventActions={eventActions}
+        activeEvent={activeEvent}
+        currentUser={currentUser}
+        showInvite={showInvite}
+        setShowInvite={setShowInvite}
+        showBroadcast={showBroadcast}
+        setShowBroadcast={setShowBroadcast}
+        showConfetti={showConfetti}
+        setShowConfetti={setShowConfetti}
       />
-
-      {/* QR Scanner Modal */}
-      <Modal
-        visible={scanning}
-        animationType="slide"
-        onRequestClose={() => setScanning(false)}
-      >
-        <QRScanner onScan={handleScan} onClose={() => setScanning(false)} />
-      </Modal>
-
-      {/* Start Round / Join Event Prompt */}
-      <StartRoundPrompt
-        visible={eventActions.showStartRoundPrompt}
-        pendingAction={eventActions.pendingAction}
-        startRoundName={eventActions.startRoundName}
-        setStartRoundName={eventActions.setStartRoundName}
-        beerPrice={eventActions.beerPrice}
-        setBeerPrice={eventActions.setBeerPrice}
-        pendingJoinEventName={eventActions.pendingJoinEventName}
-        promptSubmitting={eventActions.promptSubmitting}
-        onSubmit={eventActions.submitNamePrompt}
-        onCancel={() => {
-          eventActions.setStartRoundName("");
-          eventActions.setBeerPrice("5.00");
-          eventActions.setShowStartRoundPrompt(false);
-        }}
-      />
-
-      <InviteModal
-        visible={showInvite}
-        onClose={() => setShowInvite(false)}
-        eventId={activeEvent?.id || ""}
-        eventName={activeEvent?.name || ""}
-      />
-
-      {activeEvent && currentUser && (
-        <BroadcastModal
-          visible={showBroadcast}
-          onClose={() => setShowBroadcast(false)}
-          eventId={activeEvent.id}
-          senderId={currentUser.id}
-          eventName={activeEvent.name}
-        />
-      )}
 
       {/* iOS Style Translucent Header Background */}
       {Platform.OS === "ios" && (
@@ -341,23 +283,7 @@ export default function HomeScreen() {
             )}
           </View>
         }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="beer-outline" size={64} color={colors.textMuted} />
-            <Text style={styles.emptyText}>No beers logged yet!</Text>
-            <Text style={styles.emptySubtext}>Time to start tracking? </Text>
-          </View>
-        }
-      />
-
-      {/* 🎉 Confetti Animation for leader changes & achievements */}
-      <Confetti
-        trigger={showConfetti}
-        count={150}
-        origin={{ x: Dimensions.get("window").width / 2, y: 0 }}
-        explosionSpeed={350}
-        fallSpeed={2500}
-        onAnimationEnd={() => setShowConfetti(false)}
+        ListEmptyComponent={<HomeEmptyState />}
       />
     </SafeAreaView>
   );

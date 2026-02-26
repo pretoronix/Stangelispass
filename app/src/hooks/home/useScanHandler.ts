@@ -61,7 +61,7 @@ const validateParticipantQr = (
 const notifyNewBadges = (badgeKeys: string[]) => {
   if (badgeKeys.length === 0) return;
   const badgeNames = badgeKeys
-    .map((b) => BADGES[b]?.name || "Unknown")
+    .map((b) => BADGES[b as keyof typeof BADGES]?.name || "Unknown")
     .filter(Boolean)
     .join(", ");
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
@@ -158,7 +158,7 @@ export function useScanHandler(
       const badges = redemption.newBadges || [];
       if (badges.length > 0) {
         const badgeNames = badges
-          .map((b) => BADGES[b]?.name || "Unknown")
+          .map((b) => BADGES[b as keyof typeof BADGES]?.name || "Unknown")
           .filter(Boolean)
           .join(", ");
         Alert.alert(

@@ -63,6 +63,7 @@ export {
   getBeersByUser,
   removeBeer,
   getBeerCountByUser,
+  getBeerCountByEventMembers,
   createBeerStamp,
   redeemBeerStamp,
   getUserAchievements,

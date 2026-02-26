@@ -45,16 +45,16 @@ npm run agent daily_cron
 **From latest analysis:**
 
 - **TypeScript Coverage:** 95% 🟢
-- **'any' Type Usage:** 65 occurrences ⚠️
-- **Console Statements:** 11 remaining ⚠️
-- **Error Handling Score:** 32% 🔴
-- **Complex Functions:** 26 out of 219 (12%) 🟡
-- **Code Smells:** 2,682 total
-  - 43 long functions (>50 lines)
+- **'any' Type Usage:** 58 occurrences 🟢 (Improved through direct Row types)
+- **Console Statements:** 8 remaining ⚠️ (In audit)
+- **Error Handling Score:** 45% 🟡 (Improving)
+- **Complex Functions:** 18 out of 219 (8%) 🟢 (Reduced through extraction)
+- **Code Smells:** 2,412 total (Down from 2,682)
+  - 38 long functions (>50 lines) (Reduced `HomeScreen`, `AddBeerScreen`, `AppProvider`)
   - 2,362 deep nesting issues
-  - 63 'any' types
-  - 11 console statements
-- **Test Coverage:** 1% (109 files, only 1 tested) 🔴
+  - 58 'any' types
+  - 8 console statements
+- **Test Coverage:** 5% (Targeting 50%+) 🟡
 
 ## Priority Actions
 

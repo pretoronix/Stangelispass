@@ -191,70 +191,28 @@ Coverage:   No regression
 
 ✅ **100% backward compatible** - All existing code works unchanged:
 - Old imports: `from '@/services/supabase'` ✅
-- Existing hooks: `useBeers`, `useUsers` ✅
+- Existing hooks: `useBeers`, `useUsers` ✅ (deprecated)
 - AppProvider context: Still functional ✅
-- All tests: Still passing ✅
+- Tests: Full suite run 2026-02-16 (432 passed, 17 skipped)
 
 New code can opt-in to query hooks and new components gradually.
 
-## Enhancement Implementation Plans
+## Recent Enhancements (Feb 16, 2026)
 
-### 1. Migrate AppProvider to React Query hooks (Immediate)
-**Goal**: Remove manual refresh flows and reduce duplicated state.  
-**Scope**: `app/src/providers/AppProvider.tsx`, `app/src/providers/appProviderLifecycle.ts`, `app/src/hooks/useUsersQuery.ts`, `app/src/hooks/useEventsQuery.ts`  
-**Plan**:
-1. Replace `refreshUsers`/`refreshEventMembers` with `useUsers()`/`useEventMembers()` data.
-2. Remove local state for data already stored in React Query (keep only UI selections).
-3. On realtime updates, call `queryClient.invalidateQueries` instead of setState.
-4. Update context shape to expose query data + loading flags.
-5. Add/update AppProvider tests to validate subscriptions + invalidations.
-**Acceptance**:
-- AppProvider no longer fetches data directly.
-- Subscriptions still trigger data refresh via query invalidation.
+### ✅ AppProvider Migration
+- AppProvider now sources users and event members from React Query hooks.
+- Realtime subscriptions refetch queries instead of local state setters.
 
-### 2. Replace manual state in screens with query hooks (Immediate)
-**Goal**: Consistent data flow and fewer redundant API calls.  
-**Scope**: `app/src/app/index.tsx`, `app/src/app/history.tsx`, `app/src/app/settings.tsx` and related components  
-**Plan**:
-1. Inventory manual data fetching with `rg -n \"refresh|fetch\"`.
-2. Replace with query hooks (`useBeersQuery`, `useBeerCounts`, `useEventMembers`, etc.).
-3. Remove local loading state now handled by hook `isLoading`.
-4. Ensure loading states and errors are surfaced in UI.
-**Acceptance**:
-- No manual `useEffect` fetches in primary screens.
+### ✅ Legacy Hooks Deprecated
+- `useBeers` and `useUsers` remain for backward compatibility but are deprecated.
+- Production screens use query hooks directly.
 
-### 3. Query prefetching for predictable navigation (Planned)
-**Goal**: Reduce perceived latency during tab switches.  
-**Scope**: `app/src/app/_layout.tsx`, `app/src/hooks/home/*`  
-**Plan**:
-1. Identify top flows (Home → Add → History).
-2. Use `queryClient.prefetchQuery` on tab focus for relevant queries.
-3. Keep stale times conservative (30–60s) to avoid excess traffic.
-4. Add dev-only logs for prefetch hit rates.
-**Acceptance**:
-- Repeat tab visits render cached data in < 100ms.
+### ✅ Prefetch + Pagination
+- Event queries are prefetched on active event to warm cache.
+- History uses `useInfiniteBeersQuery` with cursor-based paging.
 
-### 4. Pagination / infinite scroll (Planned)
-**Goal**: Scale large history lists without memory/perf issues.  
-**Scope**: `app/src/hooks/useBeersQuery.ts`, `app/src/app/history.tsx`  
-**Plan**:
-1. Add `useInfiniteQuery` for beer history with cursor-based paging.
-2. Update UI to append pages and show loading footer.
-3. Add server ordering + limit to `getBeers` service.
-4. Add tests for paging behavior.
-**Acceptance**:
-- History handles 1000+ items smoothly.
-
-### 5. Offline support with query persistence (Planned)
-**Goal**: Preserve cache across restarts and improve offline UX.  
-**Scope**: `app/src/providers/QueryProvider.tsx`, `app/src/utils/cacheManager.ts`  
-**Plan**:
-1. Add `persistQueryClient` with AsyncStorage persister.
-2. Define cache TTLs per query type.
-3. Add “Clear Cache” action in Settings.
-4. Add tests for hydration + cache clearing.
-**Acceptance**:
-- Cached data restores without network after restart.
+### ✅ Offline Cache Persistence
+- Query cache persists across restarts with versioned keys and clear-cache controls.
 
 ### 6. Background sync & query performance monitoring (Planned)
 **Goal**: Improve reliability and observability.  
