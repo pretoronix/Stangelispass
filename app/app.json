@@ -14,14 +14,23 @@
         },
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.stangelispass.app"
+            "bundleIdentifier": "com.stangelispass.app",
+            "buildNumber": "1",
+            "infoPlist": {
+                "ITSAppUsesNonExemptEncryption": false
+            }
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#1a1a2e"
             },
-            "package": "com.stangelispass.app"
+            "package": "com.stangelispass.app",
+            "versionCode": 1,
+            "permissions": [
+                "android.permission.CAMERA",
+                "android.permission.POST_NOTIFICATIONS"
+            ]
         },
         "web": {
             "bundler": "metro",
@@ -30,12 +39,26 @@
         },
         "plugins": [
             "expo-router",
-            "expo-secure-store"
+            "expo-secure-store",
+            [
+                "expo-camera",
+                {
+                    "cameraPermission": "Stängelispass uses the camera to scan QR codes for logging beers and joining events."
+                }
+            ],
+            [
+                "expo-media-library",
+                {
+                    "photosPermission": "Stängelispass saves shared cards and stats images to your photo library.",
+                    "savePhotosPermission": "Stängelispass saves shared cards and stats images to your photo library.",
+                    "isAccessMediaLocationEnabled": false
+                }
+            ],
+            "expo-notifications"
         ],
         "experiments": {
             "typedRoutes": true
-        }
-        ,
+        },
         "extra": {
             "EXPO_PUBLIC_SUPABASE_URL": "",
             "EXPO_PUBLIC_SUPABASE_ANON_KEY": ""

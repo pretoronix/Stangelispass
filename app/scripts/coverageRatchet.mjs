@@ -54,26 +54,50 @@ function sh(cmd, cwd, opts = {}) {
   }).trim();
 }
 
+function refExists(ref, repoRoot) {
+  try {
+    sh(`git rev-parse --verify ${ref}`, repoRoot);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function detectBaseRef(repoRoot) {
   const envRef = process.env.COVERAGE_RATCHET_BASE_REF;
   if (envRef) return envRef;
 
   const candidates = ['origin/main', 'main', 'origin/master', 'master'];
   for (const ref of candidates) {
-    try {
-      sh(`git rev-parse --verify ${ref}`, repoRoot);
-      return ref;
-    } catch {
-      // continue
-    }
+    if (refExists(ref, repoRoot)) return ref;
   }
+
+  // Shallow checkouts (e.g. CI without fetch-depth: 0) won't have the base
+  // branch locally. Try to fetch it before giving up.
+  for (const branch of ['main', 'master']) {
+    try {
+      sh(`git fetch --no-tags --depth=1 origin ${branch}:refs/remotes/origin/${branch}`, repoRoot);
+    } catch {
+      // remote/branch may not exist; keep trying
+    }
+    if (refExists(`origin/${branch}`, repoRoot)) return `origin/${branch}`;
+  }
+
   return null;
 }
 
 function listChangedAppFiles(repoRoot) {
   const baseRef = detectBaseRef(repoRoot);
   if (!baseRef) {
-    throw new Error('Could not detect a git base ref (tried origin/main, main, origin/master, master).');
+    // Degrade gracefully: without a base ref we cannot compute a changed-files
+    // diff (e.g. shallow clone on a fork). The global coverage threshold is
+    // still enforced by the Jest config, so skip the changed-files gate rather
+    // than failing the whole build.
+    console.warn(
+      'coverageRatchet: could not detect a git base ref (tried origin/main, main, origin/master, master); ' +
+        'skipping changed-files gate. Set COVERAGE_RATCHET_BASE_REF to enforce it.',
+    );
+    return null;
   }
 
   let mergeBase = null;
@@ -153,8 +177,8 @@ function main() {
   }
 
   const changed = listChangedAppFiles(repoRoot);
-  if (changed.length === 0) {
-    console.log('coverageRatchet: no changed app source files detected; skipping changed-files gate.');
+  if (!changed || changed.length === 0) {
+    console.log('coverageRatchet: no changed app source files to gate; skipping changed-files gate.');
     process.exit(0);
   }
 
