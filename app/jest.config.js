@@ -1,3 +1,10 @@
+// Pin the timezone so time-based logic (Early Bird / Night Owl achievements use
+// the device's local `getHours()`) is deterministic regardless of host timezone.
+// Setting it here — in the parent process, before Jest forks its workers — means
+// every worker inherits `TZ` from birth, so it is honoured for all Date operations.
+// The app's audience is Switzerland, so tests assert against CET/CEST.
+process.env.TZ = process.env.TZ || 'Europe/Zurich';
+
 module.exports = {
     preset: 'jest-expo',
     setupFiles: ['<rootDir>/jest/setupEnv.js'],
