@@ -77,6 +77,21 @@ eas env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "YOUR_ANON_KEY" --en
 
 > `eas init` adds `expo.extra.eas.projectId` / `owner` to `app.json` — commit that.
 
+### Repository secrets (GitHub Actions)
+
+Add these under **GitHub → Settings → Secrets and variables → Actions** so the
+**Keep Supabase Warm** workflow (`.github/workflows/keep-supabase-warm.yml`)
+can ping your project and stop the free tier from pausing after ~7 days idle:
+
+| Secret              | Value                                  |
+| ------------------- | -------------------------------------- |
+| `SUPABASE_URL`      | `https://YOUR_REF.supabase.co`         |
+| `SUPABASE_ANON_KEY` | your project's public anon key         |
+
+> The scheduled ping only runs from the **default branch** (`main`), so it
+> activates once this is merged. You can test it immediately via
+> **Actions → Keep Supabase Warm → Run workflow**.
+
 ## Step 5 — Build the production binary
 
 ```bash
@@ -146,6 +161,7 @@ Required before you can submit for review:
 - [ ] `eas.json` submit credentials filled in
 - [ ] `eas init` run; `projectId` committed
 - [ ] Production Supabase env vars set in EAS
+- [ ] GitHub secrets `SUPABASE_URL` + `SUPABASE_ANON_KEY` added (keep-warm cron)
 - [ ] Real 1024×1024 icon (no alpha) in `app/assets/icon.png`
 - [ ] `npm run preflight` green
 - [ ] Production build succeeds (`npm run build:ios`)
