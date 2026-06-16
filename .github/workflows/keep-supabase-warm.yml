@@ -1,0 +1,58 @@
+name: Keep Supabase Warm
+
+# Supabase's free tier pauses a project after ~7 days of inactivity. This job
+# pings the project's REST API on a schedule so it never goes to sleep.
+#
+# Setup (one-time): add two repository secrets under
+# Settings -> Secrets and variables -> Actions:
+#   SUPABASE_URL       e.g. https://abcdefgh.supabase.co
+#   SUPABASE_ANON_KEY  the project's public anon key
+#
+# Note: scheduled workflows only run from the repository's DEFAULT branch
+# (main), so the daily ping starts once this file is merged to main.
+
+on:
+  schedule:
+    - cron: '17 6 * * *' # daily at 06:17 UTC
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -u
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "Secrets SUPABASE_URL / SUPABASE_ANON_KEY are not set; skipping ping."
+            echo "Add them under Settings -> Secrets and variables -> Actions."
+            exit 0
+          fi
+
+          url="${SUPABASE_URL%/}/rest/v1/"
+          echo "Pinging ${url}"
+
+          # Retry a few times: if the project was paused, the first request wakes
+          # it (and may be slow / return 5xx) while later ones succeed.
+          for attempt in 1 2 3 4 5; do
+            code=$(curl -sS -m 30 -o /dev/null -w '%{http_code}' \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+              "${url}" || echo "000")
+            echo "Attempt ${attempt}: HTTP ${code}"
+
+            # Any real HTTP response (2xx/4xx) means the project is awake.
+            if [ "${code}" -ge 200 ] && [ "${code}" -lt 500 ]; then
+              echo "Supabase project is reachable — kept warm."
+              exit 0
+            fi
+
+            echo "No healthy response yet (resuming from pause?); retrying..."
+            sleep $((attempt * 10))
+          done
+
+          echo "::error::Supabase project did not respond after retries."
+          exit 1

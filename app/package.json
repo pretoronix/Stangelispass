@@ -18,7 +18,13 @@
     "db:check": "node scripts/db-check.mjs",
     "db:push": "bash scripts/supabase_migrate.sh push",
     "db:status": "bash scripts/supabase_migrate.sh status",
-    "db:reset:local": "bash scripts/supabase_migrate.sh reset-local"
+    "db:reset:local": "bash scripts/supabase_migrate.sh reset-local",
+    "eas:login": "eas login",
+    "eas:init": "eas init",
+    "build:ios:preview": "eas build --platform ios --profile preview",
+    "build:ios": "eas build --platform ios --profile production",
+    "submit:ios": "eas submit --platform ios --profile production",
+    "preflight": "npm run typecheck && npm run lint && npm test -- --watchAll=false"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -39,7 +45,6 @@
     "expo-device": "~8.0.10",
     "expo-file-system": "~19.0.21",
     "expo-haptics": "~15.0.8",
-    "expo-in-app-purchases": "~14.0.1",
     "expo-linear-gradient": "^15.0.8",
     "expo-linking": "^8.0.11",
     "expo-media-library": "~18.2.1",
