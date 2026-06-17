@@ -1,4 +1,5 @@
 import { Alert } from "react-native";
+import { renderHook } from "@testing-library/react-native";
 import { useScanHandler } from "@/hooks/home/useScanHandler";
 import { parseScanPayload } from "@/utils/scanPayload";
 import { addBeer, joinEvent, redeemBeerStamp } from "@/services/supabase";
@@ -26,6 +27,12 @@ jest.mock("@/services/achievements", () => ({
   },
 }));
 
+// useScanHandler relies on React hooks (useRef) for its cross-render de-dupe
+// guard, so it must be invoked inside a render. This helper renders the hook
+// and returns its current value so each test can keep calling it positionally.
+const renderScanHandler = (...args: Parameters<typeof useScanHandler>) =>
+  renderHook(() => useScanHandler(...args)).result.current;
+
 describe("useScanHandler", () => {
   const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
 
@@ -39,7 +46,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -62,7 +69,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -88,7 +95,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: false },
@@ -109,7 +116,7 @@ describe("useScanHandler", () => {
       stampId: "s1",
     });
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -133,7 +140,7 @@ describe("useScanHandler", () => {
 
     const setScanning = jest.fn();
     const refresh = jest.fn();
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: false },
@@ -162,7 +169,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -188,7 +195,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: false },
@@ -213,7 +220,7 @@ describe("useScanHandler", () => {
       eventId: "e1",
     });
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: true },
@@ -238,7 +245,7 @@ describe("useScanHandler", () => {
       eventId: "e2",
     });
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -263,7 +270,7 @@ describe("useScanHandler", () => {
 
     const setScanning = jest.fn();
     const refresh = jest.fn();
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -277,6 +284,43 @@ describe("useScanHandler", () => {
     await handleScan("same");
     nowSpy.mockReturnValue(1500);
     await handleScan("same");
+    nowSpy.mockRestore();
+
+    expect(addBeer).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps debouncing duplicate scans across re-renders", async () => {
+    // Regression: the de-dupe marker must live in a ref so it survives the
+    // re-render that logging a beer triggers. With a plain `let` the second
+    // scan would re-process the same QR and log a duplicate beer.
+    (parseScanPayload as jest.Mock).mockReturnValue({
+      type: "beer_log",
+      userId: "u2",
+      eventId: "e1",
+    });
+    (addBeer as jest.Mock).mockResolvedValue({ newBadges: [] });
+
+    const setScanning = jest.fn();
+    const refresh = jest.fn();
+    const args: Parameters<typeof useScanHandler> = [
+      { id: "u1" } as any,
+      { id: "e1" } as any,
+      { canManageLogs: true },
+      jest.fn(),
+      setScanning,
+      refresh,
+    ];
+    const { result, rerender } = renderHook(() => useScanHandler(...args));
+
+    const nowSpy = jest.spyOn(Date, "now");
+    nowSpy.mockReturnValue(1000);
+    await result.current.handleScan("same");
+
+    // Simulate the re-render caused by logging a beer, then scan again within
+    // the 800ms window using the freshly-rendered handler.
+    rerender({});
+    nowSpy.mockReturnValue(1400);
+    await result.current.handleScan("same");
     nowSpy.mockRestore();
 
     expect(addBeer).toHaveBeenCalledTimes(1);
@@ -299,7 +343,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = useScanHandler(
+    const { handleScan } = renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },

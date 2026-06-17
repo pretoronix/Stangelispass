@@ -90,14 +90,24 @@ export const redeemPromoCode = async (
     if (promo.expires_at && new Date(promo.expires_at) < new Date())
       return { ok: false, reason: "expired" };
 
-    const { error: updateError } = await (supabase.from("promo_codes") as any)
+    // Claim the code atomically: the `.is("redeemed_by", null)` guard ensures
+    // only one of two concurrent/double-tap redemptions wins. Without it the
+    // read-check-then-write above is racy and the same code could be redeemed
+    // (and its credits granted) more than once.
+    const { data: claimed, error: updateError } = await (
+      supabase.from("promo_codes") as any
+    )
       .update({
         redeemed_by: userId,
         redeemed_at: new Date().toISOString(),
         active: false,
       })
-      .eq("id", promo.id);
+      .eq("id", promo.id)
+      .is("redeemed_by", null)
+      .select()
+      .maybeSingle();
     if (updateError) throw updateError;
+    if (!claimed) return { ok: false, reason: "already_redeemed" };
 
     return { ok: true, type: promo.type, credits: promo.credits || 1 };
   } catch (e: any) {

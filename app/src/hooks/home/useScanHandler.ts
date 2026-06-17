@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Alert } from "react-native";
 import * as Haptics from "expo-haptics";
 import { addBeer, joinEvent, redeemBeerStamp } from "@/services/supabase";
@@ -86,7 +87,11 @@ export function useScanHandler(
   setScanning: (value: boolean) => void,
   refresh: () => void,
 ) {
-  let lastScan: { data: string; ts: number } | null = null;
+  // Persist the de-dupe marker across renders. A plain `let` is re-initialised
+  // on every render, so the 800ms duplicate-scan guard below would reset
+  // whenever logging a beer triggers a re-render, allowing the same QR code to
+  // be processed multiple times in quick succession.
+  const lastScan = useRef<{ data: string; ts: number } | null>(null);
   const handleUnknownPayload = (data: string) => {
     addBreadcrumb("handleScan_unknown_payload", { data });
     Alert.alert("Invalid QR", "This code is not recognized by Stangelispass.");
@@ -245,10 +250,14 @@ export function useScanHandler(
   const handleScan = async (data: string) => {
     try {
       const now = Date.now();
-      if (lastScan && lastScan.data === data && now - lastScan.ts < 800) {
+      if (
+        lastScan.current &&
+        lastScan.current.data === data &&
+        now - lastScan.current.ts < 800
+      ) {
         return;
       }
-      lastScan = { data, ts: now };
+      lastScan.current = { data, ts: now };
       addBreadcrumb("handleScan_start", { dataLength: data?.length });
       const payload = parseScanPayload(data);
       if (payload.type === "unknown") {

@@ -23,6 +23,11 @@ const DEFAULT_PREFS = {
   new_round: true,
 };
 
+// Maximum number of delivery attempts before a notification is marked processed
+// and given up on. Bounds retries so a permanently failing send cannot be
+// retried forever.
+const MAX_SEND_ATTEMPTS = 3;
+
 const normalizePrefs = (
   raw: any,
 ): {
@@ -285,13 +290,33 @@ export async function processNotificationsBatch(opts: {
     );
     const sendSuccess = failedSends.length === 0;
 
-    // Mark notification processed and record attempts
-    await markProcessed();
+    const nextAttempts = (n.attempts || 0) + 1;
+    const exhaustedRetries = nextAttempts >= MAX_SEND_ATTEMPTS;
+
+    if (sendSuccess || exhaustedRetries) {
+      // Only mark processed once we have delivered (or given up after the retry
+      // budget is exhausted). Marking a transiently-failed send as processed
+      // would drop it permanently, contradicting the attempts/retry design used
+      // by the token-fetch failure path above.
+      await markProcessed();
+    } else {
+      // Transient failure: bump attempts and leave `processed=false` so the next
+      // run retries this notification.
+      await restFetch(`rest/v1/notifications?id=eq.${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempts: nextAttempts }),
+      }).catch(() => null);
+    }
 
     results.push({
       id,
       success: sendSuccess,
-      reason: sendSuccess ? undefined : "send failures",
+      reason: sendSuccess
+        ? undefined
+        : exhaustedRetries
+          ? "send failures (retries exhausted)"
+          : "send failures (will retry)",
       sendResults,
       failedCount: failedSends.length,
     });

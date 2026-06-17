@@ -793,4 +793,108 @@ describe("processNotificationsBatch", () => {
     );
     expect(patchCall).toBeTruthy();
   });
+
+  // Helper that fails the Expo push send for a given notification, so we can
+  // exercise the retry / give-up branches.
+  const makeSendFailureFetch = (notif: any[], calls: any[]) =>
+    jest.fn(async (url: string, init?: any) => {
+      calls.push({ url, init });
+      if (
+        url.includes("/rest/v1/notifications") &&
+        url.includes("processed=eq.false")
+      ) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => notif,
+          text: async (): Promise<string> => JSON.stringify(notif),
+        };
+      }
+      if (url.includes("/rest/v1/device_tokens")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => [{ token: "tok" }],
+          text: async (): Promise<string> => "[]",
+        };
+      }
+      if (url.includes("exp.host")) {
+        // Expo reports a per-message error -> counts as a failed send.
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => ({ error: "DeviceNotRegistered" }),
+          text: async (): Promise<string> => "{}",
+        };
+      }
+      if (init?.method === "PATCH") {
+        return {
+          ok: true,
+          status: 200,
+          json: async (): Promise<any> => ({}),
+          text: async (): Promise<string> => "{}",
+        };
+      }
+      return {
+        ok: false,
+        status: 404,
+        json: async (): Promise<any> => null,
+        text: async (): Promise<string> => "not found",
+      };
+    });
+
+  test("transient send failure -> bumps attempts and leaves processed=false for retry", async () => {
+    const notif = [
+      { id: "n12", new_leader: "u12", event_id: "e12", attempts: 0 },
+    ];
+    const calls: any[] = [];
+    const fetchFn = makeSendFailureFetch(notif, calls);
+
+    const res = await processNotificationsBatch({
+      fetchFn,
+      supabaseUrl: "https://supabase.test",
+      serviceKey: "key",
+    });
+
+    expect(res.results[0].success).toBe(false);
+    expect(res.results[0].reason).toBe("send failures (will retry)");
+
+    const patchCall = calls.find(
+      (c) =>
+        c.init?.method === "PATCH" &&
+        c.url.includes("/rest/v1/notifications?id=eq.n12"),
+    );
+    expect(patchCall).toBeTruthy();
+    const body = JSON.parse(patchCall.init.body);
+    // Attempts bumped, but NOT marked processed -> next run will retry.
+    expect(body.attempts).toBe(1);
+    expect(body.processed).toBeUndefined();
+  });
+
+  test("send failure after exhausting retries -> marks processed and gives up", async () => {
+    const notif = [
+      { id: "n13", new_leader: "u13", event_id: "e13", attempts: 2 },
+    ];
+    const calls: any[] = [];
+    const fetchFn = makeSendFailureFetch(notif, calls);
+
+    const res = await processNotificationsBatch({
+      fetchFn,
+      supabaseUrl: "https://supabase.test",
+      serviceKey: "key",
+    });
+
+    expect(res.results[0].success).toBe(false);
+    expect(res.results[0].reason).toBe("send failures (retries exhausted)");
+
+    const patchCall = calls.find(
+      (c) =>
+        c.init?.method === "PATCH" &&
+        c.url.includes("/rest/v1/notifications?id=eq.n13"),
+    );
+    expect(patchCall).toBeTruthy();
+    const body = JSON.parse(patchCall.init.body);
+    // Retry budget exhausted (attempts 2 -> 3 == MAX) -> mark processed.
+    expect(body.processed).toBe(true);
+  });
 });
