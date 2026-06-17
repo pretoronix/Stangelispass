@@ -1,27 +1,19 @@
 /**
- * BAC Calculation using the Widmark Formula
+ * BAC Calculation using the Widmark Formula, expressed as a percentage (%).
  *
- * Formula: BAC = ([Alcohol in grams] / ([Body weight in grams] * r)) * 100 - (beta * T)
+ * The formula and physiological constants live in `./bacCore` (which works in
+ * per mille); this module is a thin percent-facing wrapper. 1‰ = 0.1%.
  */
 
+import { ALCOHOL_GRAMS_PER_STANDARD_BEER, bacPerMille } from "./bacCore";
+
 export type Gender = "male" | "female" | "neutral";
-
-export interface BACConstants {
-  r: number; // alcohol distribution ratio
-  beta: number; // elimination rate (per hour)
-}
-
-const CONSTANTS: Record<Gender, BACConstants> = {
-  male: { r: 0.68, beta: 0.015 },
-  female: { r: 0.55, beta: 0.015 },
-  neutral: { r: 0.6, beta: 0.015 },
-};
 
 /**
  * Calculates current BAC
  * @param weightKg Body weight in kg
  * @param gender Gender for distribution ratio
- * @param beers List of beer timestamps (assumes 0.33l / 5% per beer)
+ * @param beerTimestamps List of beer timestamps (assumes 0.33l / 5% per beer)
  * @returns Estimated BAC percentage
  */
 export const calculateBAC = (
@@ -31,28 +23,16 @@ export const calculateBAC = (
 ): number => {
   if (!beerTimestamps.length || weightKg <= 0) return 0;
 
-  const weightGrams = weightKg * 1000;
-  const { r, beta } = CONSTANTS[gender] || CONSTANTS.neutral;
-
-  // Standard Beer: 330ml * 5% ABV * 0.789 density = ~13g of alcohol
-  const ALCOHOL_PER_BEER_G = 13.0;
-
   const now = new Date();
   const sortedBeers = [...beerTimestamps].sort();
   const firstBeerTime = new Date(sortedBeers[0] || now.toISOString());
   const hoursSinceStart =
     (now.getTime() - firstBeerTime.getTime()) / (1000 * 60 * 60);
 
-  // Total theoretical alcohol if none was eliminated
-  const totalAlcoholG = beerTimestamps.length * ALCOHOL_PER_BEER_G;
+  const totalAlcoholG = beerTimestamps.length * ALCOHOL_GRAMS_PER_STANDARD_BEER;
 
-  // Theoretical BAC without elimination
-  const theoreticalBAC = (totalAlcoholG / (weightGrams * r)) * 100;
-
-  // Current BAC after elimination
-  const currentBAC = theoreticalBAC - beta * hoursSinceStart;
-
-  return Math.max(0, currentBAC);
+  // Core returns per mille (‰); convert to percent (1‰ = 0.1%).
+  return bacPerMille(totalAlcoholG, weightKg, gender, hoursSinceStart) * 0.1;
 };
 
 /**
