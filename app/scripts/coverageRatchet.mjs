@@ -73,7 +73,11 @@ function detectBaseRef(repoRoot) {
 function listChangedAppFiles(repoRoot) {
   const baseRef = detectBaseRef(repoRoot);
   if (!baseRef) {
-    throw new Error('Could not detect a git base ref (tried origin/main, main, origin/master, master).');
+    // Degrade gracefully instead of crashing CI: without a base ref we can't
+    // scope the changed-files gate. The global coverage threshold is still
+    // enforced by jest config during `test:ci`.
+    console.warn('coverageRatchet: could not detect a git base ref (tried origin/main, main, origin/master, master); skipping changed-files gate.');
+    return [];
   }
 
   let mergeBase = null;

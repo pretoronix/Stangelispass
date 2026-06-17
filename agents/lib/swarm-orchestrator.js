@@ -14,16 +14,41 @@ const logger = {
     error: (msg) => console.error(`[ERROR] ${msg}`),
     debug: (msg) => { } // Silent in production
 };
+/** Glob + ignore rules for scanning the app's source files. */
+const APP_SOURCE_GLOB = 'app/src/**/*.{ts,tsx}';
+const APP_SOURCE_IGNORE = ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'];
+/** Rank a proposal by impact weighted by confidence (higher = higher priority). */
+const scoreProposal = (p) => (p.impact === 'high' ? 3 : p.impact === 'medium' ? 2 : 1) * p.confidence;
 export class SwarmOrchestrator {
     config;
     consensusEngine;
     roadmapAnalyzer;
     projectRoot;
+    actionHandlers;
+    /**
+     * Actions that are configured in swarm-agents.json but intentionally do
+     * nothing yet. They resolve to `null` without warning.
+     */
+    static NOOP_ACTIONS = new Set([
+        'assess_complexity',
+        'identify_dependencies',
+        'estimate_effort',
+        'discuss_tradeoffs',
+        'refine_proposals',
+        'create_specifications',
+        'identify_completion_status',
+        'check_documentation_impact',
+        'resolve_conflicts',
+        'finalize_updates',
+        'update_documentation_index',
+        'log_changes'
+    ]);
     constructor(configPath, projectRoot) {
         this.projectRoot = projectRoot;
         this.config = {}; // Will be loaded
         this.consensusEngine = new ConsensusEngine(this.config);
         this.roadmapAnalyzer = new RoadmapAnalyzer(projectRoot);
+        this.actionHandlers = this.createActionHandlers();
     }
     /**
      * Load swarm configuration
@@ -104,109 +129,89 @@ export class SwarmOrchestrator {
         }
     }
     /**
+     * Build the action-name → handler dispatch table. Several action names map
+     * to the same handler by design (e.g. all voting actions, all "refresh
+     * content" doc actions).
+     */
+    createActionHandlers() {
+        const vote = (agents, execution, threshold) => this.conductVoting(execution, agents, threshold);
+        const docSyncReport = (_agents, execution) => this.writeDocumentationSyncReport(execution);
+        const prioritize = (_agents, execution) => this.prioritizeProposals(execution);
+        return {
+            // Roadmap workflow
+            scan_codebase_for_features: (_a, e) => this.scanCodebaseForFeatures(e),
+            compare_roadmap_vs_reality: (_a, e) => this.compareRoadmapVsReality(e),
+            propose_roadmap_updates: (a, e) => this.proposeRoadmapUpdates(a, e),
+            validate_technical_feasibility: (a, e) => this.validateTechnicalFeasibility(a, e),
+            vote_on_proposals: vote,
+            vote_on_features: vote,
+            vote_on_refactor_plan: vote,
+            update_feature_roadmap: (_a, e) => this.updateFeatureRoadmap(e),
+            suggest_new_features: (a, e) => this.proposeFeatures(a, e),
+            prioritize_backlog: prioritize,
+            // Feature brainstorm workflow
+            analyze_user_needs: (a, e) => this.analyzeUserNeeds(a, e),
+            identify_market_trends: (a, e) => this.identifyMarketTrends(a, e),
+            propose_features: (a, e) => this.proposeFeatures(a, e),
+            prioritize_queue: prioritize,
+            create_implementation_plan: (a, e) => this.createImplementationPlan(a, e),
+            // Maintainability refactor workflow
+            scan_codebase_hotspots: (a, e) => this.scanCodebaseHotspots(a, e),
+            detect_code_smells: (a, e) => this.detectCodeSmells(a, e),
+            identify_dependency_risks: (a, e) => this.identifyDependencyRisks(a, e),
+            propose_refactor_candidates: (a, e) => this.proposeRefactorCandidates(a, e),
+            estimate_effort_and_risk: (a, e) => this.estimateEffortAndRisk(a, e),
+            define_success_metrics: (a, e) => this.defineSuccessMetrics(a, e),
+            identify_required_tests: (a, e) => this.identifyRequiredTests(a, e),
+            define_verification_steps: (a, e) => this.defineVerificationSteps(a, e),
+            write_baseline_report: (_a, e) => this.writeBaselineReport(e),
+            prioritize_execution_order: prioritize,
+            apply_refactors: (_a, e) => this.writeRefactorReportUnlessDryRun(e),
+            update_docs_and_logs: (_a, e) => this.writeRefactorReportUnlessDryRun(e),
+            // Documentation sync workflow
+            scan_all_documentation: (_a, e) => this.scanAllDocumentation(e),
+            validate_cross_references: (_a, e) => this.validateCrossReferences(e),
+            check_version_consistency: (_a, e) => this.checkVersionConsistency(e),
+            identify_outdated_content: (_a, e) => this.identifyOutdatedContent(e),
+            verify_roadmap_accuracy: (_a, e) => this.compareRoadmapVsReality(e),
+            validate_technical_claims: (_a, e) => this.validateTechnicalClaims(e),
+            check_feature_status: (_a, e) => this.scanCodebaseForFeatures(e),
+            fix_inconsistencies: docSyncReport,
+            update_dates_versions: docSyncReport,
+            refresh_content: docSyncReport,
+            improve_clarity: docSyncReport
+        };
+    }
+    /**
      * Execute an action
      */
     async executeAction(action, agents, execution, consensusThreshold) {
         logger.info(`Executing action: ${action}`);
-        switch (action) {
-            case 'scan_codebase_for_features':
-                return await this.scanCodebaseForFeatures(execution);
-            case 'compare_roadmap_vs_reality':
-                return await this.compareRoadmapVsReality(execution);
-            case 'propose_roadmap_updates':
-                return await this.proposeRoadmapUpdates(agents, execution);
-            case 'validate_technical_feasibility':
-                return await this.validateTechnicalFeasibility(agents, execution);
-            case 'vote_on_proposals':
-                return await this.conductVoting(execution, agents, consensusThreshold);
-            case 'vote_on_features':
-                return await this.conductVoting(execution, agents, consensusThreshold);
-            case 'vote_on_refactor_plan':
-                return await this.conductVoting(execution, agents, consensusThreshold);
-            case 'update_feature_roadmap':
-                return await this.updateFeatureRoadmap(execution);
-            // Roadmap workflow enhancements
-            case 'suggest_new_features':
-                return await this.proposeFeatures(agents, execution);
-            case 'prioritize_backlog':
-                return await this.prioritizeQueue(execution);
-            // Feature brainstorm workflow
-            case 'analyze_user_needs':
-                return await this.analyzeUserNeeds(agents, execution);
-            case 'identify_market_trends':
-                return await this.identifyMarketTrends(agents, execution);
-            case 'propose_features':
-                return await this.proposeFeatures(agents, execution);
-            case 'assess_complexity':
-            case 'identify_dependencies':
-            case 'estimate_effort':
-            case 'discuss_tradeoffs':
-            case 'refine_proposals':
-            case 'create_specifications':
-                return null;
-            case 'prioritize_queue':
-                return await this.prioritizeQueue(execution);
-            case 'create_implementation_plan':
-                return await this.createImplementationPlan(agents, execution);
-            // Maintainability refactor workflow
-            case 'scan_codebase_hotspots':
-                return await this.scanCodebaseHotspots(agents, execution);
-            case 'detect_code_smells':
-                return await this.detectCodeSmells(agents, execution);
-            case 'identify_dependency_risks':
-                return await this.identifyDependencyRisks(agents, execution);
-            case 'propose_refactor_candidates':
-                return await this.proposeRefactorCandidates(agents, execution);
-            case 'estimate_effort_and_risk':
-                return await this.estimateEffortAndRisk(agents, execution);
-            case 'define_success_metrics':
-                return await this.defineSuccessMetrics(agents, execution);
-            case 'identify_required_tests':
-                return await this.identifyRequiredTests(agents, execution);
-        case 'define_verification_steps':
-            return await this.defineVerificationSteps(agents, execution);
-        case 'write_baseline_report':
-            return await this.writeBaselineReport(execution);
-        case 'prioritize_execution_order':
-            return await this.prioritizeExecutionOrder(execution);
-        case 'apply_refactors':
-            return await this.applyRefactorPlan(execution);
-            case 'update_docs_and_logs':
-                return await this.updateRefactorDocs(execution);
-            // Documentation sync workflow (minimal viable implementation)
-            case 'scan_all_documentation':
-                return await this.scanAllDocumentation(execution);
-            case 'validate_cross_references':
-                return await this.validateCrossReferences(execution);
-            case 'check_version_consistency':
-                return await this.checkVersionConsistency(execution);
-            case 'identify_outdated_content':
-                return await this.identifyOutdatedContent(execution);
-            case 'verify_roadmap_accuracy':
-                return await this.compareRoadmapVsReality(execution);
-            case 'validate_technical_claims':
-                return await this.validateTechnicalClaims(execution);
-            case 'check_feature_status':
-                return await this.scanCodebaseForFeatures(execution);
-            case 'fix_inconsistencies':
-            case 'update_dates_versions':
-            case 'refresh_content':
-            case 'improve_clarity':
-                return await this.writeDocumentationSyncReport(execution);
-            // No-op actions (configured in swarm-agents.json but not yet implemented)
-            case 'identify_completion_status':
-            case 'check_documentation_impact':
-            case 'resolve_conflicts':
-            case 'finalize_updates':
-            case 'update_documentation_index':
-            case 'log_changes':
-                return null;
-            default:
-                logger.warn(`Unknown action: ${action}`);
-                return null;
+        const handler = this.actionHandlers[action];
+        if (handler) {
+            return await handler(agents, execution, consensusThreshold);
         }
+        if (!SwarmOrchestrator.NOOP_ACTIONS.has(action)) {
+            logger.warn(`Unknown action: ${action}`);
+        }
+        return null;
     }
-
+    /**
+     * Append a discussion message to an execution, filling in the id/timestamp.
+     */
+    addDiscussion(execution, agentId, message, type = 'comment', proposalId) {
+        const discussion = {
+            id: this.generateId(),
+            agent_id: agentId,
+            message,
+            type,
+            timestamp: new Date()
+        };
+        if (proposalId !== undefined) {
+            discussion.proposal_id = proposalId;
+        }
+        execution.discussions.push(discussion);
+    }
     async listDocumentationFiles() {
         const files = await glob('{docs/**/*.md,README.md,Description.md,AGENTS.md,TEST_COVERAGE_REPORT.md,TEST_COVERAGE_DRY_RUN.md}', {
             cwd: this.projectRoot,
@@ -215,19 +220,19 @@ export class SwarmOrchestrator {
         });
         return files;
     }
-
+    /** List the app's TypeScript source files (excluding tests). */
+    listAppSourceFiles() {
+        return glob(APP_SOURCE_GLOB, {
+            cwd: this.projectRoot,
+            nodir: true,
+            ignore: APP_SOURCE_IGNORE
+        });
+    }
     async scanAllDocumentation(execution) {
         const files = await this.listDocumentationFiles();
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'documentation-agent',
-            message: `Documentation audit: found ${files.length} markdown file(s) to scan.`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'documentation-agent', `Documentation audit: found ${files.length} markdown file(s) to scan.`);
         return { files };
     }
-
     async validateCrossReferences(execution) {
         const files = await this.listDocumentationFiles();
         const broken = [];
@@ -258,16 +263,9 @@ export class SwarmOrchestrator {
             }
         }
         const sample = broken.slice(0, 5).map(b => `${b.from} -> ${b.to}`).join('; ');
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'documentation-agent',
-            message: `Cross-reference check: ${broken.length} broken link(s) detected${sample ? ` (sample: ${sample})` : ''}.`,
-            type: broken.length > 0 ? 'concern' : 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'documentation-agent', `Cross-reference check: ${broken.length} broken link(s) detected${sample ? ` (sample: ${sample})` : ''}.`, broken.length > 0 ? 'concern' : 'comment');
         return { broken };
     }
-
     async checkVersionConsistency(execution) {
         const keyDocs = [
             'docs/planning/project-status.md',
@@ -302,18 +300,11 @@ export class SwarmOrchestrator {
                 issues.push(`${doc}: Last Updated is in the future (${raw})`);
             }
         }
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'documentation-agent',
-            message: issues.length > 0
-                ? `Version/date consistency: ${issues.length} issue(s) (${issues.slice(0, 3).join('; ')})`
-                : 'Version/date consistency: no issues found in key docs.',
-            type: issues.length > 0 ? 'concern' : 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'documentation-agent', issues.length > 0
+            ? `Version/date consistency: ${issues.length} issue(s) (${issues.slice(0, 3).join('; ')})`
+            : 'Version/date consistency: no issues found in key docs.', issues.length > 0 ? 'concern' : 'comment');
         return { issues };
     }
-
     async identifyOutdatedContent(execution) {
         const findings = [];
         const statusDoc = path.join(this.projectRoot, 'docs/planning/project-status.md');
@@ -342,38 +333,18 @@ export class SwarmOrchestrator {
         catch {
             findings.push('no local jest coverage summary found (run app tests with --coverage to generate)');
         }
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'documentation-agent',
-            message: `Outdated-content scan: ${findings.join(' | ')}`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'documentation-agent', `Outdated-content scan: ${findings.join(' | ')}`);
         return { findings };
     }
-
     async validateTechnicalClaims(execution) {
         // Minimal implementation: record that claims are not validated automatically.
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'technical-agent',
-            message: 'Technical-claims validation: minimal checker active (link + date + roadmap drift only).',
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'technical-agent', 'Technical-claims validation: minimal checker active (link + date + roadmap drift only).');
         return { ok: true };
     }
-
     async writeDocumentationSyncReport(execution) {
         // Dry-run: emit a summary to stdout via discussions, but do not write files.
         if (execution.dry_run) {
-            execution.discussions.push({
-                id: this.generateId(),
-                agent_id: 'documentation-agent',
-                message: 'Documentation sync: dry-run mode (no files written).',
-                type: 'comment',
-                timestamp: new Date()
-            });
+            this.addDiscussion(execution, 'documentation-agent', 'Documentation sync: dry-run mode (no files written).');
             return null;
         }
         const reportPath = path.join(this.projectRoot, 'docs/quality/documentation-sync-report.md');
@@ -398,13 +369,7 @@ export class SwarmOrchestrator {
     async scanCodebaseForFeatures(execution) {
         logger.info('Scanning codebase for features...');
         const analysis = await this.roadmapAnalyzer.analyzeRoadmap();
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: 'strategy-agent',
-            message: `Roadmap analysis complete: ${analysis.completed_features}/${analysis.total_features} features done (${analysis.completion_percentage.toFixed(1)}%). Found ${analysis.gaps.length} gaps.`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, 'strategy-agent', `Roadmap analysis complete: ${analysis.completed_features}/${analysis.total_features} features done (${analysis.completion_percentage.toFixed(1)}%). Found ${analysis.gaps.length} gaps.`);
         return analysis;
     }
     /**
@@ -413,13 +378,7 @@ export class SwarmOrchestrator {
     async compareRoadmapVsReality(execution) {
         const analysis = await this.roadmapAnalyzer.analyzeRoadmap();
         if (analysis.gaps.length > 0) {
-            execution.discussions.push({
-                id: this.generateId(),
-                agent_id: 'technical-agent',
-                message: `Found ${analysis.gaps.length} discrepancies between roadmap and implementation. Critical gaps: ${analysis.gaps.filter(g => g.gap_severity === 'critical').length}`,
-                type: 'concern',
-                timestamp: new Date()
-            });
+            this.addDiscussion(execution, 'technical-agent', `Found ${analysis.gaps.length} discrepancies between roadmap and implementation. Critical gaps: ${analysis.gaps.filter(g => g.gap_severity === 'critical').length}`, 'concern');
         }
         return analysis;
     }
@@ -461,36 +420,17 @@ export class SwarmOrchestrator {
             return;
         for (const proposal of execution.proposals) {
             if (proposal.impact === 'high') {
-                execution.discussions.push({
-                    id: this.generateId(),
-                    agent_id: technicalAgent.id,
-                    proposal_id: proposal.id,
-                    message: `Reviewing technical feasibility of: ${proposal.title}`,
-                    type: 'comment',
-                    timestamp: new Date()
-                });
+                this.addDiscussion(execution, technicalAgent.id, `Reviewing technical feasibility of: ${proposal.title}`, 'comment', proposal.id);
             }
         }
     }
     async analyzeUserNeeds(agents, execution) {
         const productAgent = agents.find(a => a.role === 'product_management') ?? agents[0];
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: productAgent?.id ?? 'product-agent',
-            message: 'Brainstorm: deriving feature ideas from explicit TODOs in docs/features/*.md (grounded, offline).',
-            type: 'suggestion',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, productAgent?.id ?? 'product-agent', 'Brainstorm: deriving feature ideas from explicit TODOs in docs/features/*.md (grounded, offline).', 'suggestion');
     }
     async identifyMarketTrends(agents, execution) {
         const strategyAgent = agents.find(a => a.role === 'strategic_planning') ?? agents[0];
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: strategyAgent?.id ?? 'strategy-agent',
-            message: 'Brainstorm: no external internet sources; using repo docs + existing feature backlog as the source of truth.',
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, strategyAgent?.id ?? 'strategy-agent', 'Brainstorm: no external internet sources; using repo docs + existing feature backlog as the source of truth.');
     }
     async proposeFeatures(agents, execution) {
         const productAgent = agents.find(a => a.role === 'product_management') ?? agents[0];
@@ -525,13 +465,7 @@ export class SwarmOrchestrator {
             execution.proposals.push(proposal);
             added++;
         }
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: productAgent?.id ?? 'product-agent',
-            message: `Generated ${added} feature proposal(s) from docs TODOs`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, productAgent?.id ?? 'product-agent', `Generated ${added} feature proposal(s) from docs TODOs`);
     }
     inferImpact(title) {
         const t = title.toLowerCase();
@@ -545,11 +479,19 @@ export class SwarmOrchestrator {
     }
     async collectFeatureIdeasFromDocs() {
         const baseDir = path.join(this.projectRoot, 'docs/features');
-        const files = await this.collectFilesRecursive(baseDir);
+        const featureFiles = await this.collectFilesRecursive(baseDir);
+        const proposalsFile = path.join(this.projectRoot, 'docs/planning/strategy/proposals.md');
+        const files = [...featureFiles];
+        try {
+            await fs.access(proposalsFile);
+            files.push(proposalsFile);
+        }
+        catch {
+            // ignore
+        }
         const seen = new Set();
         const ideas = [];
-        const isTestLike = (t) =>
-            /\b(cannot|works|accurate|state|shows|closes|receive|respected|validation|counter|button)\b/i.test(t);
+        const isTestLike = (t) => /\b(cannot|works|accurate|state|shows|closes|receive|respected|validation|counter|button)\b/i.test(t);
         const prefixFromSlug = (slug) => slug
             .replace(/\.md$/, '')
             .split(/[-_]/g)
@@ -612,31 +554,20 @@ export class SwarmOrchestrator {
         }
         return out;
     }
-    async prioritizeQueue(execution) {
-        const score = (p) => (p.impact === 'high' ? 3 : p.impact === 'medium' ? 2 : 1) * p.confidence;
-        execution.proposals.sort((a, b) => score(b) - score(a));
+    /** Order proposals by descending impact-weighted-by-confidence score. */
+    async prioritizeProposals(execution) {
+        execution.proposals.sort((a, b) => scoreProposal(b) - scoreProposal(a));
     }
     async createImplementationPlan(agents, execution) {
         const strategyAgent = agents.find(a => a.role === 'strategic_planning') ?? agents[0];
         const approved = execution.proposals.filter(p => execution.consensus_results.find(c => c.proposal_id === p.id)?.approved);
         for (const proposal of approved) {
-            execution.discussions.push({
-                id: this.generateId(),
-                agent_id: strategyAgent?.id ?? 'strategy-agent',
-                proposal_id: proposal.id,
-                message: `Implementation plan (high level): add spec doc in docs/features/, wire UI entrypoint, add tests, then update roadmap status.`,
-                type: 'suggestion',
-                timestamp: new Date()
-            });
+            this.addDiscussion(execution, strategyAgent?.id ?? 'strategy-agent', `Implementation plan (high level): add spec doc in docs/features/, wire UI entrypoint, add tests, then update roadmap status.`, 'suggestion', proposal.id);
         }
     }
     async scanCodebaseHotspots(agents, execution) {
         const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
-        const files = await glob('app/src/**/*.{ts,tsx}', {
-            cwd: this.projectRoot,
-            nodir: true,
-            ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
-        });
+        const files = await this.listAppSourceFiles();
         const stats = await Promise.all(files.map(async (file) => {
             const content = await fs.readFile(path.join(this.projectRoot, file), 'utf-8');
             const lines = content.split('\n').length;
@@ -645,22 +576,12 @@ export class SwarmOrchestrator {
         }));
         const byLines = [...stats].sort((a, b) => b.lines - a.lines).slice(0, 10);
         const byComplexity = [...stats].sort((a, b) => b.decisionPoints - a.decisionPoints).slice(0, 10);
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: auditor?.id ?? 'maintainability-auditor',
-            message: `Hotspot scan complete. Top by size: ${byLines[0]?.file ?? 'n/a'} (${byLines[0]?.lines ?? 0} lines). Top by complexity: ${byComplexity[0]?.file ?? 'n/a'} (${byComplexity[0]?.decisionPoints ?? 0} decision points).`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, auditor?.id ?? 'maintainability-auditor', `Hotspot scan complete. Top by size: ${byLines[0]?.file ?? 'n/a'} (${byLines[0]?.lines ?? 0} lines). Top by complexity: ${byComplexity[0]?.file ?? 'n/a'} (${byComplexity[0]?.decisionPoints ?? 0} decision points).`);
         return { byLines, byComplexity };
     }
     async detectCodeSmells(agents, execution) {
         const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
-        const files = await glob('app/src/**/*.{ts,tsx}', {
-            cwd: this.projectRoot,
-            nodir: true,
-            ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
-        });
+        const files = await this.listAppSourceFiles();
         let anyCount = 0;
         let todoCount = 0;
         let consoleCount = 0;
@@ -672,22 +593,12 @@ export class SwarmOrchestrator {
             consoleCount += (content.match(/console\.(log|warn|error|debug)/g) || []).length;
             deepNestingCount += content.split('\n').filter(line => line.search(/\S/) > 12).length;
         }
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: auditor?.id ?? 'maintainability-auditor',
-            message: `Code smell summary: any=${anyCount}, todos=${todoCount}, console=${consoleCount}, deep_nesting_lines=${deepNestingCount}.`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, auditor?.id ?? 'maintainability-auditor', `Code smell summary: any=${anyCount}, todos=${todoCount}, console=${consoleCount}, deep_nesting_lines=${deepNestingCount}.`);
         return { anyCount, todoCount, consoleCount, deepNestingCount };
     }
     async identifyDependencyRisks(agents, execution) {
         const curator = agents.find(a => a.id === 'dependency-curator') ?? agents[0];
-        const files = await glob('app/src/**/*.{ts,tsx}', {
-            cwd: this.projectRoot,
-            nodir: true,
-            ignore: ['**/__tests__/**', '**/*.spec.ts', '**/*.spec.tsx'],
-        });
+        const files = await this.listAppSourceFiles();
         const graph = new Map();
         for (const file of files) {
             const content = await fs.readFile(path.join(this.projectRoot, file), 'utf-8');
@@ -731,13 +642,7 @@ export class SwarmOrchestrator {
         };
         for (const file of files)
             visit(file, []);
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: curator?.id ?? 'dependency-curator',
-            message: `Dependency scan complete: ${cycles.length} potential cycle(s) detected.`,
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, curator?.id ?? 'dependency-curator', `Dependency scan complete: ${cycles.length} potential cycle(s) detected.`);
         return { cycles: cycles.slice(0, 5) };
     }
     async proposeRefactorCandidates(agents, execution) {
@@ -768,59 +673,35 @@ export class SwarmOrchestrator {
     async estimateEffortAndRisk(agents, execution) {
         const tech = agents.find(a => a.role === 'technical_assessment') ?? agents[0];
         for (const proposal of execution.proposals) {
-            execution.discussions.push({
-                id: this.generateId(),
-                agent_id: tech?.id ?? 'technical-agent',
-                proposal_id: proposal.id,
-                message: `Effort estimate: ${proposal.impact === 'high' ? '5-8 days' : '2-4 days'}. Risk: ${proposal.impact === 'high' ? 'medium' : 'low'}.`,
-                type: 'comment',
-                timestamp: new Date()
-            });
+            this.addDiscussion(execution, tech?.id ?? 'technical-agent', `Effort estimate: ${proposal.impact === 'high' ? '5-8 days' : '2-4 days'}. Risk: ${proposal.impact === 'high' ? 'medium' : 'low'}.`, 'comment', proposal.id);
         }
     }
     async defineSuccessMetrics(agents, execution) {
         const auditor = agents.find(a => a.id === 'maintainability-auditor') ?? agents[0];
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: auditor?.id ?? 'maintainability-auditor',
-            message: 'Success metrics: reduce file size by 30%, reduce decision points by 25%, keep tests green, no API changes.',
-            type: 'suggestion',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, auditor?.id ?? 'maintainability-auditor', 'Success metrics: reduce file size by 30%, reduce decision points by 25%, keep tests green, no API changes.', 'suggestion');
     }
     async identifyRequiredTests(agents, execution) {
         const guard = agents.find(a => a.id === 'regression-guard') ?? agents[0];
-        for (const proposal of execution.proposals) {
-            execution.discussions.push({
-                id: this.generateId(),
-                agent_id: guard?.id ?? 'regression-guard',
-                proposal_id: proposal.id,
-                message: 'Add or update unit tests around core flows touched by this refactor (providers, hooks, services).',
-                type: 'suggestion',
-                timestamp: new Date()
-            });
+        const guardId = guard?.id ?? 'regression-guard';
+        const roadmapAnalysis = execution.phases.find(p => p.name === 'documentation_audit')?.outputs?.compare_roadmap_vs_reality;
+        const evidence = roadmapAnalysis?.evidence || {};
+        for (const [featureName, files] of Object.entries(evidence)) {
+            if (typeof files === 'object' && Array.isArray(files)) {
+                const testFile = files[0].replace(/\.(ts|tsx)$/, '.spec.$1').replace('app/src/', 'app/src/__tests__/');
+                this.addDiscussion(execution, guardId, `Required test: Create/update tests for ${featureName} in ${testFile}. Ensure it covers the recent changes in ${files.join(', ')}.`, 'suggestion');
+            }
+        }
+        if (execution.proposals.length > 0) {
+            for (const proposal of execution.proposals) {
+                this.addDiscussion(execution, guardId, 'Add regression tests for this proposed change to ensure core flows (providers, hooks, services) remain stable.', 'suggestion', proposal.id);
+            }
         }
     }
     async defineVerificationSteps(agents, execution) {
         const guard = agents.find(a => a.id === 'regression-guard') ?? agents[0];
-        execution.discussions.push({
-            id: this.generateId(),
-            agent_id: guard?.id ?? 'regression-guard',
-            message: 'Verification: run npm test, smoke test add beer flow, verify no runtime warnings in console.',
-            type: 'comment',
-            timestamp: new Date()
-        });
+        this.addDiscussion(execution, guard?.id ?? 'regression-guard', 'Verification: run npm test, smoke test add beer flow, verify no runtime warnings in console.');
     }
-    async prioritizeExecutionOrder(execution) {
-        const score = (p) => (p.impact === 'high' ? 3 : p.impact === 'medium' ? 2 : 1) * p.confidence;
-        execution.proposals.sort((a, b) => score(b) - score(a));
-    }
-    async applyRefactorPlan(execution) {
-        if (execution.dry_run)
-            return;
-        await this.writeRefactorReport(execution);
-    }
-    async updateRefactorDocs(execution) {
+    async writeRefactorReportUnlessDryRun(execution) {
         if (execution.dry_run)
             return;
         await this.writeRefactorReport(execution);

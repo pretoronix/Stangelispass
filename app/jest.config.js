@@ -1,3 +1,10 @@
+// Pin the timezone before worker processes are forked so date-dependent tests
+// (e.g. the Early Bird / Night Owl achievement tests, written against local CET)
+// are deterministic regardless of the host/CI timezone. This must live here in
+// the parent process; setting it later (e.g. in a setupFile) is too late because
+// V8 caches the timezone on first use. Honors an existing TZ override.
+process.env.TZ = process.env.TZ || 'Europe/Zurich';
+
 module.exports = {
     preset: 'jest-expo',
     setupFiles: ['<rootDir>/jest/setupEnv.js'],
