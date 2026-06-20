@@ -29,6 +29,16 @@ export default async function execute(
 ): Promise<ScriptResult> {
   console.log(`[${context.agent_name}] Analyzing test coverage...`);
 
+  const istanbulSummary = tryLoadIstanbulSummary();
+
+  if (istanbulSummary) {
+    const report = generateIstanbulCoverageReport(istanbulSummary);
+    return {
+      output: report.output,
+      metrics: report.metrics,
+    };
+  }
+
   // Get all source files
   const sourceFiles = await glob('app/src/**/*.{ts,tsx}', {
     cwd: process.cwd(),
@@ -108,6 +118,128 @@ export default async function execute(
       untested_files: coverage.untested_files.length,
       total_tests: coverage.total_tests,
       coverage_percentage: coverage.coverage_percentage,
+    },
+  };
+}
+
+type IstanbulMetric = {
+  total: number;
+  covered: number;
+  pct: number;
+  skipped: number;
+};
+
+type IstanbulFileSummary = {
+  lines: IstanbulMetric;
+  statements: IstanbulMetric;
+  functions: IstanbulMetric;
+  branches: IstanbulMetric;
+  branchesTrue?: IstanbulMetric;
+};
+
+type IstanbulCoverageSummary = Record<string, IstanbulFileSummary> & {
+  total: IstanbulFileSummary;
+};
+
+type IstanbulReport = {
+  output: string;
+  metrics: Record<string, number>;
+};
+
+function tryLoadIstanbulSummary(): IstanbulCoverageSummary | null {
+  try {
+    const summaryPath = path.join(
+      process.cwd(),
+      'app',
+      'coverage',
+      'coverage-summary.json'
+    );
+    if (!fs.existsSync(summaryPath)) {
+      return null;
+    }
+    const raw = fs.readFileSync(summaryPath, 'utf-8');
+    const parsed = JSON.parse(raw) as IstanbulCoverageSummary;
+    if (parsed?.total?.lines?.pct == null) return null;
+    return parsed;
+  } catch (e) {
+    console.warn('[coverage-report] Failed to parse coverage-summary.json, falling back to file scan:', e);
+    return null;
+  }
+}
+
+function generateIstanbulCoverageReport(summary: IstanbulCoverageSummary): IstanbulReport {
+  const totals = summary.total;
+  const entries = Object.entries(summary)
+    .filter(([key]) => key !== 'total')
+    .map(([absPath, stats]) => ({
+      absPath,
+      relPath: absPath.replace(`${process.cwd()}/app/`, ''),
+      stats,
+    }))
+    .filter(({ relPath, stats }) => {
+      if (!relPath.startsWith('src/')) return false;
+      if (relPath.includes('/__tests__/')) return false;
+      if (/\.(spec|test)\.[jt]sx?$/.test(relPath)) return false;
+      if (relPath.includes('/types/')) return false;
+      if (stats.statements.total < 10) return false;
+      return true;
+    });
+
+  const bottomByStatements = [...entries]
+    .sort((a, b) => a.stats.statements.pct - b.stats.statements.pct)
+    .slice(0, 20);
+
+  const bottomByBranches = [...entries]
+    .sort((a, b) => a.stats.branches.pct - b.stats.branches.pct)
+    .slice(0, 20);
+
+  const nextTargets = Array.from(
+    new Set([
+      ...bottomByStatements.slice(0, 5).map((e) => e.relPath),
+      ...bottomByBranches.slice(0, 5).map((e) => e.relPath),
+    ])
+  );
+
+  const lines = [
+    '',
+    '╔═══════════════════════════════════════════════════════╗',
+    '║           TEST COVERAGE (ISTANBUL)                    ║',
+    '╚═══════════════════════════════════════════════════════╝',
+    '',
+    '📊 GLOBAL TOTALS',
+    '─────────────────────────────────────────────────────────',
+    `  Lines:       ${totals.lines.pct}% (${totals.lines.covered}/${totals.lines.total})`,
+    `  Statements:  ${totals.statements.pct}% (${totals.statements.covered}/${totals.statements.total})`,
+    `  Functions:   ${totals.functions.pct}% (${totals.functions.covered}/${totals.functions.total})`,
+    `  Branches:    ${totals.branches.pct}% (${totals.branches.covered}/${totals.branches.total})`,
+    '',
+    '🔻 BOTTOM FILES BY STATEMENT %',
+    '─────────────────────────────────────────────────────────',
+    ...bottomByStatements.map(
+      (e) => `  • ${String(e.stats.statements.pct).padStart(5)}%  ${e.relPath}`
+    ),
+    '',
+    '🔻 BOTTOM FILES BY BRANCH %',
+    '─────────────────────────────────────────────────────────',
+    ...bottomByBranches.map(
+      (e) => `  • ${String(e.stats.branches.pct).padStart(5)}%  ${e.relPath}`
+    ),
+    '',
+    '📝 NEXT TARGETS',
+    '─────────────────────────────────────────────────────────',
+    ...nextTargets.map((p) => `  • ${p}`),
+    '─────────────────────────────────────────────────────────',
+    '',
+  ];
+
+  return {
+    output: lines.join('\n'),
+    metrics: {
+      total_lines_pct: totals.lines.pct,
+      total_statements_pct: totals.statements.pct,
+      total_functions_pct: totals.functions.pct,
+      total_branches_pct: totals.branches.pct,
+      tracked_files: entries.length,
     },
   };
 }

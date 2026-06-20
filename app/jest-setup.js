@@ -1,5 +1,7 @@
 import '@testing-library/jest-native/extend-expect';
 import { cleanup } from '@testing-library/react-native';
+import { act } from '@testing-library/react-native';
+import { notifyManager, timeoutManager } from '@tanstack/query-core';
 
 // Essential React Native mocks for Jest (this file runs after the test framework is installed)
 import 'react-native-gesture-handler/jestSetup';
@@ -25,6 +27,37 @@ jest.mock('@tanstack/query-async-storage-persister', () => ({
 jest.mock('@tanstack/react-query-persist-client', () => ({
   PersistQueryClientProvider: ({ children }) => children,
 }));
+
+// React Query can schedule async notifications/timers that trigger act() warnings
+// and keep Jest open. Force notifications and scheduling to be synchronous in tests.
+notifyManager.setNotifyFunction((fn) => {
+  void act(async () => {
+    fn();
+  });
+});
+notifyManager.setScheduler((cb) => {
+  if (typeof globalThis.queueMicrotask === 'function') {
+    globalThis.queueMicrotask(cb);
+  } else {
+    Promise.resolve().then(cb);
+  }
+});
+
+// Prevent TanStack Query's gc timers from keeping Jest alive (detectOpenHandles / "did not exit").
+timeoutManager.setTimeoutProvider({
+  setTimeout: (callback, delay) => {
+    const id = globalThis.setTimeout(callback, delay);
+    id?.unref?.();
+    return id;
+  },
+  clearTimeout: (timeoutId) => globalThis.clearTimeout(timeoutId),
+  setInterval: (callback, delay) => {
+    const id = globalThis.setInterval(callback, delay);
+    id?.unref?.();
+    return id;
+  },
+  clearInterval: (intervalId) => globalThis.clearInterval(intervalId),
+});
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({

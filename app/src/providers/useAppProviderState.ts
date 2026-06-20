@@ -72,14 +72,12 @@ export const useAppProviderState = (): AppContextType => {
   }, [usersQuery]);
 
   const refreshActiveEvent = useCallback(async () => {
-    await activeEventQuery
-      .refetch()
-      .catch((e) =>
-        reportError(e, {
-          scope: "app_provider",
-          action: "refresh_active_event",
-        }),
-      );
+    await activeEventQuery.refetch().catch((e) =>
+      reportError(e, {
+        scope: "app_provider",
+        action: "refresh_active_event",
+      }),
+    );
   }, [activeEventQuery]);
 
   // Sync Logic Hook (Connectivity, Local Overrides, Subscriptions)

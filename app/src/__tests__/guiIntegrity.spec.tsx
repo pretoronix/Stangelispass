@@ -170,6 +170,11 @@ jest.mock("@/hooks/usePacePreset", () => ({
   })),
 }));
 
+jest.mock("@/hooks/useWallOfFame", () => ({
+  useUserToasts: jest.fn(() => ({ data: [] })),
+  useBeerClink: jest.fn(() => ({ toggleToast: jest.fn(), isLoading: false })),
+}));
+
 jest.mock("@/components/home/StartRoundPrompt", () => ({
   StartRoundPrompt: () => null,
 }));
@@ -204,6 +209,7 @@ jest.mock("@/services/supabase", () => {
     ...actual,
     getBeers: jest.fn(async () => []),
     removeBeer: jest.fn(async () => null),
+    getWallOfFame: jest.fn(async () => []),
     supabase: {
       channel: jest.fn(() => ({
         on: jest.fn().mockReturnThis(),
@@ -292,6 +298,18 @@ import HomeScreen from "@/app/index";
 import AddBeerScreen from "@/app/add";
 import HistoryScreen from "@/app/history";
 import SettingsScreen from "@/app/settings";
+import ProfileScreen from "@/app/profile";
+import LegendsScreen from "@/app/legends";
+
+jest.mock("@/hooks/profile/useProfileData", () => ({
+  useProfileData: () => ({
+    beers: [],
+    roundBeers: [],
+    achievements: [],
+    refreshing: false,
+    refresh: jest.fn(),
+  }),
+}));
 
 const AllProviders = ({ children }: { children: React.ReactNode }) => (
   <SafeAreaProvider>
@@ -445,6 +463,33 @@ describe("GUI Integrity Tests", () => {
       expect(screen.getByText(/Switch Member/i)).toBeTruthy();
       expect(screen.getByText("Alice")).toBeTruthy();
       expect(screen.getByText("Bob")).toBeTruthy();
+    });
+  });
+
+  describe("Profile Screen", () => {
+    it("renders no user view when no current user", async () => {
+      mockAppContext.currentUser = null;
+      render(<ProfileScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(screen.getByText(/Please select a user/i)).toBeTruthy());
+    });
+
+    it("renders profile content when user is logged in", async () => {
+      mockAppContext.currentUser = { id: "u1", name: "Alice", is_admin: false, weight_kg: 70, gender: "female" };
+      render(<ProfileScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(screen.getByText(/Trophy Case/i)).toBeTruthy());
+      expect(screen.getByText(/Soberness Estimator/i)).toBeTruthy();
+      expect(screen.getByText(/Consumption Stats/i)).toBeTruthy();
+    });
+  });
+
+  describe("Legends Screen", () => {
+    it("renders correctly", async () => {
+      render(<LegendsScreen />, { wrapper: AllProviders });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await waitFor(() => expect(screen.getByText(/Legends Gallery/i)).toBeTruthy());
+      expect(screen.getByText(/Hall of Fame/i)).toBeTruthy();
     });
   });
 });

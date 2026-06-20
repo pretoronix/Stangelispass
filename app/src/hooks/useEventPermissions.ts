@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useEventMembership } from "./useEventsQuery";
+import { useEventMembership } from "@/hooks/useEventsQuery";
 import {
   getPermissionsForRole,
   EventPermissions,
