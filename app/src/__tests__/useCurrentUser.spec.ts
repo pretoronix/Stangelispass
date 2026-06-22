@@ -6,6 +6,8 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
+let queryClient: QueryClient;
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -18,7 +20,7 @@ const createTestQueryClient = () =>
 const wrapper = ({ children }: { children: React.ReactNode }) =>
   React.createElement(
     QueryClientProvider,
-    { client: createTestQueryClient() },
+    { client: queryClient },
     children,
   );
 
@@ -37,11 +39,13 @@ describe("useCurrentUser", () => {
   const originalOS = Platform.OS;
 
   beforeEach(() => {
+    queryClient = createTestQueryClient();
     jest.clearAllMocks();
     setPlatformOS("ios");
   });
 
   afterEach(() => {
+    if (queryClient) queryClient.clear();
     setPlatformOS(originalOS as any);
   });
 

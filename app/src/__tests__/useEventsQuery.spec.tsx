@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   useActiveEventQuery,
@@ -35,6 +35,8 @@ jest.mock("@/services/supabase", () => ({
   },
 }));
 
+let queryClient: QueryClient;
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -45,13 +47,18 @@ const createTestQueryClient = () =>
   });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={createTestQueryClient()}>
+  <QueryClientProvider client={queryClient}>
     {children}
   </QueryClientProvider>
 );
 
 describe("useEventsQuery Hooks", () => {
+  afterEach(() => {
+    if (queryClient) queryClient.clear();
+  });
+
   beforeEach(() => {
+    queryClient = createTestQueryClient();
     jest.clearAllMocks();
   });
 
@@ -100,10 +107,12 @@ describe("useEventsQuery Hooks", () => {
 
       const { result } = renderHook(() => useStartEvent(), { wrapper });
 
-      await result.current.mutateAsync({
-        name: "New Event",
-        userId: "u1",
-        passType: "free",
+      await act(async () => {
+        await result.current.mutateAsync({
+          name: "New Event",
+          userId: "u1",
+          passType: "free",
+        });
       });
 
       expect(startEventInSupabase).toHaveBeenCalledWith(
@@ -130,7 +139,9 @@ describe("useEventsQuery Hooks", () => {
 
       const { result } = renderHook(() => useCloseEvent(), { wrapper });
 
-      await result.current.mutateAsync(mockEvent as any);
+      await act(async () => {
+        await result.current.mutateAsync(mockEvent as any);
+      });
 
       expect(closeEventInSupabase).toHaveBeenCalledWith(
         expect.objectContaining(mockEvent),

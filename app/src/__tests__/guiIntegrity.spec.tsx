@@ -468,13 +468,13 @@ describe("GUI Integrity Tests", () => {
 
   describe("Profile Screen", () => {
     it("renders no user view when no current user", async () => {
-      mockAppContext.currentUser = null;
+      mockAppContext.currentUser = null as any;
       render(<ProfileScreen />, { wrapper: AllProviders });
       await waitFor(() => expect(screen.getByText(/Please select a user/i)).toBeTruthy());
     });
 
     it("renders profile content when user is logged in", async () => {
-      mockAppContext.currentUser = { id: "u1", name: "Alice", is_admin: false, weight_kg: 70, gender: "female" };
+      mockAppContext.currentUser = { id: "u1", name: "Alice", is_admin: false, weight_kg: 70, gender: "female" } as any;
       render(<ProfileScreen />, { wrapper: AllProviders });
       await waitFor(() => expect(screen.getByText(/Trophy Case/i)).toBeTruthy());
       expect(screen.getByText(/Soberness Estimator/i)).toBeTruthy();

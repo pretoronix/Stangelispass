@@ -1,5 +1,5 @@
 import React from "react";
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAddUser, useUpdateUser, useUsers } from "@/hooks/useUsersQuery";
 
@@ -35,6 +35,7 @@ describe("useUsersQuery", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: "u1", name: "Alice" }]);
     expect(getUsers).toHaveBeenCalled();
+    client.cancelQueries(); client.clear();
   });
 
   it("useAddUser invalidates users list", async () => {
@@ -49,10 +50,13 @@ describe("useUsersQuery", () => {
     client.setQueryData(["users"], [{ id: "u1", name: "Alice" }]);
 
     const { result } = renderHook(() => useAddUser(), { wrapper });
-    await result.current.mutateAsync({ name: "Bob", isAdmin: false });
+    await act(async () => {
+      await result.current.mutateAsync({ name: "Bob", isAdmin: false });
+    });
 
     expect(addUser).toHaveBeenCalledWith("Bob", false);
     expect(client.getQueryState(["users"])?.isInvalidated).toBe(true);
+    client.cancelQueries(); client.clear();
   });
 
   it("useUpdateUser invalidates users list and specific user", async () => {
@@ -68,13 +72,16 @@ describe("useUsersQuery", () => {
     client.setQueryData(["users", "u1"], { id: "u1", name: "Alice" });
 
     const { result } = renderHook(() => useUpdateUser(), { wrapper });
-    await result.current.mutateAsync({
-      userId: "u1",
-      updates: { name: "Alice2" },
+    await act(async () => {
+      await result.current.mutateAsync({
+        userId: "u1",
+        updates: { name: "Alice2" },
+      });
     });
 
     expect(updateUser).toHaveBeenCalledWith("u1", { name: "Alice2" });
     expect(client.getQueryState(["users"])?.isInvalidated).toBe(true);
     expect(client.getQueryState(["users", "u1"])?.isInvalidated).toBe(true);
+    client.cancelQueries(); client.clear();
   });
 });

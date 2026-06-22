@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   useBeersQuery,
@@ -18,6 +18,8 @@ jest.mock("@/services/beers", () => ({
   redeemBeerStamp: jest.fn(),
 }));
 
+let queryClient: QueryClient;
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -28,13 +30,18 @@ const createTestQueryClient = () =>
   });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={createTestQueryClient()}>
+  <QueryClientProvider client={queryClient}>
     {children}
   </QueryClientProvider>
 );
 
 describe("useBeersQuery Hooks", () => {
+  afterEach(() => {
+    if (queryClient) queryClient.clear();
+  });
+
   beforeEach(() => {
+    queryClient = createTestQueryClient();
     jest.clearAllMocks();
   });
 
@@ -49,6 +56,7 @@ describe("useBeersQuery Hooks", () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data).toEqual(mockBeers);
       expect(getBeers).toHaveBeenCalledWith("e1");
+      queryClient.clear();
     });
   });
 
@@ -75,10 +83,12 @@ describe("useBeersQuery Hooks", () => {
         wrapper: testWrapper,
       });
 
-      await result.current.mutateAsync({
-        userId: "u1",
-        addedBy: "admin",
-        eventId: "e1",
+      await act(async () => {
+        await result.current.mutateAsync({
+          userId: "u1",
+          addedBy: "admin",
+          eventId: "e1",
+        });
       });
 
       // After mutation succeeds, queries should be invalidated (but here we check final state if we didn't wait)
@@ -109,10 +119,13 @@ describe("useBeersQuery Hooks", () => {
 
       // Pre-populate cache to check invalidation
       queryClient.setQueryData(["beers"], []);
-      await result.current.mutateAsync("b1");
+      await act(async () => {
+        await result.current.mutateAsync("b1");
+      });
 
       expect(removeBeer).toHaveBeenCalledWith("b1");
       expect(queryClient.getQueryState(["beers"])?.isInvalidated).toBe(true);
+      queryClient.clear();
     });
   });
 });

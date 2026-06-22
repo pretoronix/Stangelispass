@@ -1,8 +1,11 @@
 const mockReportError = jest.fn();
-const mockGetPassExpiresAt = jest.fn(() => "2099-01-01T00:00:00.000Z");
+const mockGetPassExpiresAt = jest.fn((...args: any[]) => "2099-01-01T00:00:00.000Z");
 
-const mockCreateLeaderEventSnapshot = jest.fn(async () => null);
-const mockIsMissingTableError = jest.fn((e: any) => e?.code === "42P01");
+const mockCreateLeaderEventSnapshot = jest.fn(async (...args: any[]) => null);
+const mockIsMissingTableError = jest.fn((...args: any[]) => {
+  const e = args[0];
+  return e?.code === "42P01";
+});
 
 const mockEventsSelect = jest.fn();
 const mockEventsInsert = jest.fn();

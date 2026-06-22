@@ -1,6 +1,16 @@
 import "../polyfills";
 import { useEffect } from "react";
 import { Tabs } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+
+SplashScreen.preventAutoHideAsync();
 import { AppProvider } from "@/providers/AppProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -21,6 +31,23 @@ import { BEER_QUERY_KEYS, EVENT_QUERY_KEYS } from "@/hooks/query";
 import { logInfo, reportError } from "@/utils/logger";
 
 export default function RootLayout() {
+  const [loaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <AppErrorBoundary>

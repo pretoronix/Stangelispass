@@ -12,6 +12,8 @@ import { labels } from "@/ui/labels";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
+let queryClient: QueryClient;
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -21,7 +23,7 @@ const createTestQueryClient = () =>
   });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={createTestQueryClient()}>
+  <QueryClientProvider client={queryClient}>
     {children}
   </QueryClientProvider>
 );
@@ -300,7 +302,12 @@ jest.mock("@/components/add/SelectedUserCard", () => {
 });
 
 describe("UI Error Handling", () => {
+  afterEach(() => {
+    if (queryClient) queryClient.clear();
+  });
+
   beforeEach(() => {
+    queryClient = createTestQueryClient();
     jest.clearAllMocks();
     mockUseUsers.mockReturnValue({
       data: [mockUser],

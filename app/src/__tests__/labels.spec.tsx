@@ -225,6 +225,7 @@ describe("UI labels", () => {
       ).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.whoPays.testID)).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.endRound.testID)).toBeTruthy();
+      queryClient.clear();
     });
   });
 
@@ -238,6 +239,7 @@ describe("UI labels", () => {
       expect(getByTestId(labels.add.stampQr.testID)).toBeTruthy();
       expect(getByTestId(labels.add.userQr.testID)).toBeTruthy();
       expect(getByTestId(labels.add.participantQr.testID)).toBeTruthy();
+      queryClient.clear();
     });
 
     await act(async () => {
@@ -246,6 +248,7 @@ describe("UI labels", () => {
 
     await waitFor(() => {
       expect(getByTestId(labels.add.shareQr.testID)).toBeTruthy();
+      queryClient.clear();
     });
   });
 
@@ -257,6 +260,7 @@ describe("UI labels", () => {
       expect(getByTestId(labels.settings.addUser.testID)).toBeTruthy();
       expect(getByTestId(labels.settings.startEvent.testID)).toBeTruthy();
       expect(getByTestId(labels.settings.resetEvent.testID)).toBeTruthy();
+      queryClient.clear();
     });
   });
 });

@@ -16,6 +16,10 @@ const mockRemoveBeer = beersService.removeBeer as jest.MockedFunction<
 describe("Optimistic Updates", () => {
   let queryClient: QueryClient;
 
+  afterEach(() => {
+    if (queryClient) queryClient.clear();
+  });
+
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {

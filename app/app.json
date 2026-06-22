@@ -14,14 +14,16 @@
         },
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.stangelispass.app"
+            "bundleIdentifier": "com.stangelispass.app",
+            "buildNumber": "1"
         },
         "android": {
             "adaptiveIcon": {
                 "foregroundImage": "./assets/adaptive-icon.png",
                 "backgroundColor": "#1a1a2e"
             },
-            "package": "com.stangelispass.app"
+            "package": "com.stangelispass.app",
+            "versionCode": 1
         },
         "web": {
             "bundler": "metro",

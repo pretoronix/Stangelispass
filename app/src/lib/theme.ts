@@ -48,48 +48,56 @@ export const borderRadius = {
 // Typography aligned with iOS HIG Dynamic Type
 export const typography = {
   largeTitle: {
+    fontFamily: "Inter_700Bold",
     fontSize: 34,
     fontWeight: "700" as const,
     letterSpacing: 0.37,
     color: colors.textPrimary,
   },
   title: {
+    fontFamily: "Inter_700Bold",
     fontSize: 28,
     fontWeight: "700" as const,
     letterSpacing: 0.36,
     color: colors.textPrimary,
   },
   subtitle: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 20,
     fontWeight: "600" as const,
     letterSpacing: 0.38,
     color: colors.textPrimary,
   },
   headline: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: 17,
     fontWeight: "600" as const,
     letterSpacing: -0.41,
     color: colors.textPrimary,
   },
   body: {
+    fontFamily: "Inter_400Regular",
     fontSize: 17,
     fontWeight: "400" as const,
     letterSpacing: -0.41,
     color: colors.textPrimary,
   },
   callout: {
+    fontFamily: "Inter_400Regular",
     fontSize: 16,
     fontWeight: "400" as const,
     letterSpacing: -0.32,
     color: colors.textSecondary,
   },
   caption: {
+    fontFamily: "Inter_400Regular",
     fontSize: 14,
     fontWeight: "400" as const,
     letterSpacing: -0.15,
     color: colors.textSecondary,
   },
   small: {
+    fontFamily: "Inter_500Medium",
     fontSize: 12,
     fontWeight: "500" as const,
     letterSpacing: 0,

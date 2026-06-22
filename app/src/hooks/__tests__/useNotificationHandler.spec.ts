@@ -21,7 +21,7 @@ jest.mock("expo-notifications", () => ({
     mockAddResponseListener(...args),
 }));
 
-const mockHaptic = jest.fn(async () => null);
+const mockHaptic = jest.fn(async (...args: any[]) => null);
 jest.mock("expo-haptics", () => ({
   notificationAsync: (...args: any[]) => mockHaptic(...args),
   NotificationFeedbackType: { Success: "success" },
