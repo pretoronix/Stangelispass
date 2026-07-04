@@ -25,7 +25,7 @@ const loadButtonForOS = (os: "ios" | "android") => {
           { ...rest, onPress: disabled ? undefined : onPress },
           children,
         ),
-      Text: ({ children }: any) => React.createElement("text", null, children),
+      Text: ({ children }: any) => React.createElement("Text", null, children),
       StyleSheet: { create: (styles: any) => styles },
       Platform: { OS: os },
     };
@@ -45,36 +45,36 @@ describe("Button", () => {
     jest.clearAllMocks();
   });
 
-  test("calls onPress when pressed", () => {
+  test("calls onPress when pressed", async () => {
     const { Button } = loadButtonForOS("ios");
     const onPress = jest.fn();
 
-    const { getByTestId } = render(
+    const { getByTestId } = await render(
       <Button title="Test" onPress={onPress} testID="btn" />,
     );
-    fireEvent.press(getByTestId("btn"));
+    await fireEvent.press(getByTestId("btn"));
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  test("does not trigger haptics on android", () => {
+  test("does not trigger haptics on android", async () => {
     const { Button, Haptics } = loadButtonForOS("android");
 
-    const { getByTestId } = render(
+    const { getByTestId } = await render(
       <Button title="Test" onPress={() => {}} testID="btn" />,
     );
-    fireEvent.press(getByTestId("btn"));
+    await fireEvent.press(getByTestId("btn"));
 
     expect(Haptics.impactAsync).not.toHaveBeenCalled();
   });
 
-  test("triggers heavy haptics on ios", () => {
+  test("triggers heavy haptics on ios", async () => {
     const { Button, Haptics } = loadButtonForOS("ios");
 
-    const { getByTestId } = render(
+    const { getByTestId } = await render(
       <Button title="Test" onPress={() => {}} testID="btn" />,
     );
-    fireEvent.press(getByTestId("btn"));
+    await fireEvent.press(getByTestId("btn"));
 
     expect(Haptics.impactAsync).toHaveBeenCalledWith(
       Haptics.ImpactFeedbackStyle.Heavy,

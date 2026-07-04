@@ -8,13 +8,13 @@ jest.mock("@/utils/logger", () => ({
 }));
 
 describe("AppErrorBoundary", () => {
-  test("renders fallback UI when a child throws", () => {
+  test("renders fallback UI when a child throws", async () => {
     const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const Crash = () => {
       throw new Error("boom");
     };
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <AppErrorBoundary>
         <Crash />
       </AppErrorBoundary>,

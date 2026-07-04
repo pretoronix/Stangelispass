@@ -14,7 +14,7 @@ describe("useProfileData", () => {
   });
 
   it("returns empty data when currentUser is null", async () => {
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useProfileData(null as any, { id: "e1" } as any),
     );
 
@@ -34,7 +34,7 @@ describe("useProfileData", () => {
     const currentUser = { id: "u1" } as any;
     const activeEvent = { id: "e1" } as any;
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useProfileData(currentUser, activeEvent),
     );
 
@@ -51,7 +51,7 @@ describe("useProfileData", () => {
     const currentUser = { id: "u1" } as any;
     const activeEvent = { id: "e1" } as any;
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useProfileData(currentUser, activeEvent),
     );
 

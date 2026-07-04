@@ -30,8 +30,8 @@ jest.mock("@/services/achievements", () => ({
 // useScanHandler relies on React hooks (useRef) for its cross-render de-dupe
 // guard, so it must be invoked inside a render. This helper renders the hook
 // and returns its current value so each test can keep calling it positionally.
-const renderScanHandler = (...args: Parameters<typeof useScanHandler>) =>
-  renderHook(() => useScanHandler(...args)).result.current;
+const renderScanHandler = async (...args: Parameters<typeof useScanHandler>) =>
+  (await renderHook(() => useScanHandler(...args))).result.current;
 
 describe("useScanHandler", () => {
   const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
@@ -46,7 +46,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -69,7 +69,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -95,7 +95,7 @@ describe("useScanHandler", () => {
     const refresh = jest.fn();
     const openNamePrompt = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: false },
@@ -116,7 +116,7 @@ describe("useScanHandler", () => {
       stampId: "s1",
     });
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       null,
       null,
       { canManageLogs: false },
@@ -140,7 +140,7 @@ describe("useScanHandler", () => {
 
     const setScanning = jest.fn();
     const refresh = jest.fn();
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: false },
@@ -169,7 +169,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -195,7 +195,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: false },
@@ -220,7 +220,7 @@ describe("useScanHandler", () => {
       eventId: "e1",
     });
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       null,
       { canManageLogs: true },
@@ -245,7 +245,7 @@ describe("useScanHandler", () => {
       eventId: "e2",
     });
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -270,7 +270,7 @@ describe("useScanHandler", () => {
 
     const setScanning = jest.fn();
     const refresh = jest.fn();
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },
@@ -310,7 +310,7 @@ describe("useScanHandler", () => {
       setScanning,
       refresh,
     ];
-    const { result, rerender } = renderHook(() => useScanHandler(...args));
+    const { result, rerender } = await renderHook(() => useScanHandler(...args));
 
     const nowSpy = jest.spyOn(Date, "now");
     nowSpy.mockReturnValue(1000);
@@ -343,7 +343,7 @@ describe("useScanHandler", () => {
     const setScanning = jest.fn();
     const refresh = jest.fn();
 
-    const { handleScan } = renderScanHandler(
+    const { handleScan } = await renderScanHandler(
       { id: "u1" },
       { id: "e1" },
       { canManageLogs: true },

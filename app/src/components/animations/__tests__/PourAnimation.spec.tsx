@@ -1,5 +1,5 @@
 import React from "react";
-import { act, render, waitFor } from "@testing-library/react-native";
+import { render, waitFor } from "@testing-library/react-native";
 import { PourAnimation } from "@/components/animations/PourAnimation";
 import { SimplePourFeedback } from "@/components/animations/SimplePourFeedback";
 import * as Haptics from "expo-haptics";
@@ -53,18 +53,18 @@ describe("PourAnimation", () => {
     jest.useRealTimers();
   });
 
-  it("does not render when not visible", () => {
+  it("does not render when not visible", async () => {
     const onComplete = jest.fn();
-    const { queryByTestId } = render(
+    const { queryByTestId } = await render(
       <PourAnimation visible={false} onComplete={onComplete} />,
     );
 
     expect(queryByTestId("pour-animation")).toBeNull();
   });
 
-  it("triggers haptic feedback when visible", () => {
+  it("triggers haptic feedback when visible", async () => {
     const onComplete = jest.fn();
-    render(<PourAnimation visible={true} onComplete={onComplete} />);
+    await render(<PourAnimation visible={true} onComplete={onComplete} />);
 
     // Fast-forward to first haptic
     jest.advanceTimersByTime(50);
@@ -75,7 +75,7 @@ describe("PourAnimation", () => {
 
   it("calls onComplete after animation duration", async () => {
     const onComplete = jest.fn();
-    render(<PourAnimation visible={true} onComplete={onComplete} />);
+    await render(<PourAnimation visible={true} onComplete={onComplete} />);
 
     // Animation should complete after ~2800ms
     jest.advanceTimersByTime(3000);
@@ -85,9 +85,9 @@ describe("PourAnimation", () => {
     });
   });
 
-  it("triggers success haptic at the end", () => {
+  it("triggers success haptic at the end", async () => {
     const onComplete = jest.fn();
-    render(<PourAnimation visible={true} onComplete={onComplete} />);
+    await render(<PourAnimation visible={true} onComplete={onComplete} />);
 
     // Fast-forward to success haptic (2500ms)
     jest.advanceTimersByTime(2500);
@@ -97,13 +97,13 @@ describe("PourAnimation", () => {
     );
   });
 
-  it("cleans up timers on unmount", () => {
+  it("cleans up timers on unmount", async () => {
     const onComplete = jest.fn();
-    const { unmount } = render(
+    const { unmount } = await render(
       <PourAnimation visible={true} onComplete={onComplete} />,
     );
 
-    unmount();
+    await unmount();
 
     // Advance timers - onComplete should not be called
     jest.advanceTimersByTime(3000);
@@ -122,43 +122,42 @@ describe("SimplePourFeedback", () => {
     jest.useRealTimers();
   });
 
-  it("does not render when not visible", () => {
+  it("does not render when not visible", async () => {
     const onComplete = jest.fn();
-    const { queryByText } = render(
+    const { queryByText } = await render(
       <SimplePourFeedback visible={false} onComplete={onComplete} />,
     );
 
     expect(queryByText(/Beer Logged!/i)).toBeNull();
   });
 
-  it("skips haptic feedback in test env", () => {
+  it("skips haptic feedback in test env", async () => {
     const onComplete = jest.fn();
-    render(<SimplePourFeedback visible={true} onComplete={onComplete} />);
+    await render(<SimplePourFeedback visible={true} onComplete={onComplete} />);
 
-    act(() => {
-      jest.advanceTimersByTime(50);
-    });
+    jest.advanceTimersByTime(50);
 
     expect(Haptics.notificationAsync).not.toHaveBeenCalled();
   });
 
-  it("calls onComplete after short duration", () => {
+  it("calls onComplete after short duration", async () => {
     const onComplete = jest.fn();
-    render(<SimplePourFeedback visible={true} onComplete={onComplete} />);
+    await render(<SimplePourFeedback visible={true} onComplete={onComplete} />);
 
     // Simple feedback: 1200ms delay + 300ms fade = 1500ms total
-    act(() => {
-      jest.advanceTimersByTime(1600);
-    });
+    jest.advanceTimersByTime(1600);
 
     expect(onComplete).toHaveBeenCalled();
   });
 
-  it("renders beer emoji and message when visible", () => {
+  it("renders beer emoji and message when visible", async () => {
     const onComplete = jest.fn();
-    const { getByText } = render(
+    const { getByText, rerender } = await render(
       <SimplePourFeedback visible={true} onComplete={onComplete} />,
     );
+
+    // Rerender so the mocked reanimated shared values are reflected in the tree
+    await rerender(<SimplePourFeedback visible={true} onComplete={onComplete} />);
 
     expect(getByText("Beer Logged!")).toBeTruthy();
   });

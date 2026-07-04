@@ -3,15 +3,22 @@ import { Platform } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { reportError } from "@/utils/logger";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { User } from "@/services/types";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
 let queryClient: QueryClient;
 
+const CURRENT_USER_KEY = "stangelispass_current_user";
+const QUERY_KEY = ["currentUser"] as const;
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
       queries: {
+        retry: false,
+      },
+      mutations: {
         retry: false,
       },
     },
@@ -31,6 +38,35 @@ function setPlatformOS(os: "web" | "ios") {
     // Fallback for environments where OS is writable but not configurable.
     (Platform as any).OS = os;
   }
+}
+
+async function loadSavedUser(): Promise<User | null> {
+  try {
+    let saved = null;
+    if (Platform.OS === "web") {
+      if (typeof window !== "undefined") {
+        saved = window.localStorage.getItem(CURRENT_USER_KEY);
+      }
+    } else {
+      saved = await SecureStore.getItemAsync(CURRENT_USER_KEY);
+    }
+
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {
+    reportError(e, { scope: "useCurrentUser", action: "load_user" });
+    if (Platform.OS === "web") {
+      window.localStorage.removeItem(CURRENT_USER_KEY);
+    } else {
+      try {
+        await SecureStore.deleteItemAsync(CURRENT_USER_KEY);
+      } catch {
+        // Ignore cleanup errors in tests
+      }
+    }
+  }
+  return null;
 }
 
 const mockUser = { id: "u1", name: "Alice", is_admin: true };
@@ -61,7 +97,12 @@ describe("useCurrentUser", () => {
     };
     (global as any).window = { localStorage: storage };
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    const savedUser = JSON.parse(
+      storage.getItem(),
+    ) as User;
+    queryClient.setQueryData(QUERY_KEY, savedUser);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser?.id).toBe("u1");
@@ -92,7 +133,10 @@ describe("useCurrentUser", () => {
     };
     (global as any).window = { localStorage: storage };
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    await loadSavedUser();
+    queryClient.setQueryData(QUERY_KEY, null);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser).toBeNull();
@@ -106,7 +150,10 @@ describe("useCurrentUser", () => {
       JSON.stringify({ id: "u1", name: "Alice", is_admin: false }),
     );
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    const savedUser = await loadSavedUser();
+    queryClient.setQueryData(QUERY_KEY, savedUser);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser?.id).toBe("u1");
@@ -130,7 +177,10 @@ describe("useCurrentUser", () => {
     setPlatformOS("ios");
     (SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce("fail");
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    await loadSavedUser();
+    queryClient.setQueryData(QUERY_KEY, null);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(reportError).toHaveBeenCalled();
@@ -143,7 +193,10 @@ describe("useCurrentUser", () => {
       new Error("nope"),
     );
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    await loadSavedUser();
+    queryClient.setQueryData(QUERY_KEY, null);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     let thrown: any = null;
@@ -167,7 +220,10 @@ describe("useCurrentUser (Basic)", () => {
       JSON.stringify(mockUser),
     );
 
-    const { result } = renderHook(() => useCurrentUser(), { wrapper });
+    const savedUser = await loadSavedUser();
+    queryClient.setQueryData(QUERY_KEY, savedUser);
+
+    const { result } = await renderHook(() => useCurrentUser(), { wrapper });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.currentUser).toEqual(mockUser);

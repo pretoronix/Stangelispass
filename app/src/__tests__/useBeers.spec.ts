@@ -83,7 +83,7 @@ describe("useBeers", () => {
       { id: "u2", name: "Bob", is_admin: false },
     ]);
 
-    const { result, unmount } = renderHook(() => useBeers());
+    const { result, unmount } = await renderHook(() => useBeers());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -94,7 +94,7 @@ describe("useBeers", () => {
     expect(result.current.hotStreak?.userId).toBe("u1");
     expect(result.current.rawBeers).toHaveLength(1);
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalled();
   });
 
@@ -112,7 +112,7 @@ describe("useBeers", () => {
       { userId: "u2", name: "Bob", count: 2, isAdmin: false },
     ]);
 
-    const { result } = renderHook(() => useBeers());
+    const { result } = await renderHook(() => useBeers());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -141,7 +141,7 @@ describe("useBeers", () => {
       { id: "u1", name: "Alice", is_admin: true },
     ]);
 
-    const { result } = renderHook(() => useBeers());
+    const { result } = await renderHook(() => useBeers());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -152,7 +152,7 @@ describe("useBeers", () => {
   it("clears state when there is no active event", async () => {
     (useApp as jest.Mock).mockReturnValue({ activeEvent: null });
 
-    const { result } = renderHook(() => useBeers());
+    const { result } = await renderHook(() => useBeers());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -167,7 +167,7 @@ describe("useBeers", () => {
     mockGetEventLeaderState.mockResolvedValueOnce({ leader: null });
     mockGetUsers.mockResolvedValueOnce([]);
 
-    const { result } = renderHook(() => useBeers());
+    const { result } = await renderHook(() => useBeers());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(reportError).toHaveBeenCalled();

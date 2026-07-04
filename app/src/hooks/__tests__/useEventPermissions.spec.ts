@@ -15,38 +15,44 @@ describe("useEventPermissions", () => {
     jest.clearAllMocks();
   });
 
-  it("returns default permissions when eventId or userId missing", () => {
+  it("returns default permissions when eventId or userId missing", async () => {
     mockUseEventMembership.mockReturnValue({ data: null, isLoading: false });
 
-    const { result } = renderHook(() => useEventPermissions(null, "u1", false));
+    const { result } = await renderHook(() =>
+      useEventPermissions(null, "u1", false),
+    );
     expect(result.current.role).toBeNull();
     expect(result.current.missingTable).toBe(false);
     expect(result.current.permissions.canManageEvent).toBe(false);
 
-    const { result: result2 } = renderHook(() =>
+    const { result: result2 } = await renderHook(() =>
       useEventPermissions("e1", undefined, true),
     );
     expect(result2.current.permissions.canManageEvent).toBe(true);
   });
 
-  it("computes permissions from membership role", () => {
+  it("computes permissions from membership role", async () => {
     mockUseEventMembership.mockReturnValue({
       data: { membership: { role: "admin" }, missingTable: false },
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useEventPermissions("e1", "u1", false));
+    const { result } = await renderHook(() =>
+      useEventPermissions("e1", "u1", false),
+    );
     expect(result.current.role).toBe("admin");
     expect(result.current.permissions.canManageEvent).toBe(true);
   });
 
-  it("handles missing membership table by using role+global admin fallback", () => {
+  it("handles missing membership table by using role+global admin fallback", async () => {
     mockUseEventMembership.mockReturnValue({
       data: { membership: { role: null }, missingTable: true },
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useEventPermissions("e1", "u1", true));
+    const { result } = await renderHook(() =>
+      useEventPermissions("e1", "u1", true),
+    );
     expect(result.current.missingTable).toBe(true);
     expect(result.current.permissions.canManageLogs).toBe(true);
   });
@@ -57,23 +63,23 @@ describe("useHasEventAdminRights", () => {
     jest.clearAllMocks();
   });
 
-  it("returns true when permissions include admin rights", () => {
+  it("returns true when permissions include admin rights", async () => {
     mockUseEventMembership.mockReturnValue({
       data: { membership: { role: "member" }, missingTable: false },
       isLoading: false,
     });
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useHasEventAdminRights("e1", "u1", true),
     );
     expect(result.current).toBe(true);
   });
 
-  it("returns false when not admin and no event role privileges", () => {
+  it("returns false when not admin and no event role privileges", async () => {
     mockUseEventMembership.mockReturnValue({
       data: { membership: { role: "member" }, missingTable: false },
       isLoading: false,
     });
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useHasEventAdminRights("e1", "u1", false),
     );
     expect(result.current).toBe(false);

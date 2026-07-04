@@ -1,6 +1,5 @@
 import '@testing-library/jest-native/extend-expect';
 import { cleanup } from '@testing-library/react-native';
-import { act } from '@testing-library/react-native';
 import { notifyManager, timeoutManager } from '@tanstack/query-core';
 
 // Essential React Native mocks for Jest (this file runs after the test framework is installed)
@@ -31,9 +30,7 @@ jest.mock('@tanstack/react-query-persist-client', () => ({
 // React Query can schedule async notifications/timers that trigger act() warnings
 // and keep Jest open. Force notifications and scheduling to be synchronous in tests.
 notifyManager.setNotifyFunction((fn) => {
-  void act(async () => {
-    fn();
-  });
+  fn();
 });
 notifyManager.setScheduler((cb) => {
   if (typeof globalThis.queueMicrotask === 'function') {

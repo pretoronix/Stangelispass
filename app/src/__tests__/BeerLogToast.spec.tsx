@@ -7,8 +7,8 @@ jest.mock("react-native-safe-area-context", () => ({
 }));
 
 describe("BeerLogToast", () => {
-  it("renders message and subtitle when visible", () => {
-    const { getByText } = render(
+  it("renders message and subtitle when visible", async () => {
+    const { getByText } = await render(
       <BeerLogToast visible={true} message="Beer logged!" subtitle="Cheers" />,
     );
 
@@ -16,8 +16,8 @@ describe("BeerLogToast", () => {
     expect(getByText("Cheers")).toBeTruthy();
   });
 
-  it("renders nothing when not visible", () => {
-    const { queryByText } = render(
+  it("renders nothing when not visible", async () => {
+    const { queryByText } = await render(
       <BeerLogToast visible={false} message="Beer logged!" />,
     );
 

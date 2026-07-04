@@ -3,8 +3,8 @@ import { render } from "@testing-library/react-native";
 import { PremiumTierCard } from "@/components/settings/PremiumTierCard";
 
 describe("PremiumTierCard", () => {
-  it("renders credit counts and purchase buttons for non-lifetime users", () => {
-    const { getByText } = render(
+  it("renders credit counts and purchase buttons for non-lifetime users", async () => {
+    const { getByText } = await render(
       <PremiumTierCard
         subscriptionTier="pilsner"
         lifetimePass={false}
@@ -28,8 +28,8 @@ describe("PremiumTierCard", () => {
     expect(getByText(/Supporter/i)).toBeTruthy();
   });
 
-  it("hides purchase buttons for lifetime users", () => {
-    const { queryByText, getByText } = render(
+  it("hides purchase buttons for lifetime users", async () => {
+    const { queryByText, getByText } = await render(
       <PremiumTierCard
         subscriptionTier="lifetime"
         lifetimePass={true}

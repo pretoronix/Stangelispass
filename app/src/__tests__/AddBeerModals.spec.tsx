@@ -34,9 +34,9 @@ describe("AddBeerModals", () => {
     jest.clearAllMocks();
   });
 
-  it("renders AddQrModal with correct props", () => {
+  it("renders AddQrModal with correct props", async () => {
     const { AddQrModal } = require("@/components/add/AddQrModal");
-    render(<AddBeerModals {...defaultProps} showQR={true} />);
+    await render(<AddBeerModals {...defaultProps} showQR={true} />);
     expect(AddQrModal.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         visible: true,
@@ -48,9 +48,9 @@ describe("AddBeerModals", () => {
     );
   });
 
-  it("renders PourAnimation when useFullAnimation is true", () => {
+  it("renders PourAnimation when useFullAnimation is true", async () => {
     const { PourAnimation } = require("@/components/animations/PourAnimation");
-    render(
+    await render(
       <AddBeerModals
         {...defaultProps}
         showAnimation={true}
@@ -62,11 +62,11 @@ describe("AddBeerModals", () => {
     );
   });
 
-  it("renders SimplePourFeedback when useFullAnimation is false", () => {
+  it("renders SimplePourFeedback when useFullAnimation is false", async () => {
     const {
       SimplePourFeedback,
     } = require("@/components/animations/SimplePourFeedback");
-    render(
+    await render(
       <AddBeerModals
         {...defaultProps}
         showAnimation={true}
@@ -78,13 +78,13 @@ describe("AddBeerModals", () => {
     );
   });
 
-  it("does not trigger animations when showAnimation is false", () => {
+  it("does not trigger animations when showAnimation is false", async () => {
     const { PourAnimation } = require("@/components/animations/PourAnimation");
     const {
       SimplePourFeedback,
     } = require("@/components/animations/SimplePourFeedback");
 
-    render(<AddBeerModals {...defaultProps} showAnimation={false} />);
+    await render(<AddBeerModals {...defaultProps} showAnimation={false} />);
 
     expect(PourAnimation.mock.calls[0][0]).toEqual(
       expect.objectContaining({ visible: false }),

@@ -45,7 +45,7 @@ describe("QueryProvider", () => {
   });
 
   it("should render children", async () => {
-    const { getByText } = render(
+    const { getByText } = await render(
       <QueryProvider>
         <Text>Test Child</Text>
       </QueryProvider>,
@@ -58,7 +58,7 @@ describe("QueryProvider", () => {
 
   it("should provide query client context", async () => {
     // Simply verify it renders without crashing
-    const result = render(
+    const result = await render(
       <QueryProvider>
         <Text>Query Provider Test</Text>
       </QueryProvider>,
@@ -79,7 +79,7 @@ describe("QueryProvider", () => {
       "STANGELISPASS_QUERY_CACHE_0.9.0_v1",
     ]);
 
-    render(
+    await render(
       <QueryProvider>
         <Text>Cache</Text>
       </QueryProvider>,
@@ -98,7 +98,7 @@ describe("QueryProvider", () => {
       require("@react-native-async-storage/async-storage");
     AsyncStorage.getAllKeys.mockResolvedValueOnce([CURRENT_KEY]);
 
-    render(
+    await render(
       <QueryProvider>
         <Text>Noop</Text>
       </QueryProvider>,
@@ -114,7 +114,7 @@ describe("QueryProvider", () => {
       require("@react-native-async-storage/async-storage");
     AsyncStorage.getAllKeys.mockRejectedValueOnce("fail");
 
-    render(
+    await render(
       <QueryProvider>
         <Text>Err</Text>
       </QueryProvider>,
@@ -126,7 +126,7 @@ describe("QueryProvider", () => {
   });
 
   it("configures shouldDehydrateQuery to skip sensitive keys and require success", async () => {
-    render(
+    await render(
       <QueryProvider>
         <Text>Persist</Text>
       </QueryProvider>,

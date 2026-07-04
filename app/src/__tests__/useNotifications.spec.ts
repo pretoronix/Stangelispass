@@ -10,8 +10,8 @@ describe("useNotifications", () => {
     jest.clearAllMocks();
   });
 
-  it("should not register when userId is null", () => {
-    const { result } = renderHook(() => useNotifications(null));
+  it("should not register when userId is null", async () => {
+    const { result } = await renderHook(() => useNotifications(null));
 
     expect(result.current.token).toBeNull();
     expect(result.current.isRegistered).toBe(false);
@@ -26,7 +26,7 @@ describe("useNotifications", () => {
       notifications.registerForPushNotificationsAsync as jest.Mock
     ).mockResolvedValue(mockToken);
 
-    const { result } = renderHook(() => useNotifications("user-123"));
+    const { result } = await renderHook(() => useNotifications("user-123"));
 
     await waitFor(() => {
       expect(result.current.isRegistered).toBe(true);
@@ -43,7 +43,7 @@ describe("useNotifications", () => {
       notifications.registerForPushNotificationsAsync as jest.Mock
     ).mockRejectedValue(new Error("Permission denied"));
 
-    const { result } = renderHook(() => useNotifications("user-123"));
+    const { result } = await renderHook(() => useNotifications("user-123"));
 
     await waitFor(() => {
       expect(result.current.isRegistered).toBe(false);
@@ -58,7 +58,7 @@ describe("useNotifications", () => {
       notifications.registerForPushNotificationsAsync as jest.Mock
     ).mockResolvedValue(mockToken);
 
-    const { result, rerender } = renderHook<
+    const { result, rerender } = await renderHook<
       {
         token: string | null;
         isRegistered: boolean;
@@ -75,7 +75,7 @@ describe("useNotifications", () => {
 
     // Change user to null
     await act(async () => {
-      rerender({ userId: null });
+      await rerender({ userId: null });
     });
 
     await waitFor(() => {
@@ -92,7 +92,7 @@ describe("useNotifications", () => {
     ).mockResolvedValue(mockToken);
     (notifications.unregisterPushToken as jest.Mock).mockResolvedValue(true);
 
-    const { result } = renderHook(() => useNotifications("user-123"));
+    const { result } = await renderHook(() => useNotifications("user-123"));
 
     await waitFor(() => {
       expect(result.current.isRegistered).toBe(true);

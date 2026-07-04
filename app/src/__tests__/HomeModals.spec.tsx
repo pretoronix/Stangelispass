@@ -56,13 +56,13 @@ describe("HomeModals", () => {
     jest.clearAllMocks();
   });
 
-  it("renders without crashing", () => {
-    render(<HomeModals {...defaultProps} />);
+  it("renders without crashing", async () => {
+    await render(<HomeModals {...defaultProps} />);
   });
 
-  it("passes correct props to MVPModal", () => {
+  it("passes correct props to MVPModal", async () => {
     const { MVPModal } = require("@/components/features/MVPModal");
-    render(<HomeModals {...defaultProps} showRecap={true} />);
+    await render(<HomeModals {...defaultProps} showRecap={true} />);
     expect(MVPModal.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         visible: true,
@@ -72,21 +72,21 @@ describe("HomeModals", () => {
     );
   });
 
-  it("renders QRScanner when scanning is true", () => {
+  it("renders QRScanner when scanning is true", async () => {
     const { QRScanner } = require("@/components/features/QRScanner");
-    render(<HomeModals {...defaultProps} scanning={true} />);
+    await render(<HomeModals {...defaultProps} scanning={true} />);
     expect(QRScanner.mock.calls[0][0]).toEqual(
       expect.objectContaining({ onScan: defaultProps.handleScan }),
     );
   });
 
-  it("passes correct props to StartRoundPrompt", () => {
+  it("passes correct props to StartRoundPrompt", async () => {
     const { StartRoundPrompt } = require("@/components/home/StartRoundPrompt");
     const eventActions = {
       ...defaultProps.eventActions,
       showStartRoundPrompt: true,
     };
-    render(<HomeModals {...defaultProps} eventActions={eventActions} />);
+    await render(<HomeModals {...defaultProps} eventActions={eventActions} />);
     expect(StartRoundPrompt.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         visible: true,
@@ -95,9 +95,9 @@ describe("HomeModals", () => {
     );
   });
 
-  it("renders InviteModal with correct props", () => {
+  it("renders InviteModal with correct props", async () => {
     const { InviteModal } = require("@/components/features/InviteModal");
-    render(<HomeModals {...defaultProps} showInvite={true} />);
+    await render(<HomeModals {...defaultProps} showInvite={true} />);
     expect(InviteModal.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         visible: true,
@@ -107,11 +107,11 @@ describe("HomeModals", () => {
     );
   });
 
-  it("renders BroadcastModal when showBroadcast is true and event is active", () => {
+  it("renders BroadcastModal when showBroadcast is true and event is active", async () => {
     const {
       BroadcastModal,
     } = require("@/components/notifications/BroadcastModal");
-    render(<HomeModals {...defaultProps} showBroadcast={true} />);
+    await render(<HomeModals {...defaultProps} showBroadcast={true} />);
     expect(BroadcastModal.mock.calls[0][0]).toEqual(
       expect.objectContaining({
         visible: true,
@@ -121,19 +121,19 @@ describe("HomeModals", () => {
     );
   });
 
-  it("does not render BroadcastModal when activeEvent is null", () => {
+  it("does not render BroadcastModal when activeEvent is null", async () => {
     const {
       BroadcastModal,
     } = require("@/components/notifications/BroadcastModal");
-    render(
+    await render(
       <HomeModals {...defaultProps} showBroadcast={true} activeEvent={null} />,
     );
     expect(BroadcastModal).not.toHaveBeenCalled();
   });
 
-  it("triggers Confetti with correct trigger prop", () => {
+  it("triggers Confetti with correct trigger prop", async () => {
     const { Confetti } = require("@/components/animations/Confetti");
-    render(<HomeModals {...defaultProps} showConfetti={true} />);
+    await render(<HomeModals {...defaultProps} showConfetti={true} />);
     expect(Confetti.mock.calls[0][0]).toEqual(
       expect.objectContaining({ trigger: true }),
     );

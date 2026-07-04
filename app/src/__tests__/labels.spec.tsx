@@ -14,7 +14,7 @@ const createTestQueryClient = () =>
     },
   });
 
-const renderWithProviders = (ui: React.ReactElement) => {
+const renderWithProviders = async (ui: React.ReactElement) => {
   const queryClient = createTestQueryClient();
   const AllTheProviders = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -209,12 +209,12 @@ describe("UI labels", () => {
 
   test("home labels exist", async () => {
     mockUseAppState.activeEvent = null;
-    const noEvent = renderWithProviders(<HomeScreen />);
+    const noEvent = await renderWithProviders(<HomeScreen />);
     await act(async () => {});
     expect(noEvent.getByTestId(labels.home.startRound.testID)).toBeTruthy();
 
     mockUseAppState.activeEvent = activeEvent;
-    const withEvent = renderWithProviders(<HomeScreen />);
+    const withEvent = await renderWithProviders(<HomeScreen />);
     await act(async () => {});
     await waitFor(() => {
       expect(withEvent.getByTestId(labels.home.scan.testID)).toBeTruthy();
@@ -225,42 +225,38 @@ describe("UI labels", () => {
       ).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.whoPays.testID)).toBeTruthy();
       expect(withEvent.getByTestId(labels.home.endRound.testID)).toBeTruthy();
-      queryClient.clear();
     });
   });
 
   test("add screen labels exist", async () => {
-    const { getByTestId, getByText } = renderWithProviders(<AddBeerScreen />);
+    const { getByTestId, getByText } = await renderWithProviders(<AddBeerScreen />);
     await act(async () => {
-      fireEvent.press(getByText("Test"));
+      await fireEvent.press(getByText("Test"));
     });
     await waitFor(() => {
       expect(getByTestId(labels.add.addBeer.testID)).toBeTruthy();
       expect(getByTestId(labels.add.stampQr.testID)).toBeTruthy();
       expect(getByTestId(labels.add.userQr.testID)).toBeTruthy();
       expect(getByTestId(labels.add.participantQr.testID)).toBeTruthy();
-      queryClient.clear();
     });
 
     await act(async () => {
-      fireEvent.press(getByTestId(labels.add.userQr.testID));
+      await fireEvent.press(getByTestId(labels.add.userQr.testID));
     });
 
     await waitFor(() => {
       expect(getByTestId(labels.add.shareQr.testID)).toBeTruthy();
-      queryClient.clear();
     });
   });
 
   test("settings labels exist", async () => {
-    const { getByTestId } = renderWithProviders(<SettingsScreen />);
+    const { getByTestId } = await renderWithProviders(<SettingsScreen />);
     await act(async () => {});
     await waitFor(() => {
       expect(getByTestId(labels.settings.switchUser.testID)).toBeTruthy();
       expect(getByTestId(labels.settings.addUser.testID)).toBeTruthy();
       expect(getByTestId(labels.settings.startEvent.testID)).toBeTruthy();
       expect(getByTestId(labels.settings.resetEvent.testID)).toBeTruthy();
-      queryClient.clear();
     });
   });
 });

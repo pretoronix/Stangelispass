@@ -18,7 +18,7 @@ const baseProps = {
 };
 
 describe("PromoCodeSection", () => {
-  it("shows admin controls and code list", () => {
+  it("shows admin controls and code list", async () => {
     const codes: PromoCode[] = [
       {
         id: "c1",
@@ -35,7 +35,7 @@ describe("PromoCodeSection", () => {
       },
     ];
 
-    const { getByText } = render(
+    const { getByText } = await render(
       <PromoCodeSection {...baseProps} codes={codes} />,
     );
 
@@ -46,8 +46,8 @@ describe("PromoCodeSection", () => {
     expect(getByText(/Redeemed/i)).toBeTruthy();
   });
 
-  it("shows redeem area for non-admins and hides admin controls", () => {
-    const { queryByText, getByText } = render(
+  it("shows redeem area for non-admins and hides admin controls", async () => {
+    const { queryByText, getByText } = await render(
       <PromoCodeSection {...baseProps} isAdmin={false} />,
     );
 
@@ -57,8 +57,8 @@ describe("PromoCodeSection", () => {
     expect(queryByText(/Generate Weekend Pass Code/i)).toBeNull();
   });
 
-  it("shows empty state when no codes exist", () => {
-    const { getByText } = render(
+  it("shows empty state when no codes exist", async () => {
+    const { getByText } = await render(
       <PromoCodeSection {...baseProps} codes={[]} />,
     );
 

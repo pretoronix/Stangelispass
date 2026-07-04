@@ -44,7 +44,7 @@ describe("useOfflineQueueProcessor", () => {
       }
     });
 
-    renderHook(() =>
+    await renderHook(() =>
       useOfflineQueueProcessor({ queue, processQueue, isProcessing: false }),
     );
 
@@ -72,7 +72,7 @@ describe("useOfflineQueueProcessor", () => {
 
     const processQueue = jest.fn();
 
-    renderHook(() =>
+    await renderHook(() =>
       useOfflineQueueProcessor({ queue, processQueue, isProcessing: false }),
     );
 
@@ -95,7 +95,7 @@ describe("useOfflineQueueProcessor", () => {
 
     const processQueue = jest.fn();
 
-    renderHook(() =>
+    await renderHook(() =>
       useOfflineQueueProcessor({ queue, processQueue, isProcessing: true }),
     );
 

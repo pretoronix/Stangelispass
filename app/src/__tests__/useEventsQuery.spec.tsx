@@ -78,7 +78,7 @@ describe("useEventsQuery Hooks", () => {
         maybeSingle,
       });
 
-      const { result } = renderHook(() => useActiveEventQuery(), { wrapper });
+      const { result } = await renderHook(() => useActiveEventQuery(), { wrapper });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data?.event).toEqual(mockEvent);
@@ -88,7 +88,7 @@ describe("useEventsQuery Hooks", () => {
       // Mock supabase.from("events") to return null (simulating missing property in proxy)
       (supabase.from as jest.Mock).mockReturnValueOnce({});
 
-      const { result } = renderHook(() => useActiveEventQuery(), { wrapper });
+      const { result } = await renderHook(() => useActiveEventQuery(), { wrapper });
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
       expect(result.current.data?.missingSchema).toBe(true);
@@ -105,7 +105,7 @@ describe("useEventsQuery Hooks", () => {
       const mockEvent = { id: "e1", name: "New Event", created_by: "u1" };
       startEventInSupabase.mockResolvedValueOnce(mockEvent);
 
-      const { result } = renderHook(() => useStartEvent(), { wrapper });
+      const { result } = await renderHook(() => useStartEvent(), { wrapper });
 
       await act(async () => {
         await result.current.mutateAsync({
@@ -137,7 +137,7 @@ describe("useEventsQuery Hooks", () => {
       const mockEvent = { id: "e1", name: "Active Event" };
       closeEventInSupabase.mockResolvedValueOnce(undefined);
 
-      const { result } = renderHook(() => useCloseEvent(), { wrapper });
+      const { result } = await renderHook(() => useCloseEvent(), { wrapper });
 
       await act(async () => {
         await result.current.mutateAsync(mockEvent as any);

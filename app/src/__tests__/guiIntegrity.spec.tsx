@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor, act } from "@testing-library/react-native";
+import { render, waitFor, act, fireEvent } from "@testing-library/react-native";
 import { AppProvider } from "@/providers/AppProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -334,42 +334,42 @@ describe("GUI Integrity Tests", () => {
   });
 
   describe("Home Screen", () => {
-    it("renders initial state with no active round", () => {
+    it("renders initial state with no active round", async () => {
       mockAppContext.activeEvent = null;
-      render(<HomeScreen />, { wrapper: AllProviders });
-      expect(screen.getByText(/No active round/i)).toBeTruthy();
-      expect(screen.getByText(/Start a Round/i)).toBeTruthy();
+      const { getByText } = await render(<HomeScreen />, { wrapper: AllProviders });
+      expect(getByText(/No active round/i)).toBeTruthy();
+      expect(getByText(/Start a Round/i)).toBeTruthy();
     });
 
-    it("renders active event state", () => {
+    it("renders active event state", async () => {
       mockAppContext.activeEvent = {
         id: "e1",
         name: "Friday Beers",
         created_at: new Date().toISOString(),
       };
-      render(<HomeScreen />, { wrapper: AllProviders });
-      expect(screen.getByText("Friday Beers")).toBeTruthy();
+      const { getByText } = await render(<HomeScreen />, { wrapper: AllProviders });
+      expect(getByText("Friday Beers")).toBeTruthy();
     });
 
-    it("renders leaderboard with multiple users", () => {
+    it("renders leaderboard with multiple users", async () => {
       mockAppContext.activeEvent = { id: "e1", name: "Friday Beers" };
       mockBeerCountsData = [
         { userId: "u1", name: "Alice", count: 5 },
         { userId: "u2", name: "Bob", count: 3 },
       ];
-      render(<HomeScreen />, { wrapper: AllProviders });
-      expect(screen.getByText("Alice")).toBeTruthy();
-      expect(screen.getByText("Bob")).toBeTruthy();
-      expect(screen.getByText("5")).toBeTruthy();
-      expect(screen.getByText("3")).toBeTruthy();
+      const { getByText } = await render(<HomeScreen />, { wrapper: AllProviders });
+      expect(getByText("Alice")).toBeTruthy();
+      expect(getByText("Bob")).toBeTruthy();
+      expect(getByText("5")).toBeTruthy();
+      expect(getByText("3")).toBeTruthy();
     });
 
-    it('disables "End" button for non-admins', () => {
+    it('disables "End" button for non-admins', async () => {
       mockAppContext.activeEvent = { id: "e1", name: "Friday Beers" };
       mockAppContext.eventPermissions.canCloseEvent = false;
-      render(<HomeScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<HomeScreen />, { wrapper: AllProviders });
 
-      const endButton = screen.getByText(/End/i);
+      const endButton = getByText(/End/i);
       expect(endButton).toBeTruthy();
     });
   });
@@ -380,116 +380,115 @@ describe("GUI Integrity Tests", () => {
         { id: "u1", name: "Alice", is_admin: false },
         { id: "u2", name: "Bob", is_admin: false },
       ];
-      render(<AddBeerScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<AddBeerScreen />, { wrapper: AllProviders });
       await act(async () => {
         await Promise.resolve();
       });
-      expect(screen.getByText("Who's drinking?")).toBeTruthy();
-      expect(screen.getByText("Alice")).toBeTruthy();
-      expect(screen.getByText("Bob")).toBeTruthy();
+      expect(getByText("Who's drinking?")).toBeTruthy();
+      expect(getByText("Alice")).toBeTruthy();
+      expect(getByText("Bob")).toBeTruthy();
     });
 
     it("shows action buttons when a user is selected", async () => {
-      const { fireEvent } = require("@testing-library/react-native");
       mockAppContext.users = [{ id: "u1", name: "Alice", is_admin: false }];
-      render(<AddBeerScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<AddBeerScreen />, { wrapper: AllProviders });
 
       await act(async () => {
-        fireEvent.press(screen.getByText("Alice"));
+        fireEvent.press(getByText("Alice"));
       });
 
-      await waitFor(() => expect(screen.getByText(/Add 1 Beer/i)).toBeTruthy());
-      await waitFor(() => expect(screen.getByText(/Stamp QR/i)).toBeTruthy());
+      await waitFor(() => expect(getByText(/Add 1 Beer/i)).toBeTruthy());
+      await waitFor(() => expect(getByText(/Stamp QR/i)).toBeTruthy());
     });
   });
 
   describe("History Screen", () => {
     it("renders correctly", async () => {
-      render(<HistoryScreen />, { wrapper: AllProviders });
+      const { getAllByText } = await render(<HistoryScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(screen.getAllByText(/History/i).length).toBeGreaterThan(0),
+        expect(getAllByText(/History/i).length).toBeGreaterThan(0),
       );
     });
 
     it("shows empty state", async () => {
-      render(<HistoryScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<HistoryScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(screen.getByText(/History is empty/i)).toBeTruthy(),
+        expect(getByText(/History is empty/i)).toBeTruthy(),
       );
     });
   });
 
   describe("Settings Screen", () => {
     it("renders correctly", async () => {
-      render(<SettingsScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(screen.getByText(/Settings/i)).toBeTruthy());
-      expect(screen.getByText(/Notifications/i)).toBeTruthy();
+      const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(getByText(/Settings/i)).toBeTruthy());
+      expect(getByText(/Notifications/i)).toBeTruthy();
     });
 
     it("shows Admin Tools section", async () => {
-      render(<SettingsScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(screen.getByText(/Admin Tools/i)).toBeTruthy(),
+        expect(getByText(/Admin Tools/i)).toBeTruthy(),
       );
     });
 
     it("shows event pass purchase options", async () => {
-      render(<SettingsScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(screen.getByText(/Buy Single Event/i)).toBeTruthy(),
+        expect(getByText(/Buy Single Event/i)).toBeTruthy(),
       );
-      expect(screen.getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
-      expect(screen.getByText(/Supporter/i)).toBeTruthy();
+      expect(getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
+      expect(getByText(/Supporter/i)).toBeTruthy();
     });
 
-    it("shows Event Administration only when active event and permissions exist", () => {
+    it("shows Event Administration only when active event and permissions exist", async () => {
       mockAppContext.activeEvent = { id: "e1", name: "Test Event" };
       mockAppContext.eventPermissions.canManageMembers = true;
-      render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(screen.getByText(/Event Administration/i)).toBeTruthy();
+      const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
+      expect(getByText(/Event Administration/i)).toBeTruthy();
 
       mockAppContext.activeEvent = null;
-      const { unmount } = render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(screen.queryByText(/Event Administration/i)).toBeNull();
+      const { unmount, queryByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
+      expect(queryByText(/Event Administration/i)).toBeNull();
       unmount();
     });
 
-    it("renders user selection grid for switching members", () => {
+    it("renders user selection grid for switching members", async () => {
       mockAppContext.users = [
         { id: "u1", name: "Alice", is_admin: false },
         { id: "u2", name: "Bob", is_admin: false },
       ];
-      render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(screen.getByText(/Switch Member/i)).toBeTruthy();
-      expect(screen.getByText("Alice")).toBeTruthy();
-      expect(screen.getByText("Bob")).toBeTruthy();
+      const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
+      expect(getByText(/Switch Member/i)).toBeTruthy();
+      expect(getByText("Alice")).toBeTruthy();
+      expect(getByText("Bob")).toBeTruthy();
     });
   });
 
   describe("Profile Screen", () => {
     it("renders no user view when no current user", async () => {
       mockAppContext.currentUser = null as any;
-      render(<ProfileScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(screen.getByText(/Please select a user/i)).toBeTruthy());
+      const { getByText } = await render(<ProfileScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(getByText(/Please select a user/i)).toBeTruthy());
     });
 
     it("renders profile content when user is logged in", async () => {
       mockAppContext.currentUser = { id: "u1", name: "Alice", is_admin: false, weight_kg: 70, gender: "female" } as any;
-      render(<ProfileScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(screen.getByText(/Trophy Case/i)).toBeTruthy());
-      expect(screen.getByText(/Soberness Estimator/i)).toBeTruthy();
-      expect(screen.getByText(/Consumption Stats/i)).toBeTruthy();
+      const { getByText } = await render(<ProfileScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(getByText(/Trophy Case/i)).toBeTruthy());
+      expect(getByText(/Soberness Estimator/i)).toBeTruthy();
+      expect(getByText(/Consumption Stats/i)).toBeTruthy();
     });
   });
 
   describe("Legends Screen", () => {
     it("renders correctly", async () => {
-      render(<LegendsScreen />, { wrapper: AllProviders });
+      const { getByText } = await render(<LegendsScreen />, { wrapper: AllProviders });
       await act(async () => {
         await Promise.resolve();
       });
-      await waitFor(() => expect(screen.getByText(/Legends Gallery/i)).toBeTruthy());
-      expect(screen.getByText(/Hall of Fame/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(/Legends Gallery/i)).toBeTruthy());
+      expect(getByText(/Hall of Fame/i)).toBeTruthy();
     });
   });
 });

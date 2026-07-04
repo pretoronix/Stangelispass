@@ -56,7 +56,7 @@ describe("useWallOfFame", () => {
       mockEntries,
     );
 
-    const { result } = renderHook(() => useWallOfFame(), {
+    const { result } = await renderHook(() => useWallOfFame(), {
       wrapper: createWrapper(),
     });
 
@@ -70,7 +70,7 @@ describe("useWallOfFame", () => {
   it("should handle empty wall of fame", async () => {
     (wallOfFameService.getWallOfFame as jest.Mock).mockResolvedValue([]);
 
-    const { result } = renderHook(() => useWallOfFame(), {
+    const { result } = await renderHook(() => useWallOfFame(), {
       wrapper: createWrapper(),
     });
 
@@ -91,7 +91,7 @@ describe("useUserToasts", () => {
       mockToasts,
     );
 
-    const { result } = renderHook(() => useUserToasts("user123"), {
+    const { result } = await renderHook(() => useUserToasts("user123"), {
       wrapper: createWrapper(),
     });
 
@@ -103,7 +103,7 @@ describe("useUserToasts", () => {
   });
 
   it("should not fetch when userId is null", async () => {
-    const { result } = renderHook(() => useUserToasts(null), {
+    const { result } = await renderHook(() => useUserToasts(null), {
       wrapper: createWrapper(),
     });
 
@@ -120,7 +120,7 @@ describe("useBeerClink", () => {
   it("should add toast when not already toasted", async () => {
     (wallOfFameService.addToast as jest.Mock).mockResolvedValue(true);
 
-    const { result } = renderHook(() => useBeerClink("user123"), {
+    const { result } = await renderHook(() => useBeerClink("user123"), {
       wrapper: createWrapper(),
     });
 
@@ -139,7 +139,7 @@ describe("useBeerClink", () => {
   it("should remove toast when already toasted", async () => {
     (wallOfFameService.removeToast as jest.Mock).mockResolvedValue(true);
 
-    const { result } = renderHook(() => useBeerClink("user123"), {
+    const { result } = await renderHook(() => useBeerClink("user123"), {
       wrapper: createWrapper(),
     });
 
@@ -156,7 +156,7 @@ describe("useBeerClink", () => {
   });
 
   it("should handle error when userId is null", async () => {
-    const { result } = renderHook(() => useBeerClink(null), {
+    const { result } = await renderHook(() => useBeerClink(null), {
       wrapper: createWrapper(),
     });
 
@@ -169,8 +169,8 @@ describe("useBeerClink", () => {
     expect(wallOfFameService.addToast).not.toHaveBeenCalled();
   });
 
-  it("should provide loading state", () => {
-    const { result } = renderHook(() => useBeerClink("user123"), {
+  it("should provide loading state", async () => {
+    const { result } = await renderHook(() => useBeerClink("user123"), {
       wrapper: createWrapper(),
     });
 
@@ -178,8 +178,8 @@ describe("useBeerClink", () => {
     expect(typeof result.current.isLoading).toBe("boolean");
   });
 
-  it("should provide toggleToast function", () => {
-    const { result } = renderHook(() => useBeerClink("user123"), {
+  it("should provide toggleToast function", async () => {
+    const { result } = await renderHook(() => useBeerClink("user123"), {
       wrapper: createWrapper(),
     });
 

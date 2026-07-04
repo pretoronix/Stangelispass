@@ -47,7 +47,7 @@ describe("Optimistic Updates", () => {
       // Set initial cache
       queryClient.setQueryData(QUERY_KEYS.beers(eventId), []);
 
-      const { result } = renderHook(() => useAddBeer(), { wrapper });
+      const { result } = await renderHook(() => useAddBeer(), { wrapper });
 
       // Trigger mutation
       result.current.mutate({ userId, addedBy, eventId });
@@ -75,7 +75,7 @@ describe("Optimistic Updates", () => {
       const initialBeers = [{ id: "beer-1", user_id: "other-user" }];
       queryClient.setQueryData(QUERY_KEYS.beers(eventId), initialBeers);
 
-      const { result } = renderHook(() => useAddBeer(), { wrapper });
+      const { result } = await renderHook(() => useAddBeer(), { wrapper });
 
       // Trigger mutation
       result.current.mutate({ userId, addedBy, eventId });
@@ -107,8 +107,7 @@ describe("Optimistic Updates", () => {
         { userId: "user-999", count: 3 },
       ]);
 
-      const { result } = renderHook(() => useAddBeer(), { wrapper });
-
+      const { result } = await renderHook(() => useAddBeer(), { wrapper });
       result.current.mutate({ userId, addedBy, eventId });
 
       await waitFor(() => {
@@ -135,8 +134,7 @@ describe("Optimistic Updates", () => {
       ];
       queryClient.setQueryData(QUERY_KEYS.beers(eventId), initialBeers);
 
-      const { result } = renderHook(() => useRemoveBeer(), { wrapper });
-
+      const { result } = await renderHook(() => useRemoveBeer(), { wrapper });
       result.current.mutate(beerId);
 
       // Check beer removed immediately
@@ -161,8 +159,7 @@ describe("Optimistic Updates", () => {
       ];
       queryClient.setQueryData(QUERY_KEYS.beers(eventId), initialBeers);
 
-      const { result } = renderHook(() => useRemoveBeer(), { wrapper });
-
+      const { result } = await renderHook(() => useRemoveBeer(), { wrapper });
       result.current.mutate(beerId);
 
       await waitFor(() => {

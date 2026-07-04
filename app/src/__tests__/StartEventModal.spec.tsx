@@ -8,8 +8,8 @@ jest.mock("@/utils/eventPricing", () => ({
 }));
 
 describe("StartEventModal", () => {
-  it("renders pass type buttons and pricing hint", () => {
-    const { getByText } = render(
+  it("renders pass type buttons and pricing hint", async () => {
+    const { getByText } = await render(
       <StartEventModal
         visible={true}
         eventName="Friday Beers"

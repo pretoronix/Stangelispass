@@ -1,4 +1,3 @@
-import React from "react";
 import { renderHook, waitFor, act } from "@testing-library/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAddUser, useUpdateUser, useUsers } from "@/hooks/useUsersQuery";
@@ -31,7 +30,7 @@ describe("useUsersQuery", () => {
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
     );
 
-    const { result } = renderHook(() => useUsers(), { wrapper });
+    const { result } = await renderHook(() => useUsers(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([{ id: "u1", name: "Alice" }]);
     expect(getUsers).toHaveBeenCalled();
@@ -49,7 +48,7 @@ describe("useUsersQuery", () => {
 
     client.setQueryData(["users"], [{ id: "u1", name: "Alice" }]);
 
-    const { result } = renderHook(() => useAddUser(), { wrapper });
+    const { result } = await renderHook(() => useAddUser(), { wrapper });
     await act(async () => {
       await result.current.mutateAsync({ name: "Bob", isAdmin: false });
     });
@@ -71,7 +70,7 @@ describe("useUsersQuery", () => {
     client.setQueryData(["users"], [{ id: "u1", name: "Alice" }]);
     client.setQueryData(["users", "u1"], { id: "u1", name: "Alice" });
 
-    const { result } = renderHook(() => useUpdateUser(), { wrapper });
+    const { result } = await renderHook(() => useUpdateUser(), { wrapper });
     await act(async () => {
       await result.current.mutateAsync({
         userId: "u1",

@@ -26,8 +26,8 @@ describe("BroadcastModal", () => {
     jest.spyOn(Alert, "alert");
   });
 
-  it("renders correctly when visible", () => {
-    const { getByPlaceholderText, getByTestId } = render(
+  it("renders correctly when visible", async () => {
+    const { getByPlaceholderText, getByTestId } = await render(
       <BroadcastModal
         visible={true}
         eventId="event-123"
@@ -43,7 +43,7 @@ describe("BroadcastModal", () => {
   });
 
   it("updates character counter as user types", async () => {
-    const { getByPlaceholderText, getByText } = render(
+    const { getByPlaceholderText, getByText } = await render(
       <BroadcastModal
         visible={true}
         eventId="event-123"
@@ -55,15 +55,15 @@ describe("BroadcastModal", () => {
 
     const input = getByPlaceholderText("Type your message...");
     await act(async () => {
-      fireEvent.changeText(input, "Hello everyone!");
+      await fireEvent.changeText(input, "Hello everyone!");
     });
 
     // Check for "X characters left" instead of "X / 100"
     expect(getByText("85 characters left")).toBeTruthy();
   });
 
-  it("disables send button when message is empty", () => {
-    const { getByTestId } = render(
+  it("disables send button when message is empty", async () => {
+    const { getByTestId } = await render(
       <BroadcastModal
         visible={true}
         eventId="event-123"
@@ -78,7 +78,7 @@ describe("BroadcastModal", () => {
   });
 
   it("enables send button when message is valid", async () => {
-    const { getByPlaceholderText, getByTestId } = render(
+    const { getByPlaceholderText, getByTestId } = await render(
       <BroadcastModal
         visible={true}
         eventId="event-123"
@@ -90,7 +90,7 @@ describe("BroadcastModal", () => {
 
     const input = getByPlaceholderText("Type your message...");
     await act(async () => {
-      fireEvent.changeText(input, "Valid message");
+      await fireEvent.changeText(input, "Valid message");
     });
 
     const sendButton = getByTestId("broadcast-send-button");

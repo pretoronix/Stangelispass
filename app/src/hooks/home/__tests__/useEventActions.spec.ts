@@ -27,11 +27,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("start_round");
       result.current.setStartRoundName("Alice");
       result.current.setBeerPrice("6.50");
@@ -59,11 +59,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("start_round");
       result.current.setStartRoundName("NoAdmin");
     });
@@ -81,11 +81,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("start_round");
       result.current.setStartRoundName("Alice");
       result.current.setBeerPrice("0");
@@ -104,11 +104,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("join_event", "My Event", "evt1");
       result.current.setStartRoundName("Bob");
     });
@@ -132,11 +132,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("join_event", "My Event", "evt1");
       result.current.setStartRoundName("Bob");
     });
@@ -154,11 +154,11 @@ describe("useEventActions", () => {
     const startEvent = jest.fn().mockResolvedValue(undefined);
     const refresh = jest.fn();
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useEventActions(setCurrentUser, startEvent, refresh),
     );
 
-    act(() => {
+    await act(() => {
       result.current.openNamePrompt("start_round");
       result.current.setStartRoundName("   ");
     });

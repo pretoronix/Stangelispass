@@ -45,21 +45,6 @@ describe("useBeersQuery Hooks", () => {
     jest.clearAllMocks();
   });
 
-  describe("useBeersQuery", () => {
-    it("fetches beers for an event", async () => {
-      const { getBeers } = require("@/services/beers");
-      const mockBeers = [{ id: "b1", user_id: "u1", event_id: "e1" }];
-      getBeers.mockResolvedValueOnce(mockBeers);
-
-      const { result } = renderHook(() => useBeersQuery("e1"), { wrapper });
-
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
-      expect(result.current.data).toEqual(mockBeers);
-      expect(getBeers).toHaveBeenCalledWith("e1");
-      queryClient.clear();
-    });
-  });
-
   describe("useAddBeer", () => {
     it("performs optimistic update on mutate", async () => {
       const { addBeer } = require("@/services/beers");
@@ -79,7 +64,7 @@ describe("useBeersQuery Hooks", () => {
         [{ userId: "u1", count: 1 }],
       );
 
-      const { result } = renderHook(() => useAddBeer(), {
+      const { result } = await renderHook(() => useAddBeer(), {
         wrapper: testWrapper,
       });
 
@@ -113,7 +98,7 @@ describe("useBeersQuery Hooks", () => {
         </QueryClientProvider>
       );
 
-      const { result } = renderHook(() => useRemoveBeer(), {
+      const { result } = await renderHook(() => useRemoveBeer(), {
         wrapper: testWrapper,
       });
 
@@ -125,6 +110,21 @@ describe("useBeersQuery Hooks", () => {
 
       expect(removeBeer).toHaveBeenCalledWith("b1");
       expect(queryClient.getQueryState(["beers"])?.isInvalidated).toBe(true);
+      queryClient.clear();
+    });
+  });
+
+  describe("useBeersQuery", () => {
+    it("fetches beers for an event", async () => {
+      const { getBeers } = require("@/services/beers");
+      const mockBeers = [{ id: "b1", user_id: "u1", event_id: "e1" }];
+      getBeers.mockResolvedValueOnce(mockBeers);
+
+      const { result } = await renderHook(() => useBeersQuery("e1"), { wrapper });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(result.current.data).toEqual(mockBeers);
+      expect(getBeers).toHaveBeenCalledWith("e1");
       queryClient.clear();
     });
   });

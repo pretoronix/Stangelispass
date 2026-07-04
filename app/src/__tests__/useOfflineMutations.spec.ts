@@ -18,7 +18,7 @@ describe("useOfflineMutations", () => {
   });
 
   it("should initialize with empty queue", async () => {
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toEqual([]);
@@ -39,7 +39,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);
@@ -48,7 +48,7 @@ describe("useOfflineMutations", () => {
   });
 
   it("should add mutation to queue", async () => {
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await act(async () => {
       await result.current.addToQueue({
@@ -86,7 +86,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(2);
@@ -116,7 +116,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);
@@ -145,7 +145,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);
@@ -184,7 +184,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(result.current.queue).toHaveLength(1);
@@ -203,7 +203,7 @@ describe("useOfflineMutations", () => {
   });
 
   it("does not call executor when queue is empty", async () => {
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
     const executor = jest.fn();
 
     await act(async () => {
@@ -216,7 +216,7 @@ describe("useOfflineMutations", () => {
   it("reports loadQueue errors", async () => {
     (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce("fail");
 
-    renderHook(() => useOfflineMutations());
+    await renderHook(() => useOfflineMutations());
 
     await waitFor(() => {
       expect(reportError).toHaveBeenCalled();
@@ -226,7 +226,7 @@ describe("useOfflineMutations", () => {
   it("reports persist errors when AsyncStorage.setItem fails", async () => {
     (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce("fail");
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await act(async () => {
       await result.current.addToQueue({
@@ -255,7 +255,7 @@ describe("useOfflineMutations", () => {
       JSON.stringify(storedQueue),
     );
 
-    const { result } = renderHook(() => useOfflineMutations());
+    const { result } = await renderHook(() => useOfflineMutations());
 
     await waitFor(() => expect(result.current.queue).toHaveLength(1));
     expect(result.current.isProcessing).toBe(false);

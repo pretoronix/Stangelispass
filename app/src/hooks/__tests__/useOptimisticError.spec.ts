@@ -14,10 +14,10 @@ describe("useOptimisticError", () => {
     (Date.now as unknown as jest.Mock).mockRestore?.();
   });
 
-  it("adds error and shows alert without retry", () => {
-    const { result } = renderHook(() => useOptimisticError());
+  it("adds error and shows alert without retry", async () => {
+    const { result } = await renderHook(() => useOptimisticError());
 
-    act(() => {
+    await act(async () => {
       result.current.addError("Boom");
     });
 
@@ -29,11 +29,11 @@ describe("useOptimisticError", () => {
     );
   });
 
-  it("prepends retry button when provided", () => {
-    const { result } = renderHook(() => useOptimisticError());
+  it("prepends retry button when provided", async () => {
+    const { result } = await renderHook(() => useOptimisticError());
     const retry = jest.fn();
 
-    act(() => {
+    await act(async () => {
       result.current.addError("Boom", { retry });
     });
 
@@ -44,10 +44,10 @@ describe("useOptimisticError", () => {
     expect(retry).toHaveBeenCalled();
   });
 
-  it("clears errors", () => {
-    const { result } = renderHook(() => useOptimisticError());
+  it("clears errors", async () => {
+    const { result } = await renderHook(() => useOptimisticError());
 
-    act(() => {
+    await act(async () => {
       result.current.addError("Boom");
       result.current.clearErrors();
     });

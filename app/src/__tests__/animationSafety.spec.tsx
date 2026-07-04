@@ -1,5 +1,3 @@
-import React from "react";
-import { render, screen } from "@testing-library/react-native";
 import { shouldShowAnimations, isSimulator } from "@/utils/deviceInfo";
 
 // Mock dependencies

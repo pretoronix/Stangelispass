@@ -36,7 +36,7 @@ describe("useNetworkStatus", () => {
       isInternetReachable: true,
     });
 
-    const { result } = renderHook(() => useNetworkStatus());
+    const { result } = await renderHook(() => useNetworkStatus());
 
     await waitFor(() => {
       expect(result.current.isOnline).toBe(true);
@@ -51,7 +51,7 @@ describe("useNetworkStatus", () => {
       isInternetReachable: false,
     });
 
-    const { result } = renderHook(() => useNetworkStatus());
+    const { result } = await renderHook(() => useNetworkStatus());
 
     await waitFor(() => {
       expect(result.current.isOnline).toBe(false);
@@ -66,7 +66,7 @@ describe("useNetworkStatus", () => {
       isInternetReachable: false,
     });
 
-    const { result } = renderHook(() => useNetworkStatus());
+    const { result } = await renderHook(() => useNetworkStatus());
 
     await waitFor(() => {
       expect(result.current.isOnline).toBe(false);
@@ -102,7 +102,7 @@ describe("useNetworkStatus", () => {
       isInternetReachable: null,
     });
 
-    const { result } = renderHook(() => useNetworkStatus());
+    const { result } = await renderHook(() => useNetworkStatus());
 
     await waitFor(() => {
       expect(result.current.isOnline).toBe(true);
@@ -118,9 +118,9 @@ describe("useNetworkStatus", () => {
       isInternetReachable: true,
     });
 
-    const { unmount } = renderHook(() => useNetworkStatus());
+    const { unmount } = await renderHook(() => useNetworkStatus());
 
-    unmount();
+    await unmount();
 
     expect(mockUnsubscribe).toHaveBeenCalled();
   });

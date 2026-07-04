@@ -1,5 +1,5 @@
 import React from "react";
-import { render, waitFor, act, fireEvent } from "@testing-library/react-native";
+import { render, waitFor, fireEvent } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import { AppProvider, useApp } from "@/providers/AppProvider";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
@@ -7,7 +7,6 @@ import { reportError } from "@/utils/logger";
 import AddBeerScreen from "@/app/add";
 import HomeScreen from "@/app/index";
 import { addBeer } from "@/services/supabase";
-import { startEventInSupabase } from "@/providers/appProviderActions";
 import { labels } from "@/ui/labels";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -335,22 +334,22 @@ describe("UI Error Handling", () => {
   });
 
   describe("Context Errors", () => {
-    it("throws error when useApp is used outside AppProvider", () => {
+    it("throws error when useApp is used outside AppProvider", async () => {
       const spy = jest.spyOn(console, "error").mockImplementation(() => {});
       const BuggyComponent = () => {
         useApp();
         return null;
       };
 
-      expect(() => render(<BuggyComponent />, { wrapper })).toThrow(
-        "useApp must be used within AppProvider",
-      );
+      await expect(async () => {
+        await render(<BuggyComponent />, { wrapper });
+      }).rejects.toThrow("useApp must be used within AppProvider");
       spy.mockRestore();
     });
   });
 
   describe("AppErrorBoundary", () => {
-    it("renders fallback UI and reports error when a child crashes", () => {
+    it("renders fallback UI and reports error when a child crashes", async () => {
       const errorSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -358,7 +357,7 @@ describe("UI Error Handling", () => {
         throw new Error("Test crash");
       };
 
-      const { getByText } = render(
+      const { getByText } = await render(
         <AppErrorBoundary>
           <CrashComponent />
         </AppErrorBoundary>,
@@ -379,7 +378,7 @@ describe("UI Error Handling", () => {
       const mockAddBeer = addBeer as jest.Mock;
       mockAddBeer.mockRejectedValue(new Error("Network error"));
 
-      const { getByTestId, getByText } = render(
+      const { getByTestId, getByText } = await render(
         <AppProvider>
           <AddBeerScreen />
         </AppProvider>,
@@ -390,12 +389,10 @@ describe("UI Error Handling", () => {
       await waitFor(() => expect(getByText("Who's drinking?")).toBeTruthy());
 
       // Select user
-      fireEvent.press(getByTestId("user-item-u1"));
+      await fireEvent.press(getByTestId("user-item-u1"));
 
       // Press add beer
-      await act(async () => {
-        fireEvent.press(getByTestId("add-beer-button"));
-      });
+      await fireEvent.press(getByTestId("add-beer-button"));
 
       // Verify Alert
       expect(Alert.alert).toHaveBeenCalledWith(
@@ -418,16 +415,14 @@ describe("UI Error Handling", () => {
       });
       mockMutateAsync.mockRejectedValueOnce(new Error("Start failed"));
 
-      const { getByTestId } = render(
+      const { getByTestId } = await render(
         <AppProvider>
           <HomeScreen />
         </AppProvider>,
         { wrapper },
       );
 
-      await act(async () => {
-        fireEvent.press(getByTestId(labels.home.startRound.testID));
-      });
+      await fireEvent.press(getByTestId(labels.home.startRound.testID));
 
       expect(Alert.alert).toHaveBeenCalledWith(
         "Error",

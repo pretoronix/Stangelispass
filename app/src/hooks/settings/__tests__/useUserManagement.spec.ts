@@ -33,7 +33,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -60,7 +60,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -86,7 +86,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -105,7 +105,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -127,7 +127,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn().mockResolvedValue(undefined);
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -161,7 +161,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn().mockResolvedValue(undefined);
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -182,7 +182,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -202,7 +202,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({
         currentUser: { id: "u1" } as any,
         setCurrentUser,
@@ -210,7 +210,7 @@ describe("useUserManagement", () => {
       }),
     );
 
-    act(() => {
+    await act(() => {
       result.current.handleLogout();
     });
 
@@ -223,7 +223,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 
@@ -246,7 +246,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser, setCurrentUser, refreshUsers }),
     );
 
@@ -276,7 +276,7 @@ describe("useUserManagement", () => {
     const setCurrentUser = jest.fn();
     const refreshUsers = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useUserManagement({ currentUser: null, setCurrentUser, refreshUsers }),
     );
 

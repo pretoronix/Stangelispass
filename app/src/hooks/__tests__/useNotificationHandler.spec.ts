@@ -37,20 +37,20 @@ describe("useNotificationHandler", () => {
     (Alert.alert as jest.Mock).mockRestore?.();
   });
 
-  it("registers listeners and cleans up on unmount", () => {
+  it("registers listeners and cleans up on unmount", async () => {
     const receivedRemove = jest.fn();
     const responseRemove = jest.fn();
 
     mockAddReceivedListener.mockReturnValueOnce({ remove: receivedRemove });
     mockAddResponseListener.mockReturnValueOnce({ remove: responseRemove });
 
-    const { unmount } = renderHook(() => useNotificationHandler());
+    const { unmount } = await renderHook(() => useNotificationHandler());
 
     expect(mockSetNotificationHandler).toHaveBeenCalled();
     expect(mockAddReceivedListener).toHaveBeenCalled();
     expect(mockAddResponseListener).toHaveBeenCalled();
 
-    unmount();
+    await unmount();
     expect(receivedRemove).toHaveBeenCalled();
     expect(responseRemove).toHaveBeenCalled();
   });
@@ -63,7 +63,7 @@ describe("useNotificationHandler", () => {
     });
     mockAddResponseListener.mockReturnValueOnce({ remove: jest.fn() });
 
-    renderHook(() => useNotificationHandler());
+    await renderHook(() => useNotificationHandler());
 
     await act(async () => {
       receivedCb?.({
@@ -77,7 +77,7 @@ describe("useNotificationHandler", () => {
     });
   });
 
-  it("navigates based on notification response type", () => {
+  it("navigates based on notification response type", async () => {
     let responseCb: any = null;
     mockAddReceivedListener.mockReturnValueOnce({ remove: jest.fn() });
     mockAddResponseListener.mockImplementationOnce((cb: any) => {
@@ -85,9 +85,9 @@ describe("useNotificationHandler", () => {
       return { remove: jest.fn() };
     });
 
-    renderHook(() => useNotificationHandler());
+    await renderHook(() => useNotificationHandler());
 
-    act(() => {
+    await act(async () => {
       responseCb?.({
         notification: { request: { content: { data: { type: "milestone" } } } },
       });

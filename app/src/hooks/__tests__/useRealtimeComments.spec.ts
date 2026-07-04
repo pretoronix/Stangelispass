@@ -43,19 +43,19 @@ describe("useRealtimeComments", () => {
     subscribeHandlers.length = 0;
   });
 
-  it("does nothing when disabled", () => {
-    const { unmount } = renderHook(() => useRealtimeComments("b1", false));
-    unmount();
+  it("does nothing when disabled", async () => {
+    const { unmount } = await renderHook(() => useRealtimeComments("b1", false));
+    await unmount();
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
     expect(mockRemoveChannel).not.toHaveBeenCalled();
   });
 
-  it("invalidates queries on insert/update/delete payloads and cleans up", () => {
-    const { unmount } = renderHook(() => useRealtimeComments("b1", true));
+  it("invalidates queries on insert/update/delete payloads and cleans up", async () => {
+    const { unmount } = await renderHook(() => useRealtimeComments("b1", true));
 
     expect(onHandlers.length).toBe(3);
 
-    act(() => {
+    await act(async () => {
       onHandlers[0]?.({ new: { id: "c1" } }); // INSERT
       onHandlers[1]?.({ new: { id: "c1" } }); // UPDATE
       onHandlers[2]?.({ old: { id: "c1" } }); // DELETE
@@ -63,15 +63,15 @@ describe("useRealtimeComments", () => {
 
     expect(mockInvalidateQueries).toHaveBeenCalled();
 
-    unmount();
+    await unmount();
     expect(mockRemoveChannel).toHaveBeenCalled();
   });
 
-  it("reports subscription statuses through the callback", () => {
-    renderHook(() => useRealtimeComments("b1", true));
+  it("reports subscription statuses through the callback", async () => {
+    await renderHook(() => useRealtimeComments("b1", true));
 
     expect(subscribeHandlers.length).toBeGreaterThan(0);
-    act(() => {
+    await act(async () => {
       subscribeHandlers[0]?.("SUBSCRIBED");
       subscribeHandlers[0]?.("CHANNEL_ERROR", new Error("x"));
       subscribeHandlers[0]?.("TIMED_OUT");

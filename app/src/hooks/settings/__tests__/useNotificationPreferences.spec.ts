@@ -17,7 +17,7 @@ describe("useNotificationPreferences", () => {
 
   it("does nothing when currentUser is null", async () => {
     const setCurrentUser = jest.fn();
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useNotificationPreferences({
         currentUser: null,
         setCurrentUser,
@@ -46,7 +46,7 @@ describe("useNotificationPreferences", () => {
     const setCurrentUser = jest.fn();
     const currentUser = { id: "u1", name: "A", notification_prefs: {} } as any;
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useNotificationPreferences({
         currentUser,
         setCurrentUser,
@@ -81,7 +81,7 @@ describe("useNotificationPreferences", () => {
       },
     } as any;
 
-    const { result } = renderHook(() =>
+    const { result } = await renderHook(() =>
       useNotificationPreferences({
         currentUser,
         setCurrentUser,
@@ -108,7 +108,7 @@ describe("useNotificationPreferences", () => {
     const setCurrentUser = jest.fn();
     const currentUser = { id: "u1", name: "A", notification_prefs: {} } as any;
 
-    const { result, rerender } = renderHook(
+    const { result, rerender } = await renderHook(
       (prefs) =>
         useNotificationPreferences({
           currentUser,
@@ -129,10 +129,12 @@ describe("useNotificationPreferences", () => {
     });
 
     // Simulate the screen re-rendering with the updated prefs after the first change.
-    rerender({
-      leader_change: true,
-      milestones: [10],
-      admin_broadcasts: false,
+    await act(async () => {
+      await rerender({
+        leader_change: true,
+        milestones: [10],
+        admin_broadcasts: false,
+      });
     });
 
     await act(async () => {

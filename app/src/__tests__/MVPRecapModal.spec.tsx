@@ -47,8 +47,8 @@ describe("MVPRecapModal", () => {
     jest.clearAllMocks();
   });
 
-  it("should not render when not visible", () => {
-    const { queryByText } = render(
+  it("should not render when not visible", async () => {
+    const { queryByText } = await render(
       <MVPRecapModal
         visible={false}
         onClose={mockOnClose}
@@ -60,8 +60,8 @@ describe("MVPRecapModal", () => {
     expect(queryByText("Brewmaster of the Night")).toBeNull();
   });
 
-  it("should render when visible", () => {
-    const { getByText, getAllByText } = render(
+  it("should render when visible", async () => {
+    const { getByText, getAllByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -77,7 +77,7 @@ describe("MVPRecapModal", () => {
   });
 
   it("should trigger haptic feedback when shown", async () => {
-    render(
+    await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -94,8 +94,8 @@ describe("MVPRecapModal", () => {
     });
   });
 
-  it("should display top participants", () => {
-    const { getAllByText, getByText } = render(
+  it("should display top participants", async () => {
+    const { getAllByText, getByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -110,7 +110,7 @@ describe("MVPRecapModal", () => {
   });
 
   it("should call onShare when share button is pressed", async () => {
-    const { getByText } = render(
+    const { getByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -121,7 +121,7 @@ describe("MVPRecapModal", () => {
 
     const shareButton = getByText("Share");
     await act(async () => {
-      fireEvent.press(shareButton);
+      await fireEvent.press(shareButton);
     });
 
     expect(mockOnShare).toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe("MVPRecapModal", () => {
   });
 
   it("should call onClose when close button is pressed", async () => {
-    const { getByText } = render(
+    const { getByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -140,15 +140,15 @@ describe("MVPRecapModal", () => {
 
     const closeButton = getByText("Close");
     await act(async () => {
-      fireEvent.press(closeButton);
+      await fireEvent.press(closeButton);
     });
 
     expect(mockOnClose).toHaveBeenCalled();
     expect(Haptics.selectionAsync).toHaveBeenCalled();
   });
 
-  it("should display formatted date", () => {
-    const { getByText } = render(
+  it("should display formatted date", async () => {
+    const { getByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}
@@ -162,14 +162,14 @@ describe("MVPRecapModal", () => {
     expect(dateText).toBeTruthy();
   });
 
-  it("should limit participants to top 5", () => {
+  it("should limit participants to top 5", async () => {
     const manyParticipants = Array.from({ length: 10 }, (_, i) => ({
       id: `user${i}`,
       name: `User ${i}`,
       beerCount: 10 - i,
     }));
 
-    const { queryByText } = render(
+    const { queryByText } = await render(
       <MVPRecapModal
         visible={true}
         onClose={mockOnClose}

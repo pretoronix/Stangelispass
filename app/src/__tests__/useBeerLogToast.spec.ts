@@ -38,36 +38,36 @@ describe("useBeerLogToast", () => {
     jest.useRealTimers();
   });
 
-  it("shows toast when current user gets a beer log", () => {
-    const { result } = renderHook(() => useBeerLogToast("u1", "e1"));
+  it("shows toast when current user gets a beer log", async () => {
+    const { result } = await renderHook(() => useBeerLogToast("u1", "e1"));
 
-    act(() => {
+    await act(() => {
       mockOnCallback?.({ new: { id: "b1", user_id: "u1", event_id: "e1" } });
     });
 
     expect(result.current.visible).toBe(true);
     expect(result.current.message).toBe("Beer logged!");
 
-    act(() => {
+    await act(() => {
       jest.advanceTimersByTime(2500);
     });
 
     expect(result.current.visible).toBe(false);
   });
 
-  it("ignores beer logs for other users", () => {
-    const { result } = renderHook(() => useBeerLogToast("u1", "e1"));
+  it("ignores beer logs for other users", async () => {
+    const { result } = await renderHook(() => useBeerLogToast("u1", "e1"));
 
-    act(() => {
+    await act(() => {
       mockOnCallback?.({ new: { id: "b2", user_id: "u2", event_id: "e1" } });
     });
 
     expect(result.current.visible).toBe(false);
   });
 
-  it("does nothing without required ids", () => {
-    renderHook(() => useBeerLogToast(null, "e1"));
-    renderHook(() => useBeerLogToast("u1", null));
+  it("does nothing without required ids", async () => {
+    await renderHook(() => useBeerLogToast(null, "e1"));
+    await renderHook(() => useBeerLogToast("u1", null));
     expect(mockOnCallback).toBeNull();
   });
 });
