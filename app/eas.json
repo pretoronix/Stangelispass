@@ -1,4 +1,8 @@
 {
+  "cli": {
+    "version": ">= 14.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
@@ -8,9 +12,27 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
     },
-    "production": {}
+    "production": {
+      "autoIncrement": true,
+      "ios": {
+        "resourceClass": "medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "$APP_STORE_CONNECT_APP_ID",
+        "ascIssuerId": "$APP_STORE_CONNECT_ISSUER_ID",
+        "ascApiKeyPath": "$APP_STORE_CONNECT_API_KEY_PATH",
+        "ascTeamId": "$ASC_TEAM_ID"
+      }
+    }
   }
 }
 

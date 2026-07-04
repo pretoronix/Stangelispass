@@ -1,46 +1,58 @@
 {
-    "expo": {
-        "name": "Stängelispass",
-        "slug": "stangelispass",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/icon.png",
-        "scheme": "stangelispass",
-        "userInterfaceStyle": "automatic",
-        "splash": {
-            "image": "./assets/splash-icon.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#1a1a2e"
-        },
-        "ios": {
-            "supportsTablet": true,
-            "bundleIdentifier": "com.stangelispass.app",
-            "buildNumber": "1"
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/adaptive-icon.png",
-                "backgroundColor": "#1a1a2e"
-            },
-            "package": "com.stangelispass.app",
-            "versionCode": 1
-        },
-        "web": {
-            "bundler": "metro",
-            "output": "static",
-            "favicon": "./assets/favicon.png"
-        },
-        "plugins": [
-            "expo-router",
-            "expo-secure-store"
-        ],
-        "experiments": {
-            "typedRoutes": true
+  "expo": {
+    "name": "Stängelispass",
+    "slug": "stangelispass",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "stangelispass",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a1a2e"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stangelispass.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true,
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Stängelispass uses the camera to scan QR codes for peer beer logging.",
+        "NSPhotoLibraryUsageDescription": "Stängelispass accesses your photo library only if you choose to save share cards.",
+        "NSUserTrackingUsageDescription": "Your data is not tracked across third-party apps or websites."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a1a2e"
+      },
+      "package": "com.stangelispass.app",
+      "versionCode": 1
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "privacyManifests": {
+              "PrivacyInfo.xcprivacy": "./PrivacyInfo.xcprivacy"
+            }
+          }
         }
-        ,
-        "extra": {
-            "EXPO_PUBLIC_SUPABASE_URL": "",
-            "EXPO_PUBLIC_SUPABASE_ANON_KEY": ""
-        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
+  }
 }
