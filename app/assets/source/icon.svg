@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Stängelispass App-Icon: Stange (CH-Bierglas) im Pass-Stempel-Ring -->
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.38" r="0.85">
+      <stop offset="0" stop-color="#2b2b52"/>
+      <stop offset="0.55" stop-color="#1a1a2e"/>
+      <stop offset="1" stop-color="#101021"/>
+    </radialGradient>
+    <linearGradient id="beer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe066"/>
+      <stop offset="0.35" stop-color="#ffd700"/>
+      <stop offset="0.75" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="foam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#ecdfc6"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#ffd700"/>
+      <stop offset="1" stop-color="#d97706"/>
+    </linearGradient>
+    <clipPath id="glassClip">
+      <path d="M356 262 L378 748 Q382 788 422 788 L602 788 Q642 788 646 748 L668 262 Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Hintergrund, randvoll -->
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+
+  <!-- Pass-Stempel: doppelter Ring -->
+  <circle cx="512" cy="512" r="404" fill="none" stroke="url(#ring)" stroke-width="12" opacity="0.75"/>
+  <circle cx="512" cy="512" r="362" fill="none" stroke="url(#ring)" stroke-width="34"/>
+
+  <!-- Glas -->
+  <g clip-path="url(#glassClip)">
+    <rect x="330" y="286" width="364" height="520" fill="url(#beer)"/>
+    <!-- Bodensatz -->
+    <rect x="330" y="740" width="364" height="66" fill="#92400e" opacity="0.35"/>
+    <!-- Glanzkante -->
+    <path d="M404 300 L424 726" fill="none" stroke="#fffdf5" stroke-width="30"
+          stroke-linecap="round" opacity="0.28"/>
+    <!-- Perlen -->
+    <circle cx="556" cy="418" r="19" fill="#fff8dc" opacity="0.55"/>
+    <circle cx="472" cy="512" r="14" fill="#fff8dc" opacity="0.45"/>
+    <circle cx="576" cy="596" r="12" fill="#fff8dc" opacity="0.40"/>
+    <circle cx="486" cy="672" r="16" fill="#fff8dc" opacity="0.40"/>
+  </g>
+
+  <!-- Glaskontur -->
+  <path d="M356 262 L378 748 Q382 788 422 788 L602 788 Q642 788 646 748 L668 262 Z"
+        fill="none" stroke="#ffd700" stroke-width="22" stroke-linejoin="round"/>
+
+  <!-- Schaumkrone -->
+  <path d="M348 268 C346 212 394 186 434 208 C458 174 530 172 558 206
+           C608 190 682 212 676 268 C676 302 618 320 512 320
+           C406 320 348 302 348 268 Z"
+        fill="url(#foam)" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+</svg>

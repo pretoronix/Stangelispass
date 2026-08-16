@@ -143,6 +143,7 @@ export function SettingsSections({
           freeCredits={currentUser?.free_event_credits || 0}
           dayCredits={currentUser?.paid_event_credits_day || 0}
           weekendCredits={currentUser?.paid_event_credits_weekend || 0}
+          purchasesEnabled={eventPasses.iapEnabled}
           onBuyDayPass={() => eventPasses.handlePurchaseEventPass("day")}
           onBuyWeekendPass={() =>
             eventPasses.handlePurchaseEventPass("weekend")
@@ -252,8 +253,12 @@ export function SettingsSections({
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Stängelispass v1.5.0</Text>
+        <Text style={styles.footerText}>Stängelispass v1.0.0</Text>
         <Text style={styles.footerSubtext}>Crafted for Beer Lovers 🍻</Text>
+        <Text style={styles.footerNotice}>
+          Nur für Personen ab 17 Jahren bzw. dem gesetzlichen Mindestalter für
+          Alkoholkonsum. Bitte geniesse Alkohol verantwortungsvoll.
+        </Text>
       </View>
 
       <View style={{ height: spacing.xxl }} />
@@ -301,5 +306,11 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textMuted,
     marginTop: 4,
+  },
+  footerNotice: {
+    ...typography.caption,
+    color: colors.textMuted,
+    marginTop: spacing.md,
+    textAlign: "center",
   },
 });

@@ -9,6 +9,7 @@ import {
 import {
   purchaseProduct,
   finishPurchase,
+  IAP_ENABLED,
   IAP_PRODUCT_IDS,
 } from "@/services/iap";
 import {
@@ -162,6 +163,9 @@ export const useEventPasses = ({
 
   const handlePurchaseEventPass = useCallback(
     async (type: "day" | "weekend") => {
+      // IAP is deferred to v1.1. The UI never exposes this handler while the
+      // flag is off; the guard makes the dead path unreachable for good.
+      if (!IAP_ENABLED) return;
       if (!currentUser) {
         Alert.alert("Select User", "Please select a user before purchasing.");
         return;
@@ -207,6 +211,8 @@ export const useEventPasses = ({
   );
 
   const handlePurchaseLifetime = useCallback(async () => {
+    // See handlePurchaseEventPass — unreachable while IAP_ENABLED is false.
+    if (!IAP_ENABLED) return;
     if (!currentUser) {
       Alert.alert("Select User", "Please select a user before purchasing.");
       return;
@@ -265,6 +271,7 @@ export const useEventPasses = ({
     handlePurchaseEventPass,
     handlePurchaseLifetime,
     handleConsumeForStart,
+    iapEnabled: IAP_ENABLED,
     iapProductIds: IAP_PRODUCT_IDS,
   };
 };
