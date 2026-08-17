@@ -5,8 +5,19 @@
 // V8 caches the timezone on first use. Honors an existing TZ override.
 process.env.TZ = process.env.TZ || 'Europe/Zurich';
 
+// Node ESM helper scripts under scripts/ (e.g. release-guard.mjs) are plain
+// modules with unit-testable exports; jest-expo's preset only transforms
+// .js/.ts/.tsx, so .mjs is added to its transform map rather than replacing it.
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- this config file is CommonJS
+const expoPreset = require('jest-expo/jest-preset');
+
 module.exports = {
     preset: 'jest-expo',
+    moduleFileExtensions: [...(expoPreset.moduleFileExtensions || ['js', 'json', 'jsx', 'ts', 'tsx', 'node']), 'mjs'],
+    transform: {
+        ...expoPreset.transform,
+        '^.+\\.mjs$': 'babel-jest',
+    },
     setupFiles: ['<rootDir>/jest/setupEnv.js'],
     setupFilesAfterEnv: ['<rootDir>/jest-setup.js'],
     coverageReporters: ['text', 'json-summary', 'lcov'],
