@@ -41,6 +41,12 @@ export const getSubscriptionTierDisplay = (
   return tier === "craft" ? "Craft (Premium)" : "Pilsner (Free)";
 };
 
+export const formatAppVersion = (version?: string | null): string => {
+  const raw = (version || "").trim();
+  if (!raw) return "v1.0.0";
+  return raw.startsWith("v") ? raw : `v${raw}`;
+};
+
 export const capitalizeFirst = (str: string): string => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };

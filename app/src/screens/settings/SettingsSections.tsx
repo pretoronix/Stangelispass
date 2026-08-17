@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
+import Constants from "expo-constants";
 import { colors, spacing, typography } from "@/lib/theme";
+import { formatAppVersion } from "@/utils/settings/settingsHelpers";
 import type {
   Event,
   EventMembership,
@@ -253,7 +255,9 @@ export function SettingsSections({
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Stängelispass v1.0.0</Text>
+        <Text style={styles.footerText}>
+          Stängelispass {formatAppVersion(Constants.expoConfig?.version)}
+        </Text>
         <Text style={styles.footerSubtext}>Crafted for Beer Lovers 🍻</Text>
         <Text style={styles.footerNotice}>
           Nur für Personen ab 17 Jahren bzw. dem gesetzlichen Mindestalter für
