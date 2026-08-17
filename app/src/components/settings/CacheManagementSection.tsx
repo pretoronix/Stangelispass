@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { CacheStats } from "@/utils/cacheManager";
 import { formatCacheSizeKB } from "@/utils/settings/settingsHelpers";
+import { copy } from "@/ui/copy";
 
 interface CacheManagementSectionProps {
   cacheStats: CacheStats | null;
@@ -20,27 +21,25 @@ export const CacheManagementSection: React.FC<CacheManagementSectionProps> = ({
       {cacheStats && (
         <>
           <View style={styles.bioRow}>
-            <Text style={styles.bioLabel}>Cache Size</Text>
+            <Text style={styles.bioLabel}>{copy.settings.cacheSize}</Text>
             <Text style={styles.bioValue}>
               {formatCacheSizeKB(cacheStats.sizeKB)} KB
             </Text>
           </View>
           <View style={styles.bioRow}>
-            <Text style={styles.bioLabel}>Cached Queries</Text>
+            <Text style={styles.bioLabel}>{copy.settings.cachedQueries}</Text>
             <Text style={styles.bioValue}>{cacheStats.queriesCount}</Text>
           </View>
         </>
       )}
       <Button
-        title="Clear Cache"
+        title={copy.settings.clearCache}
         variant="secondary"
         onPress={onClearCache}
         icon="trash-outline"
         style={styles.clearCacheButton}
       />
-      <Text style={styles.bioDisclaimer}>
-        Cached data enables offline viewing and instant app startup.
-      </Text>
+      <Text style={styles.bioDisclaimer}>{copy.settings.cacheHint}</Text>
     </Card>
   );
 };

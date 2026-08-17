@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import type { User } from "@/services/supabase";
 import type { PromoCode, PromoCodeType } from "@/services/promoCodes";
+import { copy } from "@/ui/copy";
 
 interface PromoCodeSectionProps {
   isAdmin: boolean;
@@ -35,28 +36,34 @@ export const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
 }) => {
   return (
     <Card>
-      <Text style={styles.title}>Promo Codes</Text>
-      <Text style={styles.subtitle}>
-        Generate day or weekend event passes for promotions.
-      </Text>
+      <Text style={styles.title}>{copy.settings.promoCodes}</Text>
+      <Text style={styles.subtitle}>{copy.settings.promoCodesHint}</Text>
 
       {isAdmin && (
         <View style={styles.adminArea}>
           <Button
-            title={generating ? "Generating..." : "Generate Day Pass Code"}
+            title={
+              generating
+                ? copy.settings.generating
+                : copy.settings.generateDayPassCode
+            }
             onPress={() => onGenerateCode("event_day")}
             disabled={generating || !currentUser}
             style={styles.actionButton}
           />
           <Button
-            title={generating ? "Generating..." : "Generate Weekend Pass Code"}
+            title={
+              generating
+                ? copy.settings.generating
+                : copy.settings.generateWeekendPassCode
+            }
             onPress={() => onGenerateCode("event_weekend")}
             disabled={generating || !currentUser}
             variant="ghost"
             style={styles.actionButton}
           />
           <Button
-            title={loading ? "Refreshing..." : "Refresh Codes"}
+            title={loading ? copy.settings.refreshing : copy.settings.refreshCodes}
             variant="ghost"
             onPress={onRefresh}
             disabled={loading}
@@ -70,7 +77,7 @@ export const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
                     <Text style={styles.codeText}>{code.code}</Text>
                     <Text style={styles.codeStatus}>
                       {code.redeemed_at
-                        ? "Redeemed"
+                        ? copy.settings.codeRedeemed
                         : code.type.replace("event_", "")}
                     </Text>
                   </View>
@@ -78,23 +85,25 @@ export const PromoCodeSection: React.FC<PromoCodeSectionProps> = ({
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No promo codes generated yet.</Text>
+            <Text style={styles.emptyText}>{copy.settings.noPromoCodesYet}</Text>
           )}
         </View>
       )}
 
       <View style={styles.redeemArea}>
-        <Text style={styles.redeemLabel}>Redeem Promo Code</Text>
+        <Text style={styles.redeemLabel}>{copy.settings.redeemPromoCode}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter promo code..."
+          placeholder={copy.settings.promoCodePlaceholder}
           placeholderTextColor={colors.textMuted}
           value={redeemCode}
           onChangeText={setRedeemCode}
           autoCapitalize="characters"
         />
         <Button
-          title={redeeming ? "Redeeming..." : "Redeem Code"}
+          title={
+            redeeming ? copy.settings.redeeming : copy.settings.redeemCodeLabel
+          }
           onPress={onRedeemCode}
           disabled={redeeming || !currentUser}
           style={styles.actionButton}

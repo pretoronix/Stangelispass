@@ -301,6 +301,7 @@ import HistoryScreen from "@/app/history";
 import SettingsScreen from "@/app/settings";
 import ProfileScreen from "@/app/profile";
 import LegendsScreen from "@/app/legends";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/hooks/profile/useProfileData", () => ({
   useProfileData: () => ({
@@ -422,23 +423,23 @@ describe("GUI Integrity Tests", () => {
   describe("Settings Screen", () => {
     it("renders correctly", async () => {
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(getByText(/Settings/i)).toBeTruthy());
-      expect(getByText(/Notifications/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(copy.settings.title)).toBeTruthy());
+      expect(getByText(copy.settings.notifications)).toBeTruthy();
     });
 
     it("shows Admin Tools section", async () => {
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(getByText(/Admin Tools/i)).toBeTruthy(),
+        expect(getByText(copy.settings.adminTools)).toBeTruthy(),
       );
     });
 
     it("shows the tier card with credit counts", async () => {
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(getByText(/Current Tier/i)).toBeTruthy());
-      expect(getByText(/Free Events/i)).toBeTruthy();
-      expect(getByText(/Day Passes/i)).toBeTruthy();
-      expect(getByText(/Weekend Passes/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(copy.settings.currentTier)).toBeTruthy());
+      expect(getByText(copy.settings.freeEvents)).toBeTruthy();
+      expect(getByText(copy.settings.dayPasses)).toBeTruthy();
+      expect(getByText(copy.settings.weekendPasses)).toBeTruthy();
     });
 
     // IAP is deferred to v1.1 (IAP_ENABLED === false). No purchase entry point
@@ -449,7 +450,7 @@ describe("GUI Integrity Tests", () => {
       expect(IAP_ENABLED).toBe(false);
 
       const { queryByText, getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(getByText(/Current Tier/i)).toBeTruthy());
+      await waitFor(() => expect(getByText(copy.settings.currentTier)).toBeTruthy());
       expect(queryByText(/Buy Single Event/i)).toBeNull();
       expect(queryByText(/Buy Weekend Unlimited/i)).toBeNull();
       expect(queryByText(/Become a Supporter/i)).toBeNull();
@@ -460,11 +461,11 @@ describe("GUI Integrity Tests", () => {
       mockAppContext.activeEvent = { id: "e1", name: "Test Event" };
       mockAppContext.eventPermissions.canManageMembers = true;
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(getByText(/Event Administration/i)).toBeTruthy();
+      expect(getByText(copy.settings.eventAdministration)).toBeTruthy();
 
       mockAppContext.activeEvent = null;
       const { unmount, queryByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(queryByText(/Event Administration/i)).toBeNull();
+      expect(queryByText(copy.settings.eventAdministration)).toBeNull();
       unmount();
     });
 
@@ -474,7 +475,7 @@ describe("GUI Integrity Tests", () => {
         { id: "u2", name: "Bob", is_admin: false },
       ];
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      expect(getByText(/Switch Member/i)).toBeTruthy();
+      expect(getByText(copy.settings.switchMember)).toBeTruthy();
       expect(getByText("Alice")).toBeTruthy();
       expect(getByText("Bob")).toBeTruthy();
     });

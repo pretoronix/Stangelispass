@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import Constants from "expo-constants";
 import { colors, spacing, typography } from "@/lib/theme";
 import { formatAppVersion } from "@/utils/settings/settingsHelpers";
+import { copy } from "@/ui/copy";
 import type {
   Event,
   EventMembership,
@@ -94,11 +95,11 @@ export function SettingsSections({
       contentContainerStyle={styles.scrollContent}
     >
       <View style={styles.header}>
-        <Text style={styles.largeTitle}>Settings</Text>
+        <Text style={styles.largeTitle}>{copy.settings.title}</Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Active Profiles</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.activeProfiles}</Text>
         <CurrentUserCard
           currentUser={currentUser}
           isAdmin={isAdmin}
@@ -108,7 +109,7 @@ export function SettingsSections({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Admin Tools</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.adminTools}</Text>
         <AddUserSection
           newUserName={userManagement.newUserName}
           setNewUserName={userManagement.setNewUserName}
@@ -126,7 +127,9 @@ export function SettingsSections({
 
       {activeEvent && eventPermissions.canManageMembers && (
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Event Administration</Text>
+          <Text style={styles.sectionLabel}>
+            {copy.settings.eventAdministration}
+          </Text>
           <EventAdminSection
             eventName={activeEvent.name}
             eventMembers={eventMembers}
@@ -155,7 +158,7 @@ export function SettingsSections({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Lifetime Pass</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.lifetimePass}</Text>
         <LifetimePassSection
           isAdmin={isAdmin}
           currentUser={currentUser}
@@ -173,7 +176,7 @@ export function SettingsSections({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Promo Codes</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.promoCodes}</Text>
         <PromoCodeSection
           isAdmin={isAdmin}
           currentUser={currentUser}
@@ -192,7 +195,7 @@ export function SettingsSections({
       {currentUser && (
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>
-            Physiology (Soberness Estimator)
+            {copy.settings.physiologySection}
           </Text>
           <PhysiologySection
             currentUser={currentUser}
@@ -203,7 +206,7 @@ export function SettingsSections({
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Sensory Experience</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.sensorySection}</Text>
         <SensorySection
           isAudioEnabled={animationPreferences.isAudioEnabled()}
           onToggleAudio={animationPreferences.toggleAudioMuted}
@@ -213,7 +216,7 @@ export function SettingsSections({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Cache & Storage</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.cacheSection}</Text>
         <CacheManagementSection
           cacheStats={cacheManagement.cacheStats}
           onClearCache={cacheManagement.handleClearCache}
@@ -221,7 +224,7 @@ export function SettingsSections({
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Live Updates</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.liveUpdates}</Text>
         <LiveBeerLogSection
           enabled={liveBeerLogPreference.enabled}
           onToggle={liveBeerLogPreference.toggle}
@@ -230,7 +233,7 @@ export function SettingsSections({
 
       {currentUser && (
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Notifications</Text>
+          <Text style={styles.sectionLabel}>{copy.settings.notifications}</Text>
           <NotificationsSection
             notificationPrefs={notificationPrefs}
             milestones={notificationPreferences.milestones}
@@ -245,7 +248,7 @@ export function SettingsSections({
       )}
 
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>Switch Member</Text>
+        <Text style={styles.sectionLabel}>{copy.settings.switchMember}</Text>
         <UserSelectionGrid
           users={users}
           currentUserId={currentUser?.id}
@@ -258,10 +261,9 @@ export function SettingsSections({
         <Text style={styles.footerText}>
           Stängelispass {formatAppVersion(Constants.expoConfig?.version)}
         </Text>
-        <Text style={styles.footerSubtext}>Crafted for Beer Lovers 🍻</Text>
+        <Text style={styles.footerSubtext}>{copy.settings.tagline}</Text>
         <Text style={styles.footerNotice}>
-          Nur für Personen ab 17 Jahren bzw. dem gesetzlichen Mindestalter für
-          Alkoholkonsum. Bitte geniesse Alkohol verantwortungsvoll.
+          {copy.settings.responsibilityNotice}
         </Text>
       </View>
 

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 import { colors, spacing } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface SensorySectionProps {
   isAudioEnabled: boolean;
@@ -20,24 +21,22 @@ export const SensorySection: React.FC<SensorySectionProps> = ({
   return (
     <Card>
       <View style={styles.bioRow}>
-        <Text style={styles.bioLabel}>Play "Psst!" Sound</Text>
+        <Text style={styles.bioLabel}>{copy.settings.psstSound}</Text>
         <Switch
           value={isAudioEnabled}
           onValueChange={onToggleAudio}
           trackColor={{ false: colors.surfaceLight, true: colors.primary }}
         />
       </View>
-      <Text style={styles.bioDisclaimer}>
-        Plays a crisp bottle opening sound when a beer is logged.
-      </Text>
+      <Text style={styles.bioDisclaimer}>{copy.settings.psstSoundHint}</Text>
 
       <View style={[styles.bioRow, { marginTop: spacing.md }]}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.bioLabel}>🍺 Pour Animation</Text>
+          <Text style={styles.bioLabel}>{copy.settings.pourAnimation}</Text>
           <Text style={[styles.bioDisclaimer, { marginTop: 4 }]}>
             {pourAnimationEnabled
-              ? "Show animated beer pour when logging"
-              : "Use simple feedback instead"}
+              ? copy.settings.pourAnimationOn
+              : copy.settings.pourAnimationOff}
           </Text>
         </View>
         <Switch

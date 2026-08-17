@@ -1,3 +1,5 @@
+import { copy } from "@/ui/copy";
+
 export const MILESTONES = [5, 10, 20] as const;
 
 // Pass types available when starting a new event
@@ -9,8 +11,8 @@ export const EVENT_PASS_TYPES = ["day", "week", "year"] as const;
 export type EventPassType = (typeof EVENT_PASS_TYPES)[number];
 
 export const PASS_TYPE_LABELS: Record<PassType, string> = {
-  day: "Single Event",
-  week: "Weekend",
+  day: copy.settings.passTypeDay,
+  week: copy.settings.passTypeWeek,
 };
 
 export const PASS_TYPE_PRICES_CHF: Record<PassType, number> = {

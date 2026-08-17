@@ -6,6 +6,7 @@ import { User } from "@/services/supabase";
 import { Avatar } from "@/components/ui/Avatar";
 import { Card } from "@/components/ui/Card";
 import { router } from "expo-router";
+import { copy } from "@/ui/copy";
 
 interface UserSelectionGridProps {
   users: User[];
@@ -24,12 +25,16 @@ export const UserSelectionGrid: React.FC<UserSelectionGridProps> = ({
     <View style={styles.userGrid}>
       <SettingItem
         icon="trophy"
-        label="Trophy Case (Profile)"
+        label={copy.settings.trophyCase}
         onPress={() => router.push("/profile")}
         showChevron
       />
 
-      <SettingItem icon="people" label="Manage Users" onPress={onManageUsers} />
+      <SettingItem
+        icon="people"
+        label={copy.settings.manageUsers}
+        onPress={onManageUsers}
+      />
       {users.map((user) => (
         <Pressable
           key={user.id}
@@ -48,7 +53,9 @@ export const UserSelectionGrid: React.FC<UserSelectionGridProps> = ({
                 {user.name}
               </Text>
               {user.is_admin && (
-                <Text style={styles.adminSmallText}>Admin</Text>
+                <Text style={styles.adminSmallText}>
+                  {copy.settings.adminBadge}
+                </Text>
               )}
             </View>
             {currentUserId === user.id && (

@@ -2,6 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { PromoCodeSection } from "@/components/settings/PromoCodeSection";
 import type { PromoCode } from "@/services/promoCodes";
+import { copy } from "@/ui/copy";
 
 const baseProps = {
   isAdmin: true,
@@ -39,11 +40,11 @@ describe("PromoCodeSection", () => {
       <PromoCodeSection {...baseProps} codes={codes} />,
     );
 
-    expect(getByText(/Generate Day Pass Code/i)).toBeTruthy();
-    expect(getByText(/Generate Weekend Pass Code/i)).toBeTruthy();
+    expect(getByText(copy.settings.generateDayPassCode)).toBeTruthy();
+    expect(getByText(copy.settings.generateWeekendPassCode)).toBeTruthy();
     expect(getByText("DAYPASS1")).toBeTruthy();
     expect(getByText("WEEKEND1")).toBeTruthy();
-    expect(getByText(/Redeemed/i)).toBeTruthy();
+    expect(getByText(copy.settings.codeRedeemed)).toBeTruthy();
   });
 
   it("shows redeem area for non-admins and hides admin controls", async () => {
@@ -51,10 +52,10 @@ describe("PromoCodeSection", () => {
       <PromoCodeSection {...baseProps} isAdmin={false} />,
     );
 
-    expect(getByText(/Redeem Promo Code/i)).toBeTruthy();
-    expect(getByText(/Redeem Code/i)).toBeTruthy();
-    expect(queryByText(/Generate Day Pass Code/i)).toBeNull();
-    expect(queryByText(/Generate Weekend Pass Code/i)).toBeNull();
+    expect(getByText(copy.settings.redeemPromoCode)).toBeTruthy();
+    expect(getByText(copy.settings.redeemCodeLabel)).toBeTruthy();
+    expect(queryByText(copy.settings.generateDayPassCode)).toBeNull();
+    expect(queryByText(copy.settings.generateWeekendPassCode)).toBeNull();
   });
 
   it("shows empty state when no codes exist", async () => {
@@ -62,6 +63,6 @@ describe("PromoCodeSection", () => {
       <PromoCodeSection {...baseProps} codes={[]} />,
     );
 
-    expect(getByText(/No promo codes generated yet/i)).toBeTruthy();
+    expect(getByText(copy.settings.noPromoCodesYet)).toBeTruthy();
   });
 });

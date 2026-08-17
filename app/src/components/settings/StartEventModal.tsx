@@ -16,6 +16,7 @@ import {
   PassType,
 } from "@/utils/settings/settingsConstants";
 import { getEventPricingType, getEventPriceCHF } from "@/utils/eventPricing";
+import { copy } from "@/ui/copy";
 
 interface StartEventModalProps {
   visible: boolean;
@@ -40,8 +41,11 @@ export const StartEventModal: React.FC<StartEventModalProps> = ({
   const durationDays = PASS_TYPE_DURATIONS_DAYS[safePassType];
   const eventPricingType = getEventPricingType(new Date());
   const price = getEventPriceCHF(new Date());
-  const durationLabel = durationDays === 1 ? "1 day" : `${durationDays} days`;
-  const benefitsLabel = "Unlimited features for this event";
+  const durationLabel =
+    durationDays === 1
+      ? copy.settings.durationOneDay
+      : `${durationDays} ${copy.settings.durationDaysSuffix}`;
+  const benefitsLabel = copy.settings.eventBenefits;
   return (
     <Modal
       visible={visible}
@@ -51,10 +55,10 @@ export const StartEventModal: React.FC<StartEventModalProps> = ({
     >
       <View style={styles.modalOverlay}>
         <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>Start New Event</Text>
+          <Text style={styles.modalTitle}>{copy.settings.startNewEvent}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Event name..."
+            placeholder={copy.settings.eventNamePlaceholder}
             placeholderTextColor={colors.textMuted}
             value={eventName}
             onChangeText={onChangeEventName}
@@ -85,13 +89,13 @@ export const StartEventModal: React.FC<StartEventModalProps> = ({
           </Text>
           <View style={styles.modalActions}>
             <Button
-              title="Cancel"
+              title={copy.settings.cancel}
               variant="ghost"
               onPress={onCancel}
               style={styles.modalButton}
             />
             <Button
-              title="Start"
+              title={copy.settings.start}
               onPress={onStart}
               style={styles.modalButton}
             />

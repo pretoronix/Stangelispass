@@ -2,6 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { PremiumTierCard } from "@/components/settings/PremiumTierCard";
 import { IAP_ENABLED } from "@/services/iap";
+import { copy } from "@/ui/copy";
 
 describe("PremiumTierCard", () => {
   it("renders credit counts and purchase buttons when purchases are enabled", async () => {
@@ -19,14 +20,14 @@ describe("PremiumTierCard", () => {
       />,
     );
 
-    expect(getByText("Free Events")).toBeTruthy();
-    expect(getByText("Day Passes")).toBeTruthy();
-    expect(getByText("Weekend Passes")).toBeTruthy();
+    expect(getByText(copy.settings.freeEvents)).toBeTruthy();
+    expect(getByText(copy.settings.dayPasses)).toBeTruthy();
+    expect(getByText(copy.settings.weekendPasses)).toBeTruthy();
     expect(getByText("1")).toBeTruthy();
     expect(getByText("2")).toBeTruthy();
     expect(getByText("3")).toBeTruthy();
-    expect(getByText(/Buy Single Event/i)).toBeTruthy();
-    expect(getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
+    expect(getByText(copy.settings.buySingleEvent)).toBeTruthy();
+    expect(getByText(copy.settings.buyWeekendUnlimited)).toBeTruthy();
     expect(getByText(/Supporter/i)).toBeTruthy();
   });
 
@@ -65,7 +66,7 @@ describe("PremiumTierCard", () => {
       />,
     );
 
-    expect(getByText("Free Events")).toBeTruthy();
+    expect(getByText(copy.settings.freeEvents)).toBeTruthy();
     expect(getByText("2")).toBeTruthy();
     expect(queryByText(/Buy Single Event/i)).toBeNull();
     expect(queryByText(/Buy Weekend Unlimited/i)).toBeNull();

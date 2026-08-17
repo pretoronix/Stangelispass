@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "@testing-library/react-native";
 import { StartEventModal } from "@/components/settings/StartEventModal";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/utils/eventPricing", () => ({
   getEventPricingType: () => "day",
@@ -21,8 +22,8 @@ describe("StartEventModal", () => {
       />,
     );
 
-    expect(getByText(/Single Event/i)).toBeTruthy();
-    expect(getByText(/Weekend/i)).toBeTruthy();
+    expect(getByText(copy.settings.passTypeDay)).toBeTruthy();
+    expect(getByText(copy.settings.passTypeWeek)).toBeTruthy();
     expect(getByText(/CHF 10.00 \(day\)/i)).toBeTruthy();
   });
 });

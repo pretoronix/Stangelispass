@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 import { colors, spacing } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 import { NotificationPrefs } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface NotificationsSectionProps {
   notificationPrefs: NotificationPrefs;
@@ -24,7 +25,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
   return (
     <Card>
       <View style={styles.bioRow}>
-        <Text style={styles.bioLabel}>Lead Change Alerts</Text>
+        <Text style={styles.bioLabel}>{copy.settings.leadChangeAlerts}</Text>
         <Switch
           value={notificationPrefs.leader_change}
           onValueChange={onToggleLeaderChange}
@@ -36,7 +37,9 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
         const enabled = notificationPrefs.milestones.includes(milestone);
         return (
           <View style={styles.bioRow} key={`milestone-${milestone}`}>
-            <Text style={styles.bioLabel}>{milestone} Beers Milestone</Text>
+            <Text style={styles.bioLabel}>
+              {milestone} {copy.settings.milestoneSuffix}
+            </Text>
             <Switch
               value={enabled}
               onValueChange={(value) => onToggleMilestone(milestone, value)}
@@ -48,7 +51,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
 
       {onToggleAdminBroadcasts && (
         <View style={styles.bioRow}>
-          <Text style={styles.bioLabel}>Admin Broadcasts</Text>
+          <Text style={styles.bioLabel}>{copy.settings.adminBroadcasts}</Text>
           <Switch
             value={notificationPrefs.admin_broadcasts}
             onValueChange={onToggleAdminBroadcasts}
@@ -59,7 +62,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
 
       {onToggleNewRound && (
         <View style={styles.bioRow}>
-          <Text style={styles.bioLabel}>New Round Alerts</Text>
+          <Text style={styles.bioLabel}>{copy.settings.newRoundAlerts}</Text>
           <Switch
             value={notificationPrefs.new_round}
             onValueChange={onToggleNewRound}
@@ -69,7 +72,7 @@ export const NotificationsSection: React.FC<NotificationsSectionProps> = ({
       )}
 
       <Text style={styles.bioDisclaimer}>
-        Choose when you want push alerts for lead changes and beer milestones.
+        {copy.settings.notificationsHint}
       </Text>
     </Card>
   );

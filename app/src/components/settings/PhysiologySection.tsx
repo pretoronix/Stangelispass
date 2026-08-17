@@ -11,10 +11,14 @@ import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { User } from "@/services/supabase";
 import { Card } from "@/components/ui/Card";
 import { GENDERS } from "@/utils/settings/settingsConstants";
-import {
-  playHapticSelection,
-  capitalizeFirst,
-} from "@/utils/settings/settingsHelpers";
+import { playHapticSelection } from "@/utils/settings/settingsHelpers";
+import { copy } from "@/ui/copy";
+
+const GENDER_LABELS: Record<(typeof GENDERS)[number], string> = {
+  male: copy.settings.genderMale,
+  female: copy.settings.genderFemale,
+  neutral: copy.settings.genderNeutral,
+};
 
 interface PhysiologySectionProps {
   currentUser: User;
@@ -30,7 +34,7 @@ export const PhysiologySection: React.FC<PhysiologySectionProps> = ({
   return (
     <Card>
       <View style={styles.bioRow}>
-        <Text style={styles.bioLabel}>Weight (kg)</Text>
+        <Text style={styles.bioLabel}>{copy.settings.weightKg}</Text>
         <TextInput
           style={styles.bioInput}
           keyboardType="numeric"
@@ -44,7 +48,7 @@ export const PhysiologySection: React.FC<PhysiologySectionProps> = ({
         />
       </View>
       <View style={styles.bioRow}>
-        <Text style={styles.bioLabel}>Gender</Text>
+        <Text style={styles.bioLabel}>{copy.settings.gender}</Text>
         <View style={styles.genderContainer}>
           {GENDERS.map((g) => (
             <Pressable
@@ -64,7 +68,7 @@ export const PhysiologySection: React.FC<PhysiologySectionProps> = ({
                   currentUser.gender === g && styles.genderButtonTextActive,
                 ]}
               >
-                {capitalizeFirst(g)}
+                {GENDER_LABELS[g]}
               </Text>
             </Pressable>
           ))}

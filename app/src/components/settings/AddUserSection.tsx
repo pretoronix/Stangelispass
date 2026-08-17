@@ -4,6 +4,7 @@ import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface AddUserSectionProps {
   newUserName: string;
@@ -36,15 +37,17 @@ export const AddUserSection: React.FC<AddUserSectionProps> = ({
     <Card>
       <TextInput
         style={styles.input}
-        placeholder="New member name..."
+        placeholder={copy.settings.newMemberPlaceholder}
         placeholderTextColor={colors.textMuted}
         value={newUserName}
         onChangeText={setNewUserName}
       />
       <View style={styles.adminToggle}>
         <View>
-          <Text style={styles.toggleLabel}>Admin Privileges</Text>
-          <Text style={styles.toggleSublabel}>Can log beers for others</Text>
+          <Text style={styles.toggleLabel}>{copy.settings.adminPrivileges}</Text>
+          <Text style={styles.toggleSublabel}>
+            {copy.settings.adminPrivilegesHint}
+          </Text>
         </View>
         <Switch
           value={isNewUserAdmin}
@@ -55,7 +58,7 @@ export const AddUserSection: React.FC<AddUserSectionProps> = ({
         />
       </View>
       <Button
-        title={loading ? "Creating..." : "Add Member"}
+        title={loading ? copy.settings.creating : copy.settings.addMember}
         onPress={onAddUser}
         icon="person-add"
         testID={labels.settings.addUser.testID}
@@ -64,7 +67,7 @@ export const AddUserSection: React.FC<AddUserSectionProps> = ({
       />
       <View style={styles.adminActions}>
         <Button
-          title="Start New Event"
+          title={copy.settings.startNewEvent}
           variant="secondary"
           onPress={onStartEvent}
           testID={labels.settings.startEvent.testID}
@@ -73,7 +76,7 @@ export const AddUserSection: React.FC<AddUserSectionProps> = ({
           style={styles.adminActionButton}
         />
         <Button
-          title="Reset Event Data"
+          title={copy.settings.resetEventData}
           variant="danger"
           onPress={onResetEvent}
           testID={labels.settings.resetEvent.testID}

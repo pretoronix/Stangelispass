@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface CurrentUserCardProps {
   currentUser: User | null;
@@ -29,7 +30,7 @@ export const CurrentUserCard: React.FC<CurrentUserCardProps> = ({
           size={32}
           color={colors.textMuted}
         />
-        <Text style={styles.noUserText}>No user selected. Pick one below!</Text>
+        <Text style={styles.noUserText}>{copy.settings.noUserSelected}</Text>
       </Card>
     );
   }
@@ -49,13 +50,15 @@ export const CurrentUserCard: React.FC<CurrentUserCardProps> = ({
               color={colors.primary}
             />
             <Text style={styles.adminText}>
-              {isAdmin ? "Admin Access" : `Event ${currentEventRole}`}
+              {isAdmin
+                ? copy.settings.adminAccess
+                : `${copy.settings.eventRolePrefix} ${currentEventRole}`}
             </Text>
           </View>
         )}
       </View>
       <Button
-        title="Switch"
+        title={copy.settings.switchProfile}
         onPress={onSwitch}
         variant="ghost"
         testID={labels.settings.switchUser.testID}

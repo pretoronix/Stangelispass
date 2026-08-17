@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing } from "@/lib/theme";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface LiveBeerLogSectionProps {
   enabled: boolean;
@@ -16,7 +17,7 @@ export const LiveBeerLogSection: React.FC<LiveBeerLogSectionProps> = ({
   return (
     <Card>
       <View style={styles.row}>
-        <Text style={styles.label}>Live Beer Log Updates</Text>
+        <Text style={styles.label}>{copy.settings.liveBeerLogUpdates}</Text>
         <Switch
           value={enabled}
           onValueChange={onToggle}
@@ -25,9 +26,7 @@ export const LiveBeerLogSection: React.FC<LiveBeerLogSectionProps> = ({
           accessibilityLabel={labels.settings.liveBeerLog.accessibilityLabel}
         />
       </View>
-      <Text style={styles.disclaimer}>
-        When off, the History screen updates only on manual refresh.
-      </Text>
+      <Text style={styles.disclaimer}>{copy.settings.liveBeerLogHint}</Text>
     </Card>
   );
 };

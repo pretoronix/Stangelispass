@@ -5,6 +5,7 @@ import { colors, spacing } from "@/lib/theme";
 import { User } from "@/services/supabase";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { copy } from "@/ui/copy";
 
 interface PremiumTierCardProps {
   subscriptionTier?: User["subscription_tier"];
@@ -37,17 +38,17 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
   const isLifetime = lifetimePass || subscriptionTier === "lifetime";
   const isCraft = subscriptionTier === "craft";
   const tierLabel = isLifetime
-    ? "Supporter (Lifetime)"
+    ? copy.settings.tierLifetime
     : isCraft
-      ? "Craft (Premium)"
-      : "Pilsner (Free)";
+      ? copy.settings.tierCraft
+      : copy.settings.tierFree;
   const tierIcon = isLifetime ? "infinite" : isCraft ? "star" : "beer-outline";
 
   return (
     <Card style={styles.premiumCard}>
       <View style={styles.premiumHeader}>
         <View>
-          <Text style={styles.premiumLabel}>Current Tier</Text>
+          <Text style={styles.premiumLabel}>{copy.settings.currentTier}</Text>
           <Text style={styles.premiumTitle}>{tierLabel}</Text>
         </View>
         <Ionicons name={tierIcon as any} size={32} color={colors.primary} />
@@ -55,15 +56,15 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
 
       <View style={styles.creditRow}>
         <View style={styles.creditItem}>
-          <Text style={styles.creditLabel}>Free Events</Text>
+          <Text style={styles.creditLabel}>{copy.settings.freeEvents}</Text>
           <Text style={styles.creditValue}>{freeCredits}</Text>
         </View>
         <View style={styles.creditItem}>
-          <Text style={styles.creditLabel}>Day Passes</Text>
+          <Text style={styles.creditLabel}>{copy.settings.dayPasses}</Text>
           <Text style={styles.creditValue}>{dayCredits}</Text>
         </View>
         <View style={styles.creditItem}>
-          <Text style={styles.creditLabel}>Weekend Passes</Text>
+          <Text style={styles.creditLabel}>{copy.settings.weekendPasses}</Text>
           <Text style={styles.creditValue}>{weekendCredits}</Text>
         </View>
       </View>
@@ -71,18 +72,18 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
       {purchasesEnabled && !isLifetime && (
         <>
           <Button
-            title="Buy Single Event (CHF 10)"
+            title={copy.settings.buySingleEvent}
             onPress={onBuyDayPass}
             style={styles.upgradeButton}
           />
           <Button
-            title="Buy Weekend Unlimited (CHF 15)"
+            title={copy.settings.buyWeekendUnlimited}
             onPress={onBuyWeekendPass}
             variant="ghost"
             style={styles.supporterButton}
           />
           <Button
-            title="Become a Supporter (CHF 100)"
+            title={copy.settings.becomeSupporter}
             variant="ghost"
             onPress={onBuyLifetime}
             style={styles.supporterButton}

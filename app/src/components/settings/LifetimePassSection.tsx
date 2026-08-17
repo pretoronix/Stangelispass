@@ -6,6 +6,7 @@ import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import type { User } from "@/services/supabase";
 import type { LifetimePassCode } from "@/services/lifetimePass";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface LifetimePassSectionProps {
   isAdmin: boolean;
@@ -23,8 +24,8 @@ interface LifetimePassSectionProps {
 }
 
 const resolveUserName = (users: User[], userId?: string | null) => {
-  if (!userId) return "Unknown";
-  return users.find((u) => u.id === userId)?.name || "Unknown";
+  if (!userId) return copy.settings.unknownUser;
+  return users.find((u) => u.id === userId)?.name || copy.settings.unknownUser;
 };
 
 export const LifetimePassSection: React.FC<LifetimePassSectionProps> = ({
@@ -43,16 +44,13 @@ export const LifetimePassSection: React.FC<LifetimePassSectionProps> = ({
 }) => {
   return (
     <Card>
-      <Text style={styles.title}>Lifetime Pass Codes</Text>
-      <Text style={styles.subtitle}>
-        Owners can generate codes. Colleagues can redeem them for lifetime
-        access.
-      </Text>
+      <Text style={styles.title}>{copy.settings.lifetimePassCodes}</Text>
+      <Text style={styles.subtitle}>{copy.settings.lifetimePassHint}</Text>
 
       {isAdmin && (
         <View style={styles.adminArea}>
           <Button
-            title={generating ? "Generating..." : "Generate Code"}
+            title={generating ? copy.settings.generating : copy.settings.generateCode}
             onPress={onGenerateCode}
             disabled={generating || !currentUser}
             testID={labels.settings.lifetimeGenerate.testID}
@@ -62,7 +60,7 @@ export const LifetimePassSection: React.FC<LifetimePassSectionProps> = ({
             style={styles.actionButton}
           />
           <Button
-            title={loading ? "Refreshing..." : "Refresh Codes"}
+            title={loading ? copy.settings.refreshing : copy.settings.refreshCodes}
             variant="ghost"
             onPress={onRefresh}
             disabled={loading}
@@ -76,31 +74,33 @@ export const LifetimePassSection: React.FC<LifetimePassSectionProps> = ({
                     <Text style={styles.codeText}>{code.code}</Text>
                     <Text style={styles.codeStatus}>
                       {code.redeemed_at
-                        ? `Redeemed by ${resolveUserName(users, code.redeemed_by)}`
-                        : "Available"}
+                        ? `${copy.settings.redeemedByPrefix} ${resolveUserName(users, code.redeemed_by)}`
+                        : copy.settings.codeAvailable}
                     </Text>
                   </View>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No codes generated yet.</Text>
+            <Text style={styles.emptyText}>{copy.settings.noCodesYet}</Text>
           )}
         </View>
       )}
 
       <View style={styles.redeemArea}>
-        <Text style={styles.redeemLabel}>Redeem Code</Text>
+        <Text style={styles.redeemLabel}>{copy.settings.redeemCodeLabel}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Enter lifetime pass code..."
+          placeholder={copy.settings.lifetimeCodePlaceholder}
           placeholderTextColor={colors.textMuted}
           value={redeemCode}
           onChangeText={setRedeemCode}
           autoCapitalize="characters"
         />
         <Button
-          title={redeeming ? "Redeeming..." : "Redeem Lifetime Pass"}
+          title={
+            redeeming ? copy.settings.redeeming : copy.settings.redeemLifetimePass
+          }
           onPress={onRedeemCode}
           disabled={redeeming || !currentUser}
           testID={labels.settings.lifetimeRedeem.testID}

@@ -4,6 +4,7 @@ import { colors, spacing, typography } from "@/lib/theme";
 import { EventMembership, EventRole, User } from "@/services/supabase";
 import { Card } from "@/components/ui/Card";
 import { EventMemberRow } from "./EventMemberRow";
+import { copy } from "@/ui/copy";
 
 interface EventAdminSectionProps {
   eventName: string;
@@ -27,7 +28,7 @@ export const EventAdminSection: React.FC<EventAdminSectionProps> = ({
       <Text style={styles.eventAdminTitle}>{eventName}</Text>
       {eventMembers.length === 0 && (
         <Text style={styles.bioDisclaimer}>
-          No members found for this event yet.
+          {copy.settings.noEventMembers}
         </Text>
       )}
       {eventMembers.map((member) => (
@@ -40,30 +41,34 @@ export const EventAdminSection: React.FC<EventAdminSectionProps> = ({
         />
       ))}
       <View style={styles.eventMemberDivider} />
-      <Text style={styles.eventAdminSubtitle}>Add Existing User</Text>
+      <Text style={styles.eventAdminSubtitle}>
+        {copy.settings.addExistingUser}
+      </Text>
       {availableUsers.length === 0 && (
         <Text style={styles.bioDisclaimer}>
-          All users are already part of this event.
+          {copy.settings.allUsersInEvent}
         </Text>
       )}
       {availableUsers.map((user) => (
         <View key={`available-${user.id}`} style={styles.eventMemberRow}>
           <View style={styles.eventMemberInfo}>
             <Text style={styles.eventMemberName}>{user.name}</Text>
-            <Text style={styles.eventMemberRole}>not in event</Text>
+            <Text style={styles.eventMemberRole}>
+              {copy.settings.notInEvent}
+            </Text>
           </View>
           <View style={styles.eventRoleActions}>
             <Pressable
               onPress={() => onAddMember(user.id, "member")}
               style={styles.roleActionButton}
             >
-              <Text style={styles.roleActionText}>Add</Text>
+              <Text style={styles.roleActionText}>{copy.settings.addToEvent}</Text>
             </Pressable>
             <Pressable
               onPress={() => onAddMember(user.id, "admin")}
               style={styles.roleActionButton}
             >
-              <Text style={styles.roleActionText}>Admin</Text>
+              <Text style={styles.roleActionText}>{copy.settings.roleAdmin}</Text>
             </Pressable>
           </View>
         </View>

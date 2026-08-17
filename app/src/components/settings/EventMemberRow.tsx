@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { EventMembership, EventRole } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface EventMemberRowProps {
   member: EventMembership;
@@ -31,19 +32,21 @@ export const EventMemberRow: React.FC<EventMemberRowProps> = ({
               onPress={() => onRoleChange("admin")}
               style={styles.roleActionButton}
             >
-              <Text style={styles.roleActionText}>Admin</Text>
+              <Text style={styles.roleActionText}>{copy.settings.roleAdmin}</Text>
             </Pressable>
             <Pressable
               onPress={() => onRoleChange("member")}
               style={styles.roleActionButton}
             >
-              <Text style={styles.roleActionText}>Member</Text>
+              <Text style={styles.roleActionText}>{copy.settings.roleMember}</Text>
             </Pressable>
             <Pressable
               onPress={onRemove}
               style={[styles.roleActionButton, styles.roleActionDanger]}
             >
-              <Text style={styles.roleActionText}>Remove</Text>
+              <Text style={styles.roleActionText}>
+                {copy.settings.removeMember}
+              </Text>
             </Pressable>
           </>
         )}
