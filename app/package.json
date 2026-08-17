@@ -20,7 +20,8 @@
     "db:status": "bash scripts/supabase_migrate.sh status",
     "db:reset:local": "bash scripts/supabase_migrate.sh reset-local",
     "release:guard": "node scripts/release-guard.mjs",
-    "preflight:release": "npm run typecheck && npm run lint && npm test -- --watchAll=false && npm run release:guard"
+    "preflight:release": "npm run typecheck && npm run lint && npm test -- --watchAll=false && npm run release:guard",
+    "screenshots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
