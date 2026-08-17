@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { addUser, joinEvent as joinEventService } from "@/services/supabase";
 import type { User } from "@/services/types";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 type PendingAction = "start_round" | "join_event";
 
@@ -47,20 +48,20 @@ export function useEventActions(
     try {
       const user = await addUser(cleanName, pendingAction === "start_round");
       if (!user) {
-        Alert.alert("Error", "Could not create user. Please try again.");
+        Alert.alert(copy.common.error, copy.home.alerts.couldNotCreateUser);
         return;
       }
 
       setCurrentUser(user);
       if (pendingAction === "start_round") {
         if (!user.is_admin) {
-          Alert.alert("Admin Required", "Only an admin can start a round.");
+          Alert.alert(copy.home.alerts.adminRequired, copy.home.alerts.adminOnlyStartRound);
           return;
         }
         const parsedPrice = parseFloat(beerPrice);
         const price = Number.isFinite(parsedPrice) ? parsedPrice : 5.0;
         if (price <= 0) {
-          Alert.alert("Invalid Price", "Beer price must be greater than 0.");
+          Alert.alert(copy.home.alerts.invalidPrice, copy.home.alerts.priceMustBePositive);
           return;
         }
         await startEvent("Night Out", "day", price);
@@ -75,7 +76,7 @@ export function useEventActions(
           });
         }
         Alert.alert(
-          "Joined!",
+          copy.home.alerts.joined,
           `You are now part of ${pendingJoinEventName || "the round"}.`,
         );
       }
@@ -90,7 +91,7 @@ export function useEventActions(
         action: "submit_name_prompt",
         metadata: { cause: e instanceof Error ? e.message : String(e) },
       });
-      Alert.alert("Error", "Failed to complete this action. Please try again.");
+      Alert.alert(copy.common.error, copy.home.alerts.actionFailed);
     } finally {
       setPromptSubmitting(false);
     }

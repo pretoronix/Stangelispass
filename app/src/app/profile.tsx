@@ -22,16 +22,17 @@ import {
   ProfileStats,
 } from "@/components/profile";
 import type { Beer } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 function NoUserView() {
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <View style={[styles.centered, { backgroundColor: colors.background }]}>
         <Text style={styles.textMuted}>
-          Please select a user in Settings first.
+          {copy.profile.selectUserFirst}
         </Text>
         <Pressable onPress={() => router.push("/settings")} style={styles.btn}>
-          <Text style={styles.btnText}>Go to Settings</Text>
+          <Text style={styles.btnText}>{copy.profile.goToSettings}</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -60,7 +61,7 @@ export default function ProfileScreen() {
           <Pressable onPress={() => router.back()} style={styles.backButton}>
             <Ionicons name="chevron-back" size={28} color={colors.primary} />
           </Pressable>
-          <Text style={styles.navTitle}>Trophy Case</Text>
+          <Text style={styles.navTitle}>{copy.profile.title}</Text>
           <View style={{ width: 44 }} />
         </View>
 
@@ -80,7 +81,7 @@ export default function ProfileScreen() {
           {/* Cost Summary - Current Round */}
           {activeEvent && roundBeers.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Current Round Spending</Text>
+              <Text style={styles.sectionLabel}>{copy.profile.currentRoundSpending}</Text>
               <CostSummaryCard
                 beerCount={roundBeers.length}
                 pricePerBeer={activeEvent.beer_price ?? 5.0}
@@ -91,7 +92,7 @@ export default function ProfileScreen() {
 
           {/* BAC Meter */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Soberness Estimator</Text>
+            <Text style={styles.sectionLabel}>{copy.profile.sobernessEstimator}</Text>
             <ProfileBACCard bac={currentBAC} beerCount={beers.length} />
           </View>
 
@@ -105,7 +106,7 @@ export default function ProfileScreen() {
 
           {/* Stats */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Consumption Stats</Text>
+            <Text style={styles.sectionLabel}>{copy.profile.consumptionStats}</Text>
             <ProfileStats
               totalBeers={beers.length}
               lastLogDateLabel={getLastLogDate(beers)}

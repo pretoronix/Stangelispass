@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Alert } from "react-native";
+import { copy } from "@/ui/copy";
 
 /**
  * Hook for handling optimistic update errors
@@ -22,17 +23,17 @@ export function useOptimisticError() {
 
     setErrors((prev) => [...prev, error]);
 
-    const buttons: any[] = [{ text: "OK", style: "cancel" }];
+    const buttons: any[] = [{ text: copy.common.ok, style: "cancel" }];
 
     if (options?.retry) {
       buttons.unshift({
-        text: "Retry",
+        text: copy.common.retry,
         onPress: options.retry,
       });
     }
 
     Alert.alert(
-      "Update Failed",
+      copy.common.alerts.updateFailed,
       `${message}\n\nYour changes were not saved and have been rolled back.`,
       buttons,
     );

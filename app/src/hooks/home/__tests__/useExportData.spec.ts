@@ -4,6 +4,7 @@ import * as Sharing from "expo-sharing";
 import { useExportData } from "@/hooks/home/useExportData";
 import { getBeers } from "@/services/supabase";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/services/supabase", () => ({
   getBeers: jest.fn(),
@@ -44,8 +45,8 @@ describe("useExportData", () => {
     const { handleExportData } = useExportData();
     await handleExportData(undefined);
     expect(alertSpy).toHaveBeenCalledWith(
-      "Export",
-      "No active round to export.",
+      copy.home.alerts.export,
+      copy.home.alerts.exportNoRound,
     );
   });
 
@@ -54,8 +55,8 @@ describe("useExportData", () => {
     const { handleExportData } = useExportData();
     await handleExportData({ id: "e1", name: "Round 1" });
     expect(alertSpy).toHaveBeenCalledWith(
-      "Export",
-      "No beers logged for this event yet.",
+      copy.home.alerts.export,
+      copy.home.alerts.exportNoBeers,
     );
   });
 
@@ -95,8 +96,8 @@ describe("useExportData", () => {
 
     expect(click).toHaveBeenCalled();
     expect(alertSpy).toHaveBeenCalledWith(
-      "Export",
-      "CSV downloaded successfully!",
+      copy.home.alerts.export,
+      copy.home.alerts.csvDownloaded,
     );
   });
 
@@ -140,6 +141,6 @@ describe("useExportData", () => {
     await handleExportData({ id: "e1", name: "Round 1" });
 
     expect(reportError).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Error", "Failed to export data.");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.error, copy.home.alerts.exportFailed);
   });
 });

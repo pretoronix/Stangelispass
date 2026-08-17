@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { useEventActions } from "@/hooks/home/useEventActions";
 import { addUser, joinEvent } from "@/services/supabase";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/services/supabase", () => ({
   addUser: jest.fn(),
@@ -72,7 +73,7 @@ describe("useEventActions", () => {
       await result.current.submitNamePrompt();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith("Admin Required", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.adminRequired, expect.any(String));
     expect(startEvent).not.toHaveBeenCalled();
   });
 
@@ -95,7 +96,7 @@ describe("useEventActions", () => {
       await result.current.submitNamePrompt();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith("Invalid Price", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.invalidPrice, expect.any(String));
     expect(startEvent).not.toHaveBeenCalled();
   });
 
@@ -119,7 +120,7 @@ describe("useEventActions", () => {
 
     expect(joinEvent).toHaveBeenCalledWith("evt1", "u1");
     expect(alertSpy).toHaveBeenCalledWith(
-      "Joined!",
+      copy.home.alerts.joined,
       expect.stringContaining("My Event"),
     );
     expect(refresh).toHaveBeenCalled();
@@ -146,7 +147,7 @@ describe("useEventActions", () => {
     });
 
     expect(reportError).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Joined!", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.joined, expect.any(String));
   });
 
   it("does nothing when name is empty", async () => {

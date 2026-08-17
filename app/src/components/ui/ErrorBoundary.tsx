@@ -2,6 +2,7 @@ import React, { Component, ErrorInfo, ReactNode } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { colors, spacing, typography, borderRadius } from "@/lib/theme";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface Props {
   children: ReactNode;
@@ -48,13 +49,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Feature Unavailable</Text>
+          <Text style={styles.title}>{copy.common.featureUnavailable}</Text>
           <Text style={styles.message} numberOfLines={2}>
             {this.state.error?.message ||
               "A small error occurred in this section."}
           </Text>
           <Pressable onPress={this.handleRetry} style={styles.button}>
-            <Text style={styles.buttonText}>Retry Section</Text>
+            <Text style={styles.buttonText}>{copy.common.retrySection}</Text>
           </Pressable>
         </View>
       );

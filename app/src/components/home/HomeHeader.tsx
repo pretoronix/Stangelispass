@@ -8,6 +8,7 @@ import { labels } from "@/ui/labels";
 import type { Event, EventPermissions, User } from "@/services/supabase";
 import type { UserBeerCount } from "@/hooks/useBeers";
 import { homeScreenStyles as styles } from "@/styles/screens/homeScreenStyles";
+import { copy } from "@/ui/copy";
 
 type HomeHeaderProps = {
   activeEvent: Event | null;
@@ -73,15 +74,15 @@ export function HomeHeader({
       {!activeEvent ? (
         <View style={styles.startEventBanner}>
           <Ionicons name="sparkles" size={24} color={colors.primary} />
-          <Text style={styles.startEventText}>No active round</Text>
+          <Text style={styles.startEventText}>{copy.home.noActiveRound}</Text>
           <Button
-            title={`Start a Round (${startRoundPriceLabel})`}
+            title={`${copy.home.startRound} (${startRoundPriceLabel})`}
             testID={labels.home.startRound.testID}
             accessibilityLabel={labels.home.startRound.accessibilityLabel}
             onPress={onStartRound}
             style={styles.startButton}
           />
-          <Text style={styles.trialText}>First round is always free!</Text>
+          <Text style={styles.trialText}>{copy.home.firstRoundFree}</Text>
         </View>
       ) : (
         <View style={styles.activeEventBanner}>
@@ -97,7 +98,7 @@ export function HomeHeader({
             contentContainerStyle={styles.bannerActions}
           >
             <Button
-              title="Who Pays?"
+              title={copy.home.whoPays}
               testID={labels.home.whoPays.testID}
               accessibilityLabel={labels.home.whoPays.accessibilityLabel}
               onPress={onWhoPays}
@@ -106,7 +107,7 @@ export function HomeHeader({
               style={styles.whoPaysButton}
             />
             <Button
-              title="Export"
+              title={copy.home.export}
               testID={labels.home.export.testID}
               accessibilityLabel={labels.home.export.accessibilityLabel}
               onPress={onExport}
@@ -115,7 +116,7 @@ export function HomeHeader({
               style={styles.exportButton}
             />
             <Button
-              title="Scan"
+              title={copy.home.scan}
               testID={labels.home.scan.testID}
               accessibilityLabel={labels.home.scan.accessibilityLabel}
               onPress={onScan}
@@ -123,7 +124,7 @@ export function HomeHeader({
               style={styles.scanButton}
             />
             <Button
-              title="End"
+              title={copy.home.endRound}
               testID={labels.home.endRound.testID}
               accessibilityLabel={labels.home.endRound.accessibilityLabel}
               onPress={onEnd}
@@ -133,7 +134,7 @@ export function HomeHeader({
             />
             {eventPermissions.canInvite && (
               <Button
-                title="Invite"
+                title={copy.home.invite}
                 testID={labels.home.invite.testID}
                 accessibilityLabel={labels.home.invite.accessibilityLabel}
                 onPress={onInvite}
@@ -143,7 +144,7 @@ export function HomeHeader({
               />
             )}
             <Button
-              title="Share Leaderboard"
+              title={copy.home.shareLeaderboard}
               testID={labels.home.shareLeaderboard.testID}
               accessibilityLabel={
                 labels.home.shareLeaderboard.accessibilityLabel
@@ -155,7 +156,7 @@ export function HomeHeader({
             />
             {eventPermissions.canManageEvent && currentUser && (
               <Button
-                title="Notify All"
+                title={copy.home.notifyAll}
                 testID="home.notify_all"
                 accessibilityLabel="Broadcast notification to all members"
                 onPress={onBroadcast}
@@ -184,7 +185,8 @@ export function HomeHeader({
             <View style={styles.gameChip}>
               <Ionicons name="trophy" size={14} color={colors.primary} />
               <Text style={styles.gameChipText}>
-                Leader: {leaderInfo.name} (+{leaderLead} pts)
+                {copy.home.leaderPrefix} {leaderInfo.name} (+{leaderLead}{" "}
+                {copy.home.pointsSuffix})
               </Text>
             </View>
           )}
@@ -192,7 +194,8 @@ export function HomeHeader({
             <View style={styles.gameChip}>
               <Ionicons name="flame" size={14} color={colors.primary} />
               <Text style={styles.gameChipText}>
-                Hot Streak: {hotStreak.name} x{hotStreak.streakCount}
+                {copy.home.hotStreakPrefix} {hotStreak.name} x
+                {hotStreak.streakCount}
               </Text>
             </View>
           )}
@@ -210,17 +213,17 @@ export function HomeHeader({
 
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Stngeli Total</Text>
+          <Text style={styles.statLabel}>{copy.home.stangeliTotal}</Text>
           <Text style={styles.statValue}>{totalBeers}</Text>
         </View>
         <View style={styles.statBox}>
-          <Text style={styles.statLabel}>Total Bill</Text>
+          <Text style={styles.statLabel}>{copy.home.totalBill}</Text>
           <Text style={styles.statValue}>{totalBill.toFixed(2)} CHF</Text>
         </View>
       </View>
 
       <View style={styles.divider} />
-      <Text style={styles.largeTitle}>Leaderboard</Text>
+      <Text style={styles.largeTitle}>{copy.home.leaderboard}</Text>
     </View>
   );
 }

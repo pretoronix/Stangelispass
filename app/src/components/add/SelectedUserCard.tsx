@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { labels } from "@/ui/labels";
 import type { User } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface SelectedUserCardProps {
   user: User;
@@ -36,12 +37,12 @@ export function SelectedUserCard({
         <Avatar name={user.name} size={60} />
         <View style={styles.cardInfo}>
           <Text style={styles.cardTitle}>{user.name}</Text>
-          <Text style={styles.cardSubtitle}>Ready for a beer? </Text>
+          <Text style={styles.cardSubtitle}>{copy.add.readyForBeer} </Text>
         </View>
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          title="Add 1 Beer!"
+          title={copy.add.addBeer}
           icon="beer"
           variant="primary"
           onPress={onAddBeer}
@@ -51,7 +52,7 @@ export function SelectedUserCard({
           style={styles.actionButton}
         />
         <Button
-          title="Stamp QR (+1)"
+          title={copy.add.stampQr}
           icon="qr-code"
           variant="ghost"
           testID={labels.add.stampQr.testID}
@@ -61,7 +62,7 @@ export function SelectedUserCard({
           style={styles.actionButton}
         />
         <Button
-          title="User QR (Admin Log)"
+          title={copy.add.userQr}
           icon="qr-code"
           variant="secondary"
           testID={labels.add.userQr.testID}
@@ -72,7 +73,7 @@ export function SelectedUserCard({
         />
         {showParticipantQr && (
           <Button
-            title="Participant QR (Organizer Scan)"
+            title={copy.add.participantQr}
             icon="qr-code"
             variant="ghost"
             testID={labels.add.participantQr.testID}

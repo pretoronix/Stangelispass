@@ -18,6 +18,7 @@ import { useQrSharing } from "@/hooks/add/useQrSharing";
 import { useStampQr } from "@/hooks/add/useStampQr";
 import { useAddBeerAction } from "@/hooks/add/useAddBeerAction";
 import { showNoActiveRound, showNotAuthorized } from "@/utils/add/addHelpers";
+import { copy } from "@/ui/copy";
 
 export default function AddBeerScreen() {
   const {
@@ -113,11 +114,11 @@ export default function AddBeerScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
-        <Text style={styles.title}>Who's drinking?</Text>
+        <Text style={styles.title}>{copy.add.whosDrinking}</Text>
         <SyncIndicator />
         {!isOnline && (
           <Text style={styles.offlineWarning}>
-            Offline - changes will sync when you reconnect.
+            {copy.common.offlineNotice}
           </Text>
         )}
 

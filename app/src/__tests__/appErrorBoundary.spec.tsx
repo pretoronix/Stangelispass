@@ -2,6 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/utils/logger", () => ({
   reportError: jest.fn(),
@@ -20,7 +21,7 @@ describe("AppErrorBoundary", () => {
       </AppErrorBoundary>,
     );
 
-    expect(getByText("Something went wrong")).toBeTruthy();
+    expect(getByText(copy.common.somethingWentWrong)).toBeTruthy();
     expect(getByText("boom")).toBeTruthy();
     expect(reportError).toHaveBeenCalledTimes(1);
     expect(reportError).toHaveBeenCalledWith(

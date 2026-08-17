@@ -1,6 +1,7 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import { useOptimisticError } from "@/hooks/useOptimisticError";
+import { copy } from "@/ui/copy";
 
 describe("useOptimisticError", () => {
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe("useOptimisticError", () => {
 
     expect(result.current.errors).toEqual([{ message: "Boom", timestamp: 123 }]);
     expect(Alert.alert).toHaveBeenCalledWith(
-      "Update Failed",
+      copy.common.alerts.updateFailed,
       expect.stringContaining("Boom"),
       expect.any(Array),
     );
@@ -38,8 +39,8 @@ describe("useOptimisticError", () => {
     });
 
     const buttons = (Alert.alert as jest.Mock).mock.calls[0]?.[2];
-    expect(buttons[0]).toMatchObject({ text: "Retry" });
-    expect(buttons[1]).toMatchObject({ text: "OK" });
+    expect(buttons[0]).toMatchObject({ text: copy.common.retry });
+    expect(buttons[1]).toMatchObject({ text: copy.common.ok });
     buttons[0].onPress();
     expect(retry).toHaveBeenCalled();
   });

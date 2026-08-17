@@ -75,7 +75,7 @@ export const PhysiologySection: React.FC<PhysiologySectionProps> = ({
         </View>
       </View>
       <Text style={styles.bioDisclaimer}>
-        Stats are used strictly for the "for fun" BAC estimator.
+        {copy.profile.bacDisclaimer}
       </Text>
     </Card>
   );

@@ -23,6 +23,7 @@ import { updateUser } from "@/services/users";
 import { reportError } from "@/utils/logger";
 import { getEventPricingType } from "@/utils/eventPricing";
 import { isPaymentsUiOnly } from "@/config/payments";
+import { copy } from "@/ui/copy";
 
 interface UseEventPassesProps {
   currentUser: User | null;
@@ -61,7 +62,7 @@ export const useEventPasses = ({
   const handleGeneratePromoCode = useCallback(
     async (type: PromoCodeType) => {
       if (!currentUser?.is_admin) {
-        Alert.alert("Not Authorized", "Only admins can generate promo codes.");
+        Alert.alert(copy.common.notAuthorized, copy.settings.alerts.adminOnlyPromo);
         return;
       }
       setGenerating(true);
@@ -69,15 +70,15 @@ export const useEventPasses = ({
         const created = await createPromoCode(type, currentUser.id, 1);
         if (!created) {
           Alert.alert(
-            "Unavailable",
-            "Promo codes are not available until the database is ready.",
+            copy.common.unavailable,
+            copy.settings.alerts.promoCodesUnavailable,
           );
           return;
         }
         setPromoCodes((prev) => [created, ...prev]);
-        Alert.alert("Code Generated", `Share this code: ${created.code}`);
+        Alert.alert(copy.settings.alerts.codeGenerated, `Share this code: ${created.code}`);
       } catch (e) {
-        Alert.alert("Error", "Failed to generate promo code.");
+        Alert.alert(copy.common.error, copy.settings.alerts.generatePromoFailed);
         reportError(e as Error, {
           scope: "event_passes",
           action: "generate_code",
@@ -110,8 +111,8 @@ export const useEventPasses = ({
       );
       if (result && !result.ok) {
         Alert.alert(
-          "Unavailable",
-          "Event credits are not available until the database is ready.",
+          copy.common.unavailable,
+          copy.settings.alerts.eventCreditsUnavailable,
         );
         return;
       }
@@ -122,14 +123,14 @@ export const useEventPasses = ({
   const handleRedeemPromoCode = useCallback(async () => {
     if (!currentUser) {
       Alert.alert(
-        "Select User",
-        "Please select a user before redeeming a code.",
+        copy.common.selectUser,
+        copy.settings.alerts.selectUserBeforeRedeem,
       );
       return;
     }
     const trimmed = redeemCode.trim();
     if (!trimmed) {
-      Alert.alert("Enter Code", "Please enter a promo code.");
+      Alert.alert(copy.common.enterCode, copy.settings.alerts.enterPromoCode);
       return;
     }
     setRedeeming(true);
@@ -144,7 +145,7 @@ export const useEventPasses = ({
               : result.reason === "codes_unavailable"
                 ? "Promo codes are not available yet."
                 : "Invalid code. Please check and try again.";
-        Alert.alert("Redeem Failed", message);
+        Alert.alert(copy.settings.alerts.redeemFailed, message);
         return;
       }
       if (result.type) {
@@ -152,9 +153,9 @@ export const useEventPasses = ({
       }
       await refreshUsers();
       setRedeemCode("");
-      Alert.alert("Success", "Code redeemed successfully.");
+      Alert.alert(copy.common.success, copy.settings.alerts.codeRedeemed);
     } catch (e) {
-      Alert.alert("Error", "Failed to redeem code.");
+      Alert.alert(copy.common.error, copy.settings.alerts.redeemCodeFailed);
       reportError(e as Error, { scope: "event_passes", action: "redeem_code" });
     } finally {
       setRedeeming(false);
@@ -167,21 +168,21 @@ export const useEventPasses = ({
       // flag is off; the guard makes the dead path unreachable for good.
       if (!IAP_ENABLED) return;
       if (!currentUser) {
-        Alert.alert("Select User", "Please select a user before purchasing.");
+        Alert.alert(copy.common.selectUser, copy.settings.alerts.selectUserBeforePurchase);
         return;
       }
       if (isPaymentsUiOnly()) {
         const price = type === "day" ? "CHF 10" : "CHF 15";
         Alert.alert(
-          "Payment (Preview)",
+          copy.settings.alerts.paymentPreview,
           `${type === "day" ? "Single Event Pass" : "Weekend Unlimited Pass"} — ${price}\n\nPayments are not enabled yet. This is the UI preview only.`,
         );
         return;
       }
       if (Platform.OS === "web") {
         Alert.alert(
-          "Unavailable",
-          "In-app purchases are not supported on web.",
+          copy.common.unavailable,
+          copy.settings.alerts.iapNotOnWeb,
         );
         return;
       }
@@ -192,15 +193,15 @@ export const useEventPasses = ({
         const result = await grantEventCredits(currentUser.id, type, 1);
         if (result && !result.ok) {
           Alert.alert(
-            "Unavailable",
-            "Event credits are not available until the database is ready.",
+            copy.common.unavailable,
+            copy.settings.alerts.eventCreditsUnavailable,
           );
           return;
         }
         await refreshUsers();
-        Alert.alert("Purchase Complete", "Event pass added to your account.");
+        Alert.alert(copy.settings.alerts.purchaseComplete, copy.settings.alerts.eventPassAdded);
       } catch (e) {
-        Alert.alert("Purchase Failed", "Could not complete purchase.");
+        Alert.alert(copy.settings.alerts.purchaseFailed, copy.settings.alerts.purchaseIncomplete);
         reportError(e as Error, {
           scope: "event_passes",
           action: "purchase_pass",
@@ -214,7 +215,7 @@ export const useEventPasses = ({
     // See handlePurchaseEventPass — unreachable while IAP_ENABLED is false.
     if (!IAP_ENABLED) return;
     if (!currentUser) {
-      Alert.alert("Select User", "Please select a user before purchasing.");
+      Alert.alert(copy.common.selectUser, copy.settings.alerts.selectUserBeforePurchase);
       return;
     }
     if (isPaymentsUiOnly()) {
@@ -225,13 +226,13 @@ export const useEventPasses = ({
         lifetime_pass: true,
       } as User);
       Alert.alert(
-        "Supporter (Preview)",
-        "Lifetime Supporter — CHF 100\n\nPayments are not enabled yet. This marks you as a supporter in the UI only.",
+        copy.settings.alerts.supporterPreview,
+        copy.settings.alerts.supporterPreviewHint,
       );
       return;
     }
     if (Platform.OS === "web") {
-      Alert.alert("Unavailable", "In-app purchases are not supported on web.");
+      Alert.alert(copy.common.unavailable, copy.settings.alerts.iapNotOnWeb);
       return;
     }
     try {
@@ -239,9 +240,9 @@ export const useEventPasses = ({
       await finishPurchase(purchase, true);
       await applyPromoReward("lifetime", 1);
       await refreshUsers();
-      Alert.alert("Supporter Activated", "Lifetime access unlocked.");
+      Alert.alert(copy.settings.alerts.supporterActivated, copy.settings.alerts.lifetimeUnlocked);
     } catch (e) {
-      Alert.alert("Purchase Failed", "Could not complete purchase.");
+      Alert.alert(copy.settings.alerts.purchaseFailed, copy.settings.alerts.purchaseIncomplete);
       reportError(e as Error, {
         scope: "event_passes",
         action: "purchase_lifetime",

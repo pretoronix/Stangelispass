@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, Pressable } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { copy } from "@/ui/copy";
 
 interface InviteModalProps {
   visible: boolean;
@@ -38,7 +39,7 @@ export const InviteModal = ({
             <Ionicons name="close" size={24} color={colors.textSecondary} />
           </Pressable>
 
-          <Text style={styles.title}>Invite a Friend</Text>
+          <Text style={styles.title}>{copy.common.inviteTitle}</Text>
           <Text style={styles.subtitle}>
             Let them scan this to join "{eventName}"
           </Text>
@@ -58,7 +59,7 @@ export const InviteModal = ({
               size={16}
               color={colors.success}
             />
-            <Text style={styles.secureText}>Secure Peer-to-Peer Invite</Text>
+            <Text style={styles.secureText}>{copy.common.inviteSecure}</Text>
           </View>
         </View>
       </View>

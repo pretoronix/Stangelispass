@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { QRGenerator } from "@/components/features/QRGenerator";
 import { labels } from "@/ui/labels";
 import type { User } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 type AddQrModalProps = {
   visible: boolean;
@@ -57,7 +58,7 @@ export function AddQrModal({
             </View>
           )}
           <Button
-            title="Share QR"
+            title={copy.add.shareQr}
             icon="share-social"
             variant="secondary"
             testID={labels.add.shareQr.testID}
@@ -67,7 +68,7 @@ export function AddQrModal({
             style={styles.modalActionButton}
           />
           <Button
-            title="Close"
+            title={copy.common.close}
             variant="ghost"
             onPress={onClose}
             style={styles.modalCloseButton}

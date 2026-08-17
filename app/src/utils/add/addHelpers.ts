@@ -1,19 +1,20 @@
 import { Alert } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 const QR_BASE64_TIMEOUT_MS = 3000;
 
 export const showUnavailable = (message: string) => {
-  Alert.alert("Unavailable", message);
+  Alert.alert(copy.common.unavailable, message);
 };
 
 export const showNoActiveRound = (message: string) => {
-  Alert.alert("No Active Round", message);
+  Alert.alert(copy.home.alerts.noActiveRound, message);
 };
 
 export const showNotAuthorized = (message: string) => {
-  Alert.alert("Not Authorized", message);
+  Alert.alert(copy.common.notAuthorized, message);
 };
 
 export const canProceed = (condition: boolean, onFail: () => void) => {
@@ -36,13 +37,13 @@ export const buildQrImageUriFromRef = async (
   });
 
   if (!base64) {
-    Alert.alert("Error", "Failed to generate QR image (timeout).");
+    Alert.alert(copy.common.error, copy.add.alerts.qrImageTimeout);
     return null;
   }
 
   const cacheDirectory = (FileSystem as any).cacheDirectory;
   if (!cacheDirectory) {
-    showUnavailable("File system is not available on this device.");
+    showUnavailable(copy.common.alerts.noFileSystem);
     return null;
   }
   const fileUri = `${cacheDirectory}qr-${userId}-${Date.now()}.png`;

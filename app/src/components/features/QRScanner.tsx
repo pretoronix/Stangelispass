@@ -11,6 +11,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spacing, typography } from "@/lib/theme";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 interface QRScannerProps {
   onScan: (data: string) => void;
@@ -35,7 +36,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
   if (!permission) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.text}>Requesting camera permission...</Text>
+        <Text style={styles.text}>{copy.common.qrRequestingPermission}</Text>
       </View>
     );
   }
@@ -50,24 +51,24 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
           style={{ marginBottom: spacing.lg }}
         />
         <Text style={styles.text}>
-          Camera access is required to scan QR codes.
+          {copy.common.qrPermissionNeeded}
         </Text>
 
         {permission.canAskAgain ? (
           <TouchableOpacity onPress={requestPermission} style={styles.button}>
-            <Text style={styles.buttonText}>Grant Permission</Text>
+            <Text style={styles.buttonText}>{copy.common.qrGrantPermission}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
             onPress={() => Linking.openSettings()}
             style={styles.button}
           >
-            <Text style={styles.buttonText}>Open Settings</Text>
+            <Text style={styles.buttonText}>{copy.common.qrOpenSettings}</Text>
           </TouchableOpacity>
         )}
 
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Text style={styles.closeButtonText}>Cancel</Text>
+          <Text style={styles.closeButtonText}>{copy.common.cancel}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -82,8 +83,8 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
       onScan(data);
     } else {
       Alert.alert(
-        "Invalid QR",
-        "This code is not recognized by Stangelispass.",
+        copy.common.alerts.invalidQr,
+        copy.common.alerts.unknownQr,
       );
       setTimeout(() => setScanned(false), 2000);
     }
@@ -118,7 +119,7 @@ export const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose }) => {
           <View style={styles.unfocusedContainer} />
         </View>
         <View style={styles.unfocusedContainer}>
-          <Text style={styles.instruction}>Center the QR code here</Text>
+          <Text style={styles.instruction}>{copy.common.qrCenterHint}</Text>
           <TouchableOpacity onPress={onClose} style={styles.bottomClose}>
             <Ionicons name="close-circle" size={64} color="#FFFFFF" />
           </TouchableOpacity>

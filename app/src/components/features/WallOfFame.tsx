@@ -5,9 +5,11 @@ import { Avatar } from "../ui/Avatar";
 import { Card } from "../ui/Card";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { de } from "date-fns/locale";
 import { useBeerClink, useUserToasts } from "@/hooks/useWallOfFame";
 import { useApp } from "@/providers/AppProvider";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 interface WallOfFameItem {
   id: string;
@@ -51,7 +53,7 @@ export function WallOfFame({ entries }: WallOfFameProps) {
       <View style={styles.emptyContainer}>
         <Ionicons name="ribbon-outline" size={64} color={colors.surfaceLight} />
         <Text style={styles.emptyText}>
-          The hall of legends is still waiting...
+          {copy.legends.empty}
         </Text>
       </View>
     );
@@ -76,13 +78,13 @@ export function WallOfFame({ entries }: WallOfFameProps) {
               <Text style={styles.winnerName}>{item.winner?.name}</Text>
             </View>
             <Text style={styles.dateText}>
-              {format(new Date(item.created_at), "MMMM d, yyyy")}
+              {format(new Date(item.created_at), "d. MMMM yyyy", { locale: de })}
             </Text>
           </View>
 
           <View style={styles.scoreContainer}>
             <Text style={styles.scoreValue}>{item.total_stängeli}</Text>
-            <Text style={styles.scoreLabel}>BEERS</Text>
+            <Text style={styles.scoreLabel}>{copy.legends.beers}</Text>
           </View>
 
           {currentUser && (

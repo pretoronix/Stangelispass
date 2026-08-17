@@ -56,17 +56,18 @@ import { homeScreenStyles as styles } from "@/styles/screens/homeScreenStyles";
 // Safety features
 import { estimateBAC } from "@/services/safety";
 import { SafeRideCard } from "@/components/features/SafeRideCard";
+import { copy } from "@/ui/copy";
 
 const showNoActiveRound = (message: string) => {
-  Alert.alert("No Active Round", message);
+  Alert.alert(copy.home.alerts.noActiveRound, message);
 };
 
 const showAdminRequired = (message: string) => {
-  Alert.alert("Admin Required", message);
+  Alert.alert(copy.home.alerts.adminRequired, message);
 };
 
 const showPassRequired = (message: string) => {
-  Alert.alert("Pass Required", message);
+  Alert.alert(copy.home.alerts.passRequired, message);
 };
 
 export default function HomeScreen() {

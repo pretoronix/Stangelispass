@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { colors, spacing, typography } from "@/lib/theme";
+import { copy } from "@/ui/copy";
 
 interface ProfileStatsProps {
   totalBeers: number;
@@ -15,12 +16,12 @@ export function ProfileStats({
   return (
     <View style={styles.statsRow}>
       <Card style={styles.statCard}>
-        <Text style={styles.statLabel}>Lifetime</Text>
+        <Text style={styles.statLabel}>{copy.profile.lifetime}</Text>
         <Text style={styles.statValue}>{totalBeers}</Text>
-        <Text style={styles.statUnit}>Beers</Text>
+        <Text style={styles.statUnit}>{copy.common.beers}</Text>
       </Card>
       <Card style={styles.statCard}>
-        <Text style={styles.statLabel}>Last Log</Text>
+        <Text style={styles.statLabel}>{copy.profile.lastLog}</Text>
         <Text style={styles.statValue}>{lastLogDateLabel}</Text>
       </Card>
     </View>

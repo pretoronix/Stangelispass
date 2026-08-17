@@ -6,6 +6,7 @@ import { addBeer, joinEvent, redeemBeerStamp } from "@/services/supabase";
 import { audioService } from "@/services/audio";
 import { reportError } from "@/utils/logger";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/utils/scanPayload", () => ({
   parseScanPayload: jest.fn(),
@@ -56,7 +57,7 @@ describe("useScanHandler", () => {
     );
     await handleScan("x");
 
-    expect(alertSpy).toHaveBeenCalledWith("Invalid QR", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.alerts.invalidQr, expect.any(String));
   });
 
   it("join_event prompts for name when user is missing", async () => {
@@ -126,7 +127,7 @@ describe("useScanHandler", () => {
     );
     await handleScan("x");
 
-    expect(alertSpy).toHaveBeenCalledWith("Select User", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.selectUser, expect.any(String));
   });
 
   it("stamp_redeem alerts on invalid stamp and completes on success", async () => {
@@ -150,7 +151,7 @@ describe("useScanHandler", () => {
     );
 
     await handleScan("x");
-    expect(alertSpy).toHaveBeenCalledWith("Stamp", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.stamp, expect.any(String));
     expect(setScanning).toHaveBeenCalledWith(false);
 
     await handleScan("y");
@@ -207,8 +208,8 @@ describe("useScanHandler", () => {
     await handleScan("x");
 
     expect(alertSpy).toHaveBeenCalledWith(
-      "Not Authorized",
-      expect.stringContaining("organizers"),
+      copy.common.notAuthorized,
+      copy.home.alerts.organizerOnlyScan,
     );
     expect(addBeer).not.toHaveBeenCalled();
   });
@@ -232,7 +233,7 @@ describe("useScanHandler", () => {
     await handleScan("x");
 
     expect(alertSpy).toHaveBeenCalledWith(
-      "No Active Round",
+      copy.home.alerts.noActiveRound,
       expect.any(String),
     );
     expect(addBeer).not.toHaveBeenCalled();
@@ -256,7 +257,7 @@ describe("useScanHandler", () => {
 
     await handleScan("x");
 
-    expect(alertSpy).toHaveBeenCalledWith("Wrong Round", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.wrongRound, expect.any(String));
     expect(addBeer).not.toHaveBeenCalled();
   });
 

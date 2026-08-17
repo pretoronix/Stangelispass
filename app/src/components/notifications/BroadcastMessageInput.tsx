@@ -2,6 +2,7 @@ import React from "react";
 import { Text, TextInput, View } from "react-native";
 import { colors } from "@/lib/theme";
 import { broadcastModalStyles as styles } from "@/components/notifications/broadcastModalStyles";
+import { copy } from "@/ui/copy";
 
 type BroadcastMessageInputProps = {
   message: string;
@@ -21,7 +22,7 @@ export function BroadcastMessageInput({
       <TextInput
         value={message}
         onChangeText={onChangeMessage}
-        placeholder="Type your message..."
+        placeholder={copy.common.broadcastPlaceholder}
         placeholderTextColor={colors.textMuted}
         style={styles.input}
         multiline

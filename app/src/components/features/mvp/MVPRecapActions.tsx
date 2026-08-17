@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { mvpRecapStyles as styles } from "./mvpRecapStyles";
+import { copy } from "@/ui/copy";
 
 type MVPRecapActionsProps = {
   onShare: () => void;
@@ -22,7 +23,7 @@ export function MVPRecapActions({ onShare, onClose }: MVPRecapActionsProps) {
         }}
       >
         <Ionicons name="share-social" size={24} color="#FFF" />
-        <Text style={styles.shareText}>Share</Text>
+        <Text style={styles.shareText}>{copy.common.share}</Text>
       </Pressable>
 
       <Pressable
@@ -32,7 +33,7 @@ export function MVPRecapActions({ onShare, onClose }: MVPRecapActionsProps) {
           onClose();
         }}
       >
-        <Text style={styles.closeText}>Close</Text>
+        <Text style={styles.closeText}>{copy.common.close}</Text>
       </Pressable>
     </View>
   );

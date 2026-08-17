@@ -9,6 +9,7 @@ import {
 } from "@/providers/appProviderLifecycle";
 import { buildLocalEvent } from "@/providers/appProviderUtils";
 import { Event } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface UseAppSyncParams {
   refreshUsers: () => Promise<void>;
@@ -46,8 +47,8 @@ export function useAppSync({
       if (!configAlertShown.current) {
         configAlertShown.current = true;
         Alert.alert(
-          "Configuration Required",
-          "Supabase is not configured. The app will run in offline mode.",
+          copy.common.alerts.configRequired,
+          copy.common.alerts.supabaseOffline,
         );
       }
     } else {

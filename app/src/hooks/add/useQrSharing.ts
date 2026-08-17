@@ -10,6 +10,7 @@ import {
   cleanupSharedFile,
   showUnavailable,
 } from "@/utils/add/addHelpers";
+import { copy } from "@/ui/copy";
 
 type QrMode = "stamp" | "log" | "participant_log";
 
@@ -70,7 +71,7 @@ export const useQrSharing = ({
         action: "share_qr",
         metadata: { cause: e instanceof Error ? e.message : String(e) },
       });
-      Alert.alert("Error", "Could not share QR code.");
+      Alert.alert(copy.common.error, copy.add.alerts.shareQrFailed);
     } finally {
       setShareLoading(false);
       cleanupSharedFile(fileUri);

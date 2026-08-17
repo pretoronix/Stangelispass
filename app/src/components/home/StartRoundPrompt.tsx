@@ -3,6 +3,7 @@ import { Modal, View, Text, TextInput, Platform } from "react-native";
 import { colors } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { homeScreenStyles as styles } from "@/styles/screens/homeScreenStyles";
+import { copy } from "@/ui/copy";
 
 interface StartRoundPromptProps {
   visible: boolean;
@@ -49,7 +50,7 @@ export function StartRoundPrompt({
           <TextInput
             value={startRoundName}
             onChangeText={setStartRoundName}
-            placeholder="Your name"
+            placeholder={copy.home.namePlaceholder}
             placeholderTextColor={colors.textMuted}
             style={styles.startRoundInput}
             autoFocus
@@ -61,11 +62,11 @@ export function StartRoundPrompt({
           />
           {pendingAction === "start_round" && (
             <View>
-              <Text style={styles.startRoundLabel}>Beer Price (CHF):</Text>
+              <Text style={styles.startRoundLabel}>{copy.home.beerPriceLabel}</Text>
               <TextInput
                 value={beerPrice}
                 onChangeText={setBeerPrice}
-                placeholder="5.00"
+                placeholder={copy.home.pricePlaceholder}
                 placeholderTextColor={colors.textMuted}
                 style={styles.startRoundInput}
                 keyboardType="decimal-pad"
@@ -76,7 +77,7 @@ export function StartRoundPrompt({
           )}
           <View style={styles.startRoundActions}>
             <Button
-              title="Cancel"
+              title={copy.common.cancel}
               variant="ghost"
               onPress={onCancel}
               style={styles.startRoundButton}

@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { useRouter } from "expo-router";
 import * as Notifications from "expo-notifications";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 /**
  * Hook to handle incoming notifications (foreground and tapped)
@@ -45,7 +46,7 @@ export const useNotificationHandler = () => {
           body || "",
           [
             {
-              text: "OK",
+              text: copy.common.ok,
               style: "default",
             },
           ],

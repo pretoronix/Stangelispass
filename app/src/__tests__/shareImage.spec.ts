@@ -3,6 +3,7 @@ import * as MediaLibrary from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import { captureRef } from "react-native-view-shot";
 import { Alert } from "react-native";
+import { copy } from "@/ui/copy";
 
 jest.mock("expo-media-library");
 jest.mock("expo-sharing");
@@ -67,8 +68,8 @@ describe("shareImage", () => {
       expect(MediaLibrary.requestPermissionsAsync).toHaveBeenCalled();
       expect(MediaLibrary.saveToLibraryAsync).toHaveBeenCalledWith(mockUri);
       expect(mockAlert).toHaveBeenCalledWith(
-        "Saved!",
-        "Your Brewmaster card has been saved to your photos.",
+        copy.common.alerts.saved,
+        copy.common.alerts.cardSaved,
         [{ text: "OK" }],
       );
     });
@@ -91,7 +92,7 @@ describe("shareImage", () => {
       expect(result.success).toBe(true);
       expect(MediaLibrary.saveToLibraryAsync).not.toHaveBeenCalled();
       expect(mockAlert).toHaveBeenCalledWith(
-        "Permission Denied",
+        copy.common.alerts.permissionDenied,
         expect.any(String),
         [{ text: "OK" }],
       );
@@ -106,7 +107,7 @@ describe("shareImage", () => {
 
       expect(result.success).toBe(false);
       expect(result.uri).toBeUndefined();
-      expect(mockAlert).toHaveBeenCalledWith("Error", expect.any(String));
+      expect(mockAlert).toHaveBeenCalledWith(copy.common.error, expect.any(String));
     });
 
     it("should handle sharing not available", async () => {
@@ -122,7 +123,7 @@ describe("shareImage", () => {
       expect(result.success).toBe(true);
       expect(Sharing.shareAsync).not.toHaveBeenCalled();
       expect(mockAlert).toHaveBeenCalledWith(
-        "Sharing Not Available",
+        copy.common.alerts.sharingNotAvailable,
         expect.any(String),
         [{ text: "OK" }],
       );
@@ -136,7 +137,7 @@ describe("shareImage", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(mockAlert).toHaveBeenCalledWith("Error", expect.any(String));
+      expect(mockAlert).toHaveBeenCalledWith(copy.common.error, expect.any(String));
     });
   });
 

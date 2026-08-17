@@ -11,6 +11,7 @@ import {
 import { PassType } from "@/utils/settings/settingsConstants";
 import { reportError } from "@/utils/logger";
 import { NO_EVENT_CREDITS_MESSAGE } from "@/services/iap";
+import { copy } from "@/ui/copy";
 
 interface UseEventManagementProps {
   currentUser: User | null;
@@ -47,28 +48,28 @@ export const useEventManagement = ({
 
   const handleStartEvent = useCallback(async () => {
     if (!currentUser) {
-      Alert.alert("No User", "Select a user before starting a new event.");
+      Alert.alert(copy.settings.alerts.noUser, copy.settings.alerts.selectUserBeforeEvent);
       return;
     }
     if (!eventPermissions.canManageEvent) {
-      Alert.alert("Not Authorized", "Only admins can start new events.");
+      Alert.alert(copy.common.notAuthorized, copy.settings.alerts.adminOnlyStartEvent);
       return;
     }
     if (!newEventName.trim()) {
-      Alert.alert("Error", "Enter a name for the event.");
+      Alert.alert(copy.common.error, copy.settings.alerts.enterEventName);
       return;
     }
     try {
       await startEvent(newEventName.trim(), newEventPassType);
       setNewEventName("");
       setShowEventModal(false);
-      Alert.alert("Event Started", "A new event is now active.");
+      Alert.alert(copy.settings.alerts.eventStarted, copy.settings.alerts.eventNowActive);
     } catch (e) {
       if ((e as Error)?.message === "NO_EVENT_CREDITS") {
-        Alert.alert("Pass Required", NO_EVENT_CREDITS_MESSAGE);
+        Alert.alert(copy.home.alerts.passRequired, NO_EVENT_CREDITS_MESSAGE);
         return;
       }
-      Alert.alert("Error", "Failed to start event.");
+      Alert.alert(copy.common.error, copy.settings.alerts.startEventFailed);
       reportError(e as Error, {
         scope: "useEventManagement",
         action: "handleStartEvent",
@@ -86,16 +87,16 @@ export const useEventManagement = ({
 
   const handleResetEventData = useCallback(() => {
     if (!isAdmin) {
-      Alert.alert("Not Authorized", "Only admins can reset event data.");
+      Alert.alert(copy.common.notAuthorized, copy.settings.alerts.adminOnlyReset);
       return;
     }
     Alert.alert(
-      "Reset Event Data",
-      "This will delete events, beers, achievements, wall of fame, notifications, and device tokens. Users are kept. Continue?",
+      copy.settings.alerts.resetEventTitle,
+      copy.settings.alerts.resetEventHint,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: copy.common.cancel, style: "cancel" },
         {
-          text: "Reset",
+          text: copy.common.reset,
           style: "destructive",
           onPress: async () => {
             try {
@@ -103,8 +104,8 @@ export const useEventManagement = ({
               const failed = results.filter((r) => !r.ok);
               if (failed.length > 0) {
                 Alert.alert(
-                  "Partial Reset",
-                  "Some tables could not be cleared. Check logs.",
+                  copy.settings.alerts.partialReset,
+                  copy.settings.alerts.partialResetHint,
                 );
                 reportError(new Error("Partial reset failure"), {
                   scope: "useEventManagement",
@@ -113,10 +114,10 @@ export const useEventManagement = ({
                   metadata: { results },
                 });
               } else {
-                Alert.alert("Reset Complete", "Event data has been cleared.");
+                Alert.alert(copy.settings.alerts.resetComplete, copy.settings.alerts.eventDataCleared);
               }
             } catch (e) {
-              Alert.alert("Error", "Failed to reset event data.");
+              Alert.alert(copy.common.error, copy.settings.alerts.resetFailed);
               reportError(e as Error, {
                 scope: "useEventManagement",
                 action: "handleResetEventData",
@@ -133,7 +134,7 @@ export const useEventManagement = ({
     async (member: EventMembership, role: EventRole) => {
       if (!activeEvent || !currentUser) return;
       if (member.role === "owner" && role !== "owner") {
-        Alert.alert("Not Allowed", "Owner role cannot be changed here.");
+        Alert.alert(copy.settings.alerts.notAllowed, copy.settings.alerts.ownerRoleFixed);
         return;
       }
       try {
@@ -155,7 +156,7 @@ export const useEventManagement = ({
             newRole: role,
           },
         });
-        Alert.alert("Error", "Could not update event role.");
+        Alert.alert(copy.common.error, copy.settings.alerts.roleUpdateFailed);
       }
     },
     [activeEvent, currentUser, refreshEventMembers],
@@ -172,7 +173,7 @@ export const useEventManagement = ({
           currentUser.id,
         );
         await refreshEventMembers();
-        Alert.alert("Added", `Member added as ${role}.`);
+        Alert.alert(copy.settings.alerts.memberAdded, `Member added as ${role}.`);
       } catch (e) {
         reportError(e as Error, {
           scope: "useEventManagement",
@@ -180,7 +181,7 @@ export const useEventManagement = ({
           userId: currentUser.id,
           metadata: { eventId: activeEvent.id, newMemberId: userId, role },
         });
-        Alert.alert("Error", "Could not add member to this event.");
+        Alert.alert(copy.common.error, copy.settings.alerts.addMemberFailed);
       }
     },
     [activeEvent, currentUser, refreshEventMembers],
@@ -190,16 +191,16 @@ export const useEventManagement = ({
     async (member: EventMembership) => {
       if (!activeEvent) return;
       if (member.role === "owner") {
-        Alert.alert("Not Allowed", "Owner cannot be removed from the event.");
+        Alert.alert(copy.settings.alerts.notAllowed, copy.settings.alerts.ownerNotRemovable);
         return;
       }
       Alert.alert(
-        "Remove Member",
+        copy.settings.alerts.removeMemberTitle,
         `Remove ${member.user?.name || "this user"} from the event?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: copy.common.cancel, style: "cancel" },
           {
-            text: "Remove",
+            text: copy.common.remove,
             style: "destructive",
             onPress: async () => {
               try {
@@ -214,7 +215,7 @@ export const useEventManagement = ({
                     memberId: member.user_id,
                   },
                 });
-                Alert.alert("Error", "Could not remove event member.");
+                Alert.alert(copy.common.error, copy.settings.alerts.removeMemberFailed);
               }
             },
           },

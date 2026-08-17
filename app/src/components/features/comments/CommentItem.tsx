@@ -5,6 +5,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { Comment } from "@/services/types";
 import { colors } from "@/lib/theme";
 import { commentsStyles as styles } from "./commentsStyles";
+import { copy } from "@/ui/copy";
 
 type CommentItemProps = {
   comment: Comment;
@@ -26,7 +27,7 @@ export function CommentItem({
           </Text>
           {comment.user?.is_admin && (
             <View style={styles.adminBadge}>
-              <Text style={styles.adminBadgeText}>Admin</Text>
+              <Text style={styles.adminBadgeText}>{copy.common.admin}</Text>
             </View>
           )}
         </View>

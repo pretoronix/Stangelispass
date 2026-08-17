@@ -10,6 +10,7 @@ import { addBeer } from "@/services/supabase";
 import { labels } from "@/ui/labels";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { copy } from "@/ui/copy";
 
 let queryClient: QueryClient;
 
@@ -363,7 +364,7 @@ describe("UI Error Handling", () => {
         </AppErrorBoundary>,
       );
 
-      expect(getByText("Something went wrong")).toBeTruthy();
+      expect(getByText(copy.common.somethingWentWrong)).toBeTruthy();
       expect(getByText("Test crash")).toBeTruthy();
       expect(reportError).toHaveBeenCalledWith(
         expect.any(Error),
@@ -386,7 +387,7 @@ describe("UI Error Handling", () => {
       );
 
       // Wait for data load
-      await waitFor(() => expect(getByText("Who's drinking?")).toBeTruthy());
+      await waitFor(() => expect(getByText(copy.add.whosDrinking)).toBeTruthy());
 
       // Select user
       await fireEvent.press(getByTestId("user-item-u1"));
@@ -396,8 +397,8 @@ describe("UI Error Handling", () => {
 
       // Verify Alert
       expect(Alert.alert).toHaveBeenCalledWith(
-        "Error",
-        "Failed to add beer. Please try again.",
+        copy.common.error,
+        copy.add.alerts.addBeerFailed,
       );
       expect(reportError).toHaveBeenCalled();
     });
@@ -425,8 +426,8 @@ describe("UI Error Handling", () => {
       await fireEvent.press(getByTestId(labels.home.startRound.testID));
 
       expect(Alert.alert).toHaveBeenCalledWith(
-        "Error",
-        "Failed to start round. Please try again.",
+        copy.common.error,
+        copy.home.alerts.startRoundFailed,
       );
       expect(reportError).toHaveBeenCalled();
     });

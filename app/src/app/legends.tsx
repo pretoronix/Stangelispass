@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getWallOfFame, supabase } from "@/services/supabase";
 import { WallOfFame } from "@/components/features/WallOfFame";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 export default function LegendsScreen() {
   const [entries, setEntries] = useState<any[]>([]);
@@ -49,8 +50,8 @@ export default function LegendsScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Legends Gallery</Text>
-          <Text style={styles.subtitle}>Hall of Fame of Stängelispass</Text>
+          <Text style={styles.title}>{copy.legends.title}</Text>
+          <Text style={styles.subtitle}>{copy.legends.subtitle}</Text>
         </View>
 
         {loading ? (

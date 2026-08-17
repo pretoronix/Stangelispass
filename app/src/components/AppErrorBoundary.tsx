@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { colors, spacing, typography, borderRadius } from "@/lib/theme";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 type AppErrorBoundaryProps = {
   children: React.ReactNode;
@@ -54,8 +55,8 @@ export class AppErrorBoundary extends React.Component<
     const detail = `Message: ${this.state.message}\n\nStack: ${this.state.stack || "No stack available"}`;
     Clipboard.setString(detail);
     Alert.alert(
-      "Copied",
-      "Error details copied to clipboard. Please share this with the developers.",
+      copy.common.alerts.copied,
+      copy.common.alerts.copiedDetails,
     );
   };
 
@@ -64,14 +65,14 @@ export class AppErrorBoundary extends React.Component<
       return (
         <View style={styles.container}>
           <View style={styles.card}>
-            <Text style={styles.title}>Something went wrong</Text>
+            <Text style={styles.title}>{copy.common.somethingWentWrong}</Text>
             <Text style={styles.subtitle}>
               {this.state.message || "Please retry."}
             </Text>
 
             <View style={styles.buttonContainer}>
               <Pressable onPress={this.handleRetry} style={styles.button}>
-                <Text style={styles.buttonText}>Try again</Text>
+                <Text style={styles.buttonText}>{copy.common.tryAgain}</Text>
               </Pressable>
 
               <Pressable
@@ -79,7 +80,7 @@ export class AppErrorBoundary extends React.Component<
                 style={styles.secondaryButton}
               >
                 <Text style={styles.secondaryButtonText}>
-                  Copy Error Details
+                  {copy.common.copyErrorDetails}
                 </Text>
               </Pressable>
             </View>

@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text } from "react-native";
 import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { Avatar } from "@/components/ui/Avatar";
 import type { User } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 type AddUserGridProps = {
   users: User[];
@@ -42,7 +43,7 @@ export function AddUserGrid({
       numColumns={2}
       ListEmptyComponent={
         <Text style={styles.emptyText}>
-          No users found. Add some in Settings!
+          {copy.add.noUsers}
         </Text>
       }
     />

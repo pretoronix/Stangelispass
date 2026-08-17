@@ -4,6 +4,7 @@ import { useUserManagement } from "@/hooks/settings/useUserManagement";
 import { addUser, updateUser } from "@/services/supabase";
 import { registerForPushNotificationsAsync } from "@/services/notifications";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 jest.mock("@/services/supabase", () => ({
   addUser: jest.fn(),
@@ -114,7 +115,7 @@ describe("useUserManagement", () => {
     });
 
     expect(addUser).not.toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Error", "Please enter a name");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.error, copy.settings.alerts.enterName);
   });
 
   it("adds a user and refreshes list", async () => {
@@ -145,7 +146,7 @@ describe("useUserManagement", () => {
     );
     expect(registerForPushNotificationsAsync).toHaveBeenCalledWith("u2");
     expect(refreshUsers).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Success", "Added Bob!");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.success, "Added Bob!");
   });
 
   it("reports when push registration for new user rejects", async () => {
@@ -194,7 +195,7 @@ describe("useUserManagement", () => {
       await result.current.handleAddUser();
     });
 
-    expect(alertSpy).toHaveBeenCalledWith("Error", expect.any(String));
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.error, expect.any(String));
     expect(setCurrentUser).not.toHaveBeenCalled();
   });
 
@@ -236,7 +237,7 @@ describe("useUserManagement", () => {
     });
 
     expect(reportError).toHaveBeenCalled();
-    expect(alertSpy).toHaveBeenCalledWith("Error", "Failed to add user");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.error, copy.settings.alerts.addUserFailed);
   });
 
   it("updates a user field and rethrows on failure", async () => {

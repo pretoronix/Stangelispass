@@ -10,6 +10,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors, spacing, typography } from "@/lib/theme";
 import { BACStats } from "@/services/safety";
+import { copy } from "@/ui/copy";
 
 interface SafeRideCardProps {
   stats: BACStats;
@@ -46,25 +47,25 @@ export const SafeRideCard: React.FC<SafeRideCardProps> = ({ stats }) => {
           size={24}
           color={stats.canDrive ? colors.success : colors.error}
         />
-        <Text style={styles.title}>Safe Ride Monitor</Text>
+        <Text style={styles.title}>{copy.common.safeRideMonitor}</Text>
       </View>
 
       <View style={styles.statsRow}>
         <View style={styles.stat}>
           <Text style={styles.statValue}>{stats.bac}‰</Text>
-          <Text style={styles.statLabel}>Est. BAC</Text>
+          <Text style={styles.statLabel}>{copy.common.estimatedBac}</Text>
         </View>
         <View style={styles.divider} />
         <View style={styles.stat}>
           <Text style={styles.statValue}>{stats.clearInHours}h</Text>
-          <Text style={styles.statLabel}>Until 0‰</Text>
+          <Text style={styles.statLabel}>{copy.common.untilZero}</Text>
         </View>
       </View>
 
       {!stats.canDrive && (
         <View style={styles.warningBox}>
           <Text style={styles.warningText}>
-            You're over the limit. Please don't drive.
+            {copy.common.overTheLimit}
           </Text>
         </View>
       )}
@@ -79,7 +80,7 @@ export const SafeRideCard: React.FC<SafeRideCardProps> = ({ stats }) => {
             size={20}
             color={colors.textPrimary}
           />
-          <Text style={styles.buttonText}>Order Uber</Text>
+          <Text style={styles.buttonText}>{copy.common.orderUber}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -91,7 +92,7 @@ export const SafeRideCard: React.FC<SafeRideCardProps> = ({ stats }) => {
             size={20}
             color={colors.textPrimary}
           />
-          <Text style={styles.buttonText}>Call Taxi</Text>
+          <Text style={styles.buttonText}>{copy.common.callTaxi}</Text>
         </TouchableOpacity>
       </View>
     </View>

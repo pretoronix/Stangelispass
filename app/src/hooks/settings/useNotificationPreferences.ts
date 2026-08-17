@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { User, updateUser, NotificationPrefs } from "@/services/supabase";
 import { MILESTONES } from "@/utils/settings/settingsConstants";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface UseNotificationPreferencesProps {
   currentUser: User | null;
@@ -32,7 +33,7 @@ export const useNotificationPreferences = ({
           metadata: { cause: e instanceof Error ? e.message : String(e) },
         });
         setCurrentUser(previousUser);
-        Alert.alert("Error", "Could not save notification settings.");
+        Alert.alert(copy.common.error, copy.settings.alerts.notificationSaveFailed);
       }
     },
     [currentUser, setCurrentUser],

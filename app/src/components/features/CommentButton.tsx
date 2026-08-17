@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCommentCount } from "@/hooks/useCommentsQuery";
 import { colors, spacing, typography } from "@/lib/theme";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface CommentButtonProps {
   beerId: string;
@@ -62,7 +63,7 @@ export function CommentButton({
       )}
 
       {!isLoading && count === 0 && (
-        <Text style={styles.countText}>Comment</Text>
+        <Text style={styles.countText}>{copy.common.comment}</Text>
       )}
     </TouchableOpacity>
   );

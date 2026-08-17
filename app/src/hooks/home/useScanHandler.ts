@@ -6,6 +6,7 @@ import { parseScanPayload } from "@/utils/scanPayload";
 import { BADGES } from "@/services/achievements";
 import { audioService } from "@/services/audio";
 import { reportError, addBreadcrumb } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface User {
   id: string;
@@ -40,20 +41,20 @@ const validateParticipantQr = (
   }
   if (!canManageLogs) {
     Alert.alert(
-      "Not Authorized",
-      "Only organizers can scan participant QR codes.",
+      copy.common.notAuthorized,
+      copy.home.alerts.organizerOnlyScan,
     );
     return false;
   }
   if (!activeEventId) {
     Alert.alert(
-      "No Active Round",
-      "This QR code is not linked to an active round.",
+      copy.home.alerts.noActiveRound,
+      copy.home.alerts.qrNoActiveRound,
     );
     return false;
   }
   if (payloadEventId !== activeEventId) {
-    Alert.alert("Wrong Round", "This QR code belongs to a different event.");
+    Alert.alert(copy.home.alerts.wrongRound, copy.home.alerts.qrOtherEvent);
     return false;
   }
   return true;
@@ -69,9 +70,9 @@ const notifyNewBadges = (badgeKeys: string[]) => {
     () => null,
   );
   Alert.alert(
-    "🏆 Achievement Unlocked!",
+    copy.home.alerts.achievementUnlocked,
     `You earned: ${badgeNames}\n\nBeer logged via scan!`,
-    [{ text: "Woohoo!" }],
+    [{ text: copy.common.nice }],
   );
 };
 
@@ -94,7 +95,7 @@ export function useScanHandler(
   const lastScan = useRef<{ data: string; ts: number } | null>(null);
   const handleUnknownPayload = (data: string) => {
     addBreadcrumb("handleScan_unknown_payload", { data });
-    Alert.alert("Invalid QR", "This code is not recognized by Stangelispass.");
+    Alert.alert(copy.common.alerts.invalidQr, copy.common.alerts.unknownQr);
   };
 
   const handleJoinEvent = async (payload: {
@@ -106,7 +107,7 @@ export function useScanHandler(
         try {
           await joinEvent(payload.eventId, currentUser.id);
           Alert.alert(
-            "Joined!",
+            copy.home.alerts.joined,
             `You are now part of ${payload.eventName || "the round"}.`,
           );
         } catch (e) {
@@ -115,7 +116,7 @@ export function useScanHandler(
             action: "join_event",
             metadata: { cause: e instanceof Error ? e.message : String(e) },
           });
-          Alert.alert("Error", "Failed to join the round. Please try again.");
+          Alert.alert(copy.common.error, copy.home.alerts.joinFailed);
         }
       }
       setScanning(false);
@@ -133,8 +134,8 @@ export function useScanHandler(
   const handleStampRedeem = async (payload: { stampId: string }) => {
     if (!currentUser) {
       Alert.alert(
-        "Select User",
-        "Please select a user in Settings before redeeming stamps.",
+        copy.common.selectUser,
+        copy.home.alerts.selectUserForStamp,
       );
       return;
     }
@@ -143,15 +144,14 @@ export function useScanHandler(
       const redemption = await redeemBeerStamp(payload.stampId, currentUser.id);
       if (!redemption.ok) {
         const reasonMessage = {
-          invalid_stamp: "This stamp is invalid.",
-          already_redeemed: "This stamp has already been redeemed.",
-          expired_stamp: "This stamp has expired.",
-          stamps_unavailable:
-            "Stamp feature is not available in the database yet.",
+          invalid_stamp: copy.home.alerts.stampInvalid,
+          already_redeemed: copy.home.alerts.stampAlreadyRedeemed,
+          expired_stamp: copy.home.alerts.stampExpired,
+          stamps_unavailable: copy.home.alerts.stampsUnavailable,
         } as Record<string, string>;
         Alert.alert(
-          "Stamp",
-          reasonMessage[redemption.reason] || "Could not redeem stamp.",
+          copy.home.alerts.stamp,
+          reasonMessage[redemption.reason] || copy.home.alerts.stampRedeemFailed,
         );
         setScanning(false);
         return;
@@ -167,18 +167,18 @@ export function useScanHandler(
           .filter(Boolean)
           .join(", ");
         Alert.alert(
-          "Stamp Redeemed",
+          copy.home.alerts.stampRedeemed,
           `+1 beer added.\nNew badges: ${badgeNames}`,
         );
       } else {
-        Alert.alert("Stamp Redeemed", "+1 beer added successfully.");
+        Alert.alert(copy.home.alerts.stampRedeemed, copy.home.alerts.stampAdded);
       }
     } catch (e) {
       reportError(e as Error, {
         scope: "useScanHandler",
         action: "redeem_stamp_catch",
       });
-      Alert.alert("Error", "An error occurred while redeeming the stamp.");
+      Alert.alert(copy.common.error, copy.home.alerts.stampFailed);
     } finally {
       setScanning(false);
       await refreshSafely(refresh);
@@ -191,8 +191,8 @@ export function useScanHandler(
   }) => {
     if (!currentUser) {
       Alert.alert(
-        "Select User",
-        "Please select a user in Settings before scanning beer QR codes.",
+        copy.common.selectUser,
+        copy.home.alerts.selectUserForScan,
       );
       return;
     }
@@ -209,16 +209,16 @@ export function useScanHandler(
     const effectiveEventId = payload.eventId || activeEvent?.id;
     if (!effectiveEventId) {
       Alert.alert(
-        "No Active Round",
-        "This QR code is not linked to an active round.",
+        copy.home.alerts.noActiveRound,
+        copy.home.alerts.qrNoActiveRound,
       );
       return;
     }
 
     if (!eventPermissions.canManageLogs && payload.userId !== currentUser.id) {
       Alert.alert(
-        "Not Authorized",
-        "Only admins can log beers for other users.",
+        copy.common.notAuthorized,
+        copy.home.alerts.adminOnlyLogForOthers,
       );
       return;
     }
@@ -240,7 +240,7 @@ export function useScanHandler(
         scope: "useScanHandler",
         action: "scan_add_beer",
       });
-      Alert.alert("Error", "Failed to log beer. Please try again.");
+      Alert.alert(copy.common.error, copy.home.alerts.logBeerFailed);
     } finally {
       setScanning(false);
       await refreshSafely(refresh);
@@ -291,7 +291,7 @@ export function useScanHandler(
         scope: "useScanHandler",
         action: "handleScan_outer_catch",
       });
-      Alert.alert("Error", "Failed to process scan.");
+      Alert.alert(copy.common.error, copy.home.alerts.scanFailed);
     } finally {
       addBreadcrumb("handleScan_complete");
     }

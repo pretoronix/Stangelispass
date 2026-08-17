@@ -23,6 +23,7 @@ import {
   BEER_QUERY_KEYS,
 } from "@/hooks/query";
 import { useQueryClient } from "@tanstack/react-query";
+import { copy } from "@/ui/copy";
 
 export default function HistoryScreen() {
   const { activeEvent, eventPermissions, currentUser } = useApp();
@@ -68,7 +69,10 @@ export default function HistoryScreen() {
 
   const handleRemove = async (beerId: string) => {
     if (!eventPermissions.canManageLogs) {
-      Alert.alert("Not Authorized", "Only admins can remove beers.");
+      Alert.alert(
+        copy.history.alerts.notAuthorized,
+        copy.history.alerts.adminOnlyRemove,
+      );
       return;
     }
 
@@ -78,7 +82,7 @@ export default function HistoryScreen() {
       );
       await removeBeerMutation.mutateAsync(beerId);
     } catch (e) {
-      Alert.alert("Error", "Failed to remove beer.");
+      Alert.alert(copy.common.error, copy.history.alerts.removeFailed);
     }
   };
 
@@ -118,7 +122,7 @@ export default function HistoryScreen() {
           }
           ListHeaderComponent={
             <View style={styles.header}>
-              <Text style={styles.largeTitle}>History</Text>
+              <Text style={styles.largeTitle}>{copy.history.title}</Text>
             </View>
           }
           ListEmptyComponent={
@@ -128,7 +132,7 @@ export default function HistoryScreen() {
                 size={64}
                 color={colors.surfaceLight}
               />
-              <Text style={styles.emptyText}>History is empty.</Text>
+              <Text style={styles.emptyText}>{copy.history.empty}</Text>
             </View>
           }
           onEndReached={() => {

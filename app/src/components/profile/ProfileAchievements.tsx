@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { BadgeIcon } from "@/components/features/BadgeIcon";
 import { spacing, typography, colors } from "@/lib/theme";
 import type { Achievement } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface ProfileAchievementsProps {
   achievements: Achievement[];
@@ -23,7 +24,7 @@ export function ProfileAchievements({
           </View>
         ))
       ) : (
-        <Text style={styles.emptyText}>No badges yet. Start drinking! 🍻</Text>
+        <Text style={styles.emptyText}>{copy.profile.noBadges}</Text>
       )}
     </View>
   );

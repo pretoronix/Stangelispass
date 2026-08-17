@@ -3,6 +3,7 @@ import { Alert } from "react-native";
 import { createBeerStamp, Event, User } from "@/services/supabase";
 import { reportError } from "@/utils/logger";
 import { showNoActiveRound, showNotAuthorized } from "@/utils/add/addHelpers";
+import { copy } from "@/ui/copy";
 
 type QrMode = "stamp" | "log" | "participant_log";
 
@@ -47,14 +48,14 @@ export const useStampQr = ({
       );
       if (result.fallbackLegacy) {
         Alert.alert(
-          "Legacy QR",
-          "Stamp table is not available yet. A legacy QR will be generated (not one-time).",
+          copy.add.alerts.legacyQr,
+          copy.add.alerts.legacyQrHint,
         );
         setStampId(undefined);
       } else if (!result.stamp) {
         Alert.alert(
-          "Unavailable",
-          "Stamp issuance is unavailable until the database is ready.",
+          copy.common.unavailable,
+          copy.add.alerts.stampUnavailable,
         );
         return;
       } else {
@@ -66,7 +67,7 @@ export const useStampQr = ({
         action: "create_stamp",
         metadata: { cause: e instanceof Error ? e.message : String(e) },
       });
-      Alert.alert("Error", "Could not create stamp QR.");
+      Alert.alert(copy.common.error, copy.add.alerts.stampQrFailed);
       return;
     } finally {
       setStampLoading(false);

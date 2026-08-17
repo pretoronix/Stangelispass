@@ -3,6 +3,7 @@ import * as Sharing from "expo-sharing";
 import { captureRef } from "react-native-view-shot";
 import { Alert, Platform } from "react-native";
 import { reportError } from "./logger";
+import { copy } from "@/ui/copy";
 
 export interface ShareImageOptions {
   eventName: string;
@@ -33,15 +34,15 @@ export async function captureAndShareCard(
         if (status === "granted") {
           await MediaLibrary.saveToLibraryAsync(uri);
           Alert.alert(
-            "Saved!",
-            "Your Brewmaster card has been saved to your photos.",
-            [{ text: "OK" }],
+            copy.common.alerts.saved,
+            copy.common.alerts.cardSaved,
+            [{ text: copy.common.ok }],
           );
         } else {
           Alert.alert(
-            "Permission Denied",
-            "Please enable photo library access in Settings to save images.",
-            [{ text: "OK" }],
+            copy.common.alerts.permissionDenied,
+            copy.common.alerts.enablePhotoAccess,
+            [{ text: copy.common.ok }],
           );
         }
       } catch (saveError) {
@@ -61,9 +62,9 @@ export async function captureAndShareCard(
       });
     } else {
       Alert.alert(
-        "Sharing Not Available",
-        "Sharing is not available on this device.",
-        [{ text: "OK" }],
+        copy.common.alerts.sharingNotAvailable,
+        copy.common.alerts.noSharing,
+        [{ text: copy.common.ok }],
       );
     }
 
@@ -74,7 +75,7 @@ export async function captureAndShareCard(
       action: "captureAndShare",
     });
 
-    Alert.alert("Error", "Failed to share image. Please try again.");
+    Alert.alert(copy.common.error, copy.common.alerts.shareImageFailed);
     return { success: false };
   }
 }

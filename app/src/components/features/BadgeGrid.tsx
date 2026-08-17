@@ -3,6 +3,7 @@ import { View, StyleSheet, Text } from "react-native";
 import { BADGES, BadgeType } from "@/services/achievements";
 import { BadgeIcon } from "./BadgeIcon";
 import { colors, spacing, borderRadius } from "@/lib/theme";
+import { copy } from "@/ui/copy";
 
 interface BadgeGridProps {
   unlockedBadges: BadgeType[];
@@ -13,7 +14,7 @@ export const BadgeGrid: React.FC<BadgeGridProps> = ({ unlockedBadges }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Trophy Case</Text>
+      <Text style={styles.title}>{copy.profile.title}</Text>
       <View style={styles.grid}>
         {allBadges.map((type) => (
           <BadgeIcon

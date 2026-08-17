@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import * as Haptics from "expo-haptics";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 const { width } = Dimensions.get("window");
 
@@ -54,7 +55,7 @@ export function MVPModal({
               <Ionicons name="trophy" size={80} color="#FFD700" />
             </View>
 
-            <Text style={styles.label}>BREWMASTER OF THE NIGHT</Text>
+            <Text style={styles.label}>{copy.common.brewmasterOfTheNight}</Text>
 
             <View style={styles.avatarWrapper}>
               <Avatar name={winnerName} size={100} />
@@ -70,18 +71,18 @@ export function MVPModal({
             </View>
 
             <Text style={styles.congratsText}>
-              Legends never die. They just get another round. 🍻
+              {copy.common.legendsNeverDie}
             </Text>
           </View>
 
           <View style={styles.actions}>
             <Button
-              title="Save to Camera Roll & Close"
+              title={copy.common.saveToCameraRoll}
               onPress={handleShare}
               variant="primary"
             />
             <Pressable onPress={onClose} style={styles.closeLink}>
-              <Text style={styles.closeText}>Close without saving</Text>
+              <Text style={styles.closeText}>{copy.common.closeWithoutSaving}</Text>
             </Pressable>
           </View>
         </View>

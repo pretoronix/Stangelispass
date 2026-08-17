@@ -5,6 +5,7 @@ import {
   PASS_TYPE_PRICES_CHF,
 } from "@/utils/settings/settingsConstants";
 import type { Event } from "@/services/supabase";
+import { copy } from "@/ui/copy";
 
 interface BeerCount {
   userId: string;
@@ -17,7 +18,7 @@ interface BeerCount {
  */
 export function selectRandomPayer(beerCounts: BeerCount[]): void {
   if (beerCounts.length === 0) {
-    Alert.alert("Who Pays?", "Nobody has logged any beers yet!");
+    Alert.alert(copy.home.whoPays, copy.home.alerts.whoPaysNoBeers);
     return;
   }
   const randomIndex = Math.floor(Math.random() * beerCounts.length);
@@ -29,9 +30,9 @@ export function selectRandomPayer(beerCounts: BeerCount[]): void {
     () => null,
   );
   Alert.alert(
-    "🍻 The Round is On...",
-    `${selected.name}! \n\nGet ready to open that wallet.`,
-    [{ text: "Prost!" }],
+    copy.home.alerts.roundIsOn,
+    `${selected.name}! \n\n${copy.home.alerts.getWalletReady}`,
+    [{ text: copy.home.alerts.cheers }],
   );
 }
 

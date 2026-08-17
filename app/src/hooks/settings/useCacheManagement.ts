@@ -5,6 +5,7 @@ import {
   clearCache,
   type CacheStats,
 } from "@/utils/cacheManager";
+import { copy } from "@/ui/copy";
 
 export const useCacheManagement = () => {
   const [cacheStats, setCacheStats] = useState<CacheStats | null>(null);
@@ -15,21 +16,21 @@ export const useCacheManagement = () => {
 
   const handleClearCache = useCallback(() => {
     Alert.alert(
-      "Clear Cache",
-      "This will remove all cached data. The app will reload fresh data from the server.",
+      copy.settings.alerts.clearCacheTitle,
+      copy.settings.alerts.clearCacheHint,
       [
-        { text: "Cancel", style: "cancel" },
+        { text: copy.common.cancel, style: "cancel" },
         {
-          text: "Clear",
+          text: copy.common.clear,
           style: "destructive",
           onPress: async () => {
             try {
               await clearCache();
               const stats = await getCacheStats();
               setCacheStats(stats);
-              Alert.alert("Success", "Cache cleared successfully");
+              Alert.alert(copy.common.success, copy.settings.alerts.cacheCleared);
             } catch (error) {
-              Alert.alert("Error", "Failed to clear cache");
+              Alert.alert(copy.common.error, copy.settings.alerts.cacheClearFailed);
             }
           },
         },

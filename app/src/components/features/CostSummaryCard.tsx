@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { colors, spacing, typography } from "@/lib/theme";
 import { formatCost } from "@/utils/costCalculator";
 import { labels } from "@/ui/labels";
+import { copy } from "@/ui/copy";
 
 interface CostSummaryCardProps {
   beerCount: number;
@@ -37,12 +38,12 @@ export function CostSummaryCard({
         >
           {formatCost(totalCost)}
         </Text>
-        <Text style={styles.totalLabel}>Your Total</Text>
+        <Text style={styles.totalLabel}>{copy.profile.yourTotal}</Text>
       </View>
 
       <View style={styles.breakdown}>
         <View style={styles.breakdownItem}>
-          <Text style={styles.breakdownLabel}>Beers</Text>
+          <Text style={styles.breakdownLabel}>{copy.common.beers}</Text>
           <Text
             style={styles.breakdownValue}
             testID={labels.profile.beerCount.testID}
@@ -53,7 +54,7 @@ export function CostSummaryCard({
         </View>
         <View style={styles.divider} />
         <View style={styles.breakdownItem}>
-          <Text style={styles.breakdownLabel}>Price</Text>
+          <Text style={styles.breakdownLabel}>{copy.common.price}</Text>
           <Text
             style={styles.breakdownValue}
             testID={labels.profile.pricePerBeer.testID}

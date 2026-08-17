@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { commentsStyles as styles } from "./commentsStyles";
+import { copy } from "@/ui/copy";
 
 type CommentComposerProps = {
   value: string;
@@ -36,7 +37,7 @@ export function CommentComposer({
       <View style={styles.inputWrapper}>
         <TextInput
           style={[styles.input, isOverLimit && styles.inputError]}
-          placeholder="Add a comment..."
+          placeholder={copy.common.commentPlaceholder}
           placeholderTextColor={colors.textMuted}
           value={value}
           onChangeText={onChangeText}

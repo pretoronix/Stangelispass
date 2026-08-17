@@ -9,6 +9,7 @@ import {
 import { Alert } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 jest.mock("expo-file-system", () => ({
   cacheDirectory: "file:///cache/",
@@ -32,13 +33,13 @@ describe("addHelpers", () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
 
     showUnavailable("x");
-    expect(alertSpy).toHaveBeenCalledWith("Unavailable", "x");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.unavailable, "x");
 
     showNoActiveRound("y");
-    expect(alertSpy).toHaveBeenCalledWith("No Active Round", "y");
+    expect(alertSpy).toHaveBeenCalledWith(copy.home.alerts.noActiveRound, "y");
 
     showNotAuthorized("z");
-    expect(alertSpy).toHaveBeenCalledWith("Not Authorized", "z");
+    expect(alertSpy).toHaveBeenCalledWith(copy.common.notAuthorized, "z");
 
     alertSpy.mockRestore();
   });
@@ -92,8 +93,8 @@ describe("addHelpers", () => {
     const uri = await promise;
     expect(uri).toBeNull();
     expect(alertSpy).toHaveBeenCalledWith(
-      "Error",
-      "Failed to generate QR image (timeout).",
+      copy.common.error,
+      copy.add.alerts.qrImageTimeout,
     );
 
     alertSpy.mockRestore();
@@ -122,8 +123,8 @@ describe("addHelpers", () => {
     const uri = await buildWithMissingCache(qrRef, "u1");
     expect(uri).toBeNull();
     expect(alertSpy).toHaveBeenCalledWith(
-      "Unavailable",
-      "File system is not available on this device.",
+      copy.common.unavailable,
+      copy.common.alerts.noFileSystem,
     );
 
     alertSpy.mockRestore();

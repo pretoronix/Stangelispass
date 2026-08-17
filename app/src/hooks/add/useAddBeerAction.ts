@@ -10,6 +10,7 @@ import {
   showUnavailable,
 } from "@/utils/add/addHelpers";
 import type { OfflineMutation } from "@/hooks/useOfflineMutations";
+import { copy } from "@/ui/copy";
 
 type UseAddBeerActionParams = {
   currentUser: User | null;
@@ -68,7 +69,7 @@ export const useAddBeerAction = ({
           type: "addBeer",
           data: mutationPayload,
         });
-        Alert.alert("Queued", "Beer will be logged when you reconnect.");
+        Alert.alert(copy.add.alerts.queued, copy.add.alerts.queuedHint);
         onUserCleared();
         return;
       }
@@ -90,9 +91,9 @@ export const useAddBeerAction = ({
         const badgeNames = newBadges.map((b) => BADGES[b].name).join(", ");
         setTimeout(() => {
           Alert.alert(
-            "🏆 Achievement Unlocked!",
+            copy.add.alerts.achievementUnlocked,
             `You earned: ${badgeNames}\n\nAdded a beer for ${selectedUser.name}!`,
-            [{ text: "Awesome!" }],
+            [{ text: copy.common.nice }],
           );
         }, 500);
       }
@@ -103,7 +104,7 @@ export const useAddBeerAction = ({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(
         () => null,
       );
-      Alert.alert("Error", "Failed to add beer. Please try again.");
+      Alert.alert(copy.common.error, copy.add.alerts.addBeerFailed);
       reportError(e as Error, { scope: "add", action: "replace_console" });
     } finally {
       setLoading(false);

@@ -339,8 +339,8 @@ describe("GUI Integrity Tests", () => {
     it("renders initial state with no active round", async () => {
       mockAppContext.activeEvent = null;
       const { getByText } = await render(<HomeScreen />, { wrapper: AllProviders });
-      expect(getByText(/No active round/i)).toBeTruthy();
-      expect(getByText(/Start a Round/i)).toBeTruthy();
+      expect(getByText(copy.home.noActiveRound)).toBeTruthy();
+      expect(getByText(new RegExp(copy.home.startRound))).toBeTruthy();
     });
 
     it("renders active event state", async () => {
@@ -386,7 +386,7 @@ describe("GUI Integrity Tests", () => {
       await act(async () => {
         await Promise.resolve();
       });
-      expect(getByText("Who's drinking?")).toBeTruthy();
+      expect(getByText(copy.add.whosDrinking)).toBeTruthy();
       expect(getByText("Alice")).toBeTruthy();
       expect(getByText("Bob")).toBeTruthy();
     });
@@ -399,8 +399,8 @@ describe("GUI Integrity Tests", () => {
         fireEvent.press(getByText("Alice"));
       });
 
-      await waitFor(() => expect(getByText(/Add 1 Beer/i)).toBeTruthy());
-      await waitFor(() => expect(getByText(/Stamp QR/i)).toBeTruthy());
+      await waitFor(() => expect(getByText(copy.add.addBeer)).toBeTruthy());
+      await waitFor(() => expect(getByText(copy.add.stampQr)).toBeTruthy());
     });
   });
 
@@ -408,14 +408,14 @@ describe("GUI Integrity Tests", () => {
     it("renders correctly", async () => {
       const { getAllByText } = await render(<HistoryScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(getAllByText(/History/i).length).toBeGreaterThan(0),
+        expect(getAllByText(copy.history.title).length).toBeGreaterThan(0),
       );
     });
 
     it("shows empty state", async () => {
       const { getByText } = await render(<HistoryScreen />, { wrapper: AllProviders });
       await waitFor(() =>
-        expect(getByText(/History is empty/i)).toBeTruthy(),
+        expect(getByText(copy.history.empty)).toBeTruthy(),
       );
     });
   });
@@ -485,15 +485,15 @@ describe("GUI Integrity Tests", () => {
     it("renders no user view when no current user", async () => {
       mockAppContext.currentUser = null as any;
       const { getByText } = await render(<ProfileScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(getByText(/Please select a user/i)).toBeTruthy());
+      await waitFor(() => expect(getByText(copy.profile.selectUserFirst)).toBeTruthy());
     });
 
     it("renders profile content when user is logged in", async () => {
       mockAppContext.currentUser = { id: "u1", name: "Alice", is_admin: false, weight_kg: 70, gender: "female" } as any;
       const { getByText } = await render(<ProfileScreen />, { wrapper: AllProviders });
-      await waitFor(() => expect(getByText(/Trophy Case/i)).toBeTruthy());
-      expect(getByText(/Soberness Estimator/i)).toBeTruthy();
-      expect(getByText(/Consumption Stats/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(copy.profile.title)).toBeTruthy());
+      expect(getByText(copy.profile.sobernessEstimator)).toBeTruthy();
+      expect(getByText(copy.profile.consumptionStats)).toBeTruthy();
     });
   });
 
@@ -503,8 +503,8 @@ describe("GUI Integrity Tests", () => {
       await act(async () => {
         await Promise.resolve();
       });
-      await waitFor(() => expect(getByText(/Legends Gallery/i)).toBeTruthy());
-      expect(getByText(/Hall of Fame/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(copy.legends.title)).toBeTruthy());
+      expect(getByText(copy.legends.subtitle)).toBeTruthy();
     });
   });
 });

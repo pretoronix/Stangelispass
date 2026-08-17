@@ -5,6 +5,7 @@ import * as Haptics from "expo-haptics";
 import { getBeers } from "@/services/supabase";
 import type { Beer as BeerType } from "@/services/types";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface Event {
   id: string;
@@ -14,7 +15,7 @@ interface Event {
 export function useExportData() {
   const handleExportData = async (activeEvent?: Event) => {
     if (!activeEvent) {
-      Alert.alert("Export", "No active round to export.");
+      Alert.alert(copy.home.alerts.export, copy.home.alerts.exportNoRound);
       return;
     }
     try {
@@ -25,7 +26,7 @@ export function useExportData() {
       );
 
       if (eventBeers.length === 0) {
-        Alert.alert("Export", "No beers logged for this event yet.");
+        Alert.alert(copy.home.alerts.export, copy.home.alerts.exportNoBeers);
         return;
       }
 
@@ -51,7 +52,7 @@ export function useExportData() {
           link.click();
           document.body.removeChild(link);
           window.URL.revokeObjectURL(url);
-          Alert.alert("Export", "CSV downloaded successfully!");
+          Alert.alert(copy.home.alerts.export, copy.home.alerts.csvDownloaded);
         }
       } else {
         const cacheDirectory = (FileSystem as any).cacheDirectory;
@@ -64,7 +65,7 @@ export function useExportData() {
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(fileUri);
         } else {
-          Alert.alert("Export", "CSV saved to your device cache.");
+          Alert.alert(copy.home.alerts.export, copy.home.alerts.csvSaved);
         }
       }
     } catch (e) {
@@ -73,7 +74,7 @@ export function useExportData() {
         action: "export",
         metadata: { cause: e instanceof Error ? e.message : String(e) },
       });
-      Alert.alert("Error", "Failed to export data.");
+      Alert.alert(copy.common.error, copy.home.alerts.exportFailed);
     }
   };
 

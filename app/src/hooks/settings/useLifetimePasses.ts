@@ -8,6 +8,7 @@ import {
   type LifetimePassCode,
 } from "@/services/lifetimePass";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface UseLifetimePassesProps {
   currentUser: User | null;
@@ -46,8 +47,8 @@ export const useLifetimePasses = ({
   const handleGenerateCode = useCallback(async () => {
     if (!currentUser?.is_admin) {
       Alert.alert(
-        "Not Authorized",
-        "Only app owners can generate lifetime pass codes.",
+        copy.common.notAuthorized,
+        copy.settings.alerts.ownerOnlyLifetime,
       );
       return;
     }
@@ -56,15 +57,15 @@ export const useLifetimePasses = ({
       const created = await createLifetimePassCode(currentUser.id);
       if (!created) {
         Alert.alert(
-          "Unavailable",
-          "Lifetime pass codes are not available until the database is ready.",
+          copy.common.unavailable,
+          copy.settings.alerts.lifetimeCodesUnavailable,
         );
         return;
       }
       setCodes((prev) => [created, ...prev]);
-      Alert.alert("Code Generated", `Share this code: ${created.code}`);
+      Alert.alert(copy.settings.alerts.codeGenerated, `Share this code: ${created.code}`);
     } catch (e) {
-      Alert.alert("Error", "Failed to generate code.");
+      Alert.alert(copy.common.error, copy.settings.alerts.generateCodeFailed);
       reportError(e as Error, {
         scope: "lifetime_pass",
         action: "generate_code",
@@ -77,14 +78,14 @@ export const useLifetimePasses = ({
   const handleRedeemCode = useCallback(async () => {
     if (!currentUser) {
       Alert.alert(
-        "Select User",
-        "Please select a user before redeeming a code.",
+        copy.common.selectUser,
+        copy.settings.alerts.selectUserBeforeRedeem,
       );
       return;
     }
     const trimmed = redeemCode.trim();
     if (!trimmed) {
-      Alert.alert("Enter Code", "Please enter a lifetime pass code.");
+      Alert.alert(copy.common.enterCode, copy.settings.alerts.enterLifetimeCode);
       return;
     }
     setRedeeming(true);
@@ -99,7 +100,7 @@ export const useLifetimePasses = ({
               : result.reason === "codes_unavailable"
                 ? "Lifetime pass codes are not available yet."
                 : "Invalid code. Please check and try again.";
-        Alert.alert("Redeem Failed", message);
+        Alert.alert(copy.settings.alerts.redeemFailed, message);
         return;
       }
       if (result.user) {
@@ -107,9 +108,9 @@ export const useLifetimePasses = ({
       }
       await refreshUsers();
       setRedeemCode("");
-      Alert.alert("Success", "Lifetime pass activated. Enjoy!");
+      Alert.alert(copy.common.success, copy.settings.alerts.lifetimeActivated);
     } catch (e) {
-      Alert.alert("Error", "Failed to redeem code.");
+      Alert.alert(copy.common.error, copy.settings.alerts.redeemCodeFailed);
       reportError(e as Error, {
         scope: "lifetime_pass",
         action: "redeem_code",

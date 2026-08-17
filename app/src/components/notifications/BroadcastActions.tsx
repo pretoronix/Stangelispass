@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { broadcastModalStyles as styles } from "@/components/notifications/broadcastModalStyles";
+import { copy } from "@/ui/copy";
 
 type BroadcastActionsProps = {
   isPending: boolean;
@@ -19,7 +20,7 @@ export function BroadcastActions({
   return (
     <View style={styles.actions}>
       <Button
-        title="Cancel"
+        title={copy.common.cancel}
         variant="ghost"
         onPress={onCancel}
         disabled={isPending}

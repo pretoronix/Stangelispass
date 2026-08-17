@@ -29,6 +29,30 @@ describe("copy", () => {
     expect(copy.settings.removeMember).toBe("Entfernen");
   });
 
+  it("covers every screen group", () => {
+    // The plan's six screen groups plus `common`, which holds the copy of
+    // components that no single screen owns (error boundaries, QR scanner,
+    // comments, share cards).
+    expect(Object.keys(copy).sort()).toEqual(
+      [
+        "add",
+        "common",
+        "history",
+        "home",
+        "leaderboard",
+        "legends",
+        "profile",
+        "settings",
+      ].sort(),
+    );
+  });
+
+  it("labels the core home actions in German", () => {
+    expect(copy.home.startRound).toBe("Runde starten");
+    expect(copy.home.whoPays).toBe("Wer zahlt?");
+    expect(copy.home.endRound).toBe("Runde beenden");
+  });
+
   it("keeps the legally required age and responsibility notice", () => {
     expect(copy.settings.responsibilityNotice).toContain("17 Jahren");
     expect(copy.settings.responsibilityNotice).toContain("verantwortungsvoll");

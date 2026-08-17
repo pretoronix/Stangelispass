@@ -6,6 +6,7 @@ import { colors } from "@/lib/theme";
 import { getBeerCountByEventMembers, supabase } from "@/services/supabase";
 import { reportError } from "@/utils/logger";
 import { LeaderboardItem } from "@/components/features/LeaderboardItem";
+import { copy } from "@/ui/copy";
 
 type EventRow = {
   id: string;
@@ -110,7 +111,7 @@ export default function PublicLeaderboardScreen() {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <Text style={{ color: colors.textMuted }}>No beers logged yet.</Text>
+          <Text style={{ color: colors.textMuted }}>{copy.leaderboard.empty}</Text>
         </View>
       ) : (
         <FlatList

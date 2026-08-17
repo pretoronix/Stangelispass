@@ -14,6 +14,7 @@ import { BroadcastMessageInput } from "@/components/notifications/BroadcastMessa
 import { BroadcastActions } from "@/components/notifications/BroadcastActions";
 import { broadcastModalStyles as styles } from "@/components/notifications/broadcastModalStyles";
 import { colors } from "@/lib/theme";
+import { copy } from "@/ui/copy";
 
 interface BroadcastModalProps {
   visible: boolean;
@@ -58,34 +59,34 @@ export function BroadcastModal({
           Haptics.NotificationFeedbackType.Success,
         );
         Alert.alert(
-          "Broadcast Sent! 📢",
+          copy.common.alerts.broadcastSent,
           `Your message was sent to ${result.count} member${result.count !== 1 ? "s" : ""}.`,
-          [{ text: "OK" }],
+          [{ text: copy.common.ok }],
         );
         setMessage("");
         onClose();
       } else {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Alert.alert(
-          "Failed to Send",
+          copy.common.alerts.broadcastFailed,
           result.error || "Could not send broadcast. Please try again.",
-          [{ text: "OK" }],
+          [{ text: copy.common.ok }],
         );
       }
     } catch (error: any) {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert("Error", error.message || "An unexpected error occurred.", [
-        { text: "OK" },
+      Alert.alert(copy.common.error, error.message || "An unexpected error occurred.", [
+        { text: copy.common.ok },
       ]);
     }
   }, [eventId, isValid, message, onClose, senderId, sendBroadcast]);
 
   const handleClose = useCallback(() => {
     if (message.trim() && !sendBroadcast.isPending) {
-      Alert.alert("Discard Message?", "Your message will be lost.", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(copy.common.alerts.discardMessage, copy.common.alerts.discardMessageHint, [
+        { text: copy.common.cancel, style: "cancel" },
         {
-          text: "Discard",
+          text: copy.common.discard,
           style: "destructive",
           onPress: () => {
             setMessage("");

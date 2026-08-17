@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Platform, Alert, Share } from "react-native";
 import { getLeaderboardLinks } from "@/utils/links";
 import { NO_EVENT_CREDITS_MESSAGE } from "@/services/iap";
+import { copy } from "@/ui/copy";
 
 interface UseHomeActionsProps {
   currentUser: any;
@@ -53,10 +54,10 @@ export function useHomeActions({
     if (Platform.OS === "web") {
       if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(webUrl);
-        Alert.alert("Link Copied", "Leaderboard link copied to clipboard.");
+        Alert.alert(copy.home.alerts.linkCopied, copy.home.alerts.leaderboardLinkCopied);
         return;
       }
-      Alert.alert("Leaderboard Link", webUrl);
+      Alert.alert(copy.home.alerts.leaderboardLink, webUrl);
       return;
     }
 
@@ -82,7 +83,7 @@ export function useHomeActions({
         showPassRequired(NO_EVENT_CREDITS_MESSAGE);
         return;
       }
-      Alert.alert("Error", "Failed to start round. Please try again.");
+      Alert.alert(copy.common.error, copy.home.alerts.startRoundFailed);
     }
   }, [
     currentUser,

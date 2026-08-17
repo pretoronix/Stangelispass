@@ -9,6 +9,7 @@ import {
   playHapticImpact,
 } from "@/utils/settings/settingsHelpers";
 import { reportError } from "@/utils/logger";
+import { copy } from "@/ui/copy";
 
 interface UseUserManagementProps {
   currentUser: User | null;
@@ -29,7 +30,7 @@ export const useUserManagement = ({
     async (user: User) => {
       playHapticSelection();
       setCurrentUser(user);
-      Alert.alert("User Selected", `You are now signed in as ${user.name}`);
+      Alert.alert(copy.settings.alerts.userSelected, `You are now signed in as ${user.name}`);
       try {
         registerForPushNotificationsAsync(user.id).catch((e) =>
           reportError(new Error("Push register failed"), {
@@ -51,7 +52,7 @@ export const useUserManagement = ({
 
   const handleAddUser = useCallback(async () => {
     if (!newUserName.trim()) {
-      Alert.alert("Error", "Please enter a name");
+      Alert.alert(copy.common.error, copy.settings.alerts.enterName);
       return;
     }
 
@@ -60,8 +61,8 @@ export const useUserManagement = ({
       const user = await addUser(newUserName.trim(), isNewUserAdmin);
       if (!user) {
         Alert.alert(
-          "Error",
-          "User could not be created. Check your database connection.",
+          copy.common.error,
+          copy.settings.alerts.userCreateFailed,
         );
         return;
       }
@@ -85,10 +86,10 @@ export const useUserManagement = ({
       await refreshUsers();
       setNewUserName("");
       setIsNewUserAdmin(false);
-      Alert.alert("Success", `Added ${user.name}!`);
+      Alert.alert(copy.common.success, `Added ${user.name}!`);
     } catch (e) {
       playHapticError();
-      Alert.alert("Error", "Failed to add user");
+      Alert.alert(copy.common.error, copy.settings.alerts.addUserFailed);
       reportError(e as Error, {
         scope: "useUserManagement",
         action: "add_user",

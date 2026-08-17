@@ -12,6 +12,7 @@ import { CommentItem } from "@/components/features/comments/CommentItem";
 import { CommentComposer } from "@/components/features/comments/CommentComposer";
 import { CommentsEmptyState } from "@/components/features/comments/CommentsEmptyState";
 import { commentsStyles as styles } from "@/components/features/comments/commentsStyles";
+import { copy } from "@/ui/copy";
 
 interface CommentsListProps {
   beerId: string;
@@ -40,8 +41,8 @@ export function CommentsList({
 
     if (trimmedText.length > 500) {
       Alert.alert(
-        "Comment too long",
-        "Comments must be 500 characters or less.",
+        copy.common.alerts.commentTooLong,
+        copy.common.alerts.commentTooLongMessage,
       );
       return;
     }
@@ -57,7 +58,7 @@ export function CommentsList({
           setNewCommentText("");
         },
         onError: (error) => {
-          Alert.alert("Error", "Failed to add comment. Please try again.");
+          Alert.alert(copy.common.error, copy.common.alerts.commentAddFailed);
           reportError(new Error("[CommentsList] Error adding comment"), {
             scope: "CommentsList",
             action: "add_comment",
@@ -73,19 +74,19 @@ export function CommentsList({
   const handleDelete = useCallback(
     (commentId: string, userName: string) => {
       Alert.alert(
-        "Delete Comment",
+        copy.common.alerts.deleteComment,
         `Are you sure you want to delete this comment by ${userName}?`,
         [
-          { text: "Cancel", style: "cancel" },
+          { text: copy.common.cancel, style: "cancel" },
           {
-            text: "Delete",
+            text: copy.common.delete,
             style: "destructive",
             onPress: () => {
               deleteCommentMutation.mutate(commentId, {
                 onError: (error) => {
                   Alert.alert(
-                    "Error",
-                    "Failed to delete comment. Please try again.",
+                    copy.common.error,
+                    copy.common.alerts.commentDeleteFailed,
                   );
                   reportError(
                     new Error("[CommentsList] Error deleting comment"),

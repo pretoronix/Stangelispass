@@ -3,6 +3,7 @@ import { render, fireEvent, act } from "@testing-library/react-native";
 import { Alert } from "react-native";
 import { BroadcastModal } from "../BroadcastModal";
 import { useSendBroadcast } from "@/hooks/useNotificationsQuery";
+import { copy } from "@/ui/copy";
 
 // Mock dependencies
 jest.mock("@/hooks/useNotificationsQuery");
@@ -37,7 +38,7 @@ describe("BroadcastModal", () => {
       />,
     );
 
-    expect(getByPlaceholderText("Type your message...")).toBeTruthy();
+    expect(getByPlaceholderText(copy.common.broadcastPlaceholder)).toBeTruthy();
     expect(getByTestId("broadcast-send-button")).toBeTruthy();
     expect(getByTestId("broadcast-cancel-button")).toBeTruthy();
   });
@@ -53,7 +54,7 @@ describe("BroadcastModal", () => {
       />,
     );
 
-    const input = getByPlaceholderText("Type your message...");
+    const input = getByPlaceholderText(copy.common.broadcastPlaceholder);
     await act(async () => {
       await fireEvent.changeText(input, "Hello everyone!");
     });
@@ -88,7 +89,7 @@ describe("BroadcastModal", () => {
       />,
     );
 
-    const input = getByPlaceholderText("Type your message...");
+    const input = getByPlaceholderText(copy.common.broadcastPlaceholder);
     await act(async () => {
       await fireEvent.changeText(input, "Valid message");
     });

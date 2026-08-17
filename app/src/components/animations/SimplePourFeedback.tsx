@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import { copy } from "@/ui/copy";
 
 /**
  * Simple fallback animation for low-end devices
@@ -111,7 +112,7 @@ export function SimplePourFeedback({
     <View style={styles.overlay}>
       <Animated.View style={[styles.content, animatedStyle]}>
         <Ionicons name="beer" size={80} color={colors.primary} />
-        <Text style={styles.text}>Beer Logged!</Text>
+        <Text style={styles.text}>{copy.common.beerLogged}</Text>
       </Animated.View>
     </View>
   );

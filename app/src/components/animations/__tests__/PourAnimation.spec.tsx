@@ -3,6 +3,7 @@ import { render, waitFor } from "@testing-library/react-native";
 import { PourAnimation } from "@/components/animations/PourAnimation";
 import { SimplePourFeedback } from "@/components/animations/SimplePourFeedback";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 // Mock dependencies
 jest.mock("lottie-react-native", () => {
@@ -128,7 +129,7 @@ describe("SimplePourFeedback", () => {
       <SimplePourFeedback visible={false} onComplete={onComplete} />,
     );
 
-    expect(queryByText(/Beer Logged!/i)).toBeNull();
+    expect(queryByText(copy.common.beerLogged)).toBeNull();
   });
 
   it("skips haptic feedback in test env", async () => {
@@ -159,6 +160,6 @@ describe("SimplePourFeedback", () => {
     // Rerender so the mocked reanimated shared values are reflected in the tree
     await rerender(<SimplePourFeedback visible={true} onComplete={onComplete} />);
 
-    expect(getByText("Beer Logged!")).toBeTruthy();
+    expect(getByText(copy.common.beerLogged)).toBeTruthy();
   });
 });

@@ -9,6 +9,7 @@ import {
 import { LineChart } from "react-native-gifted-charts";
 import { colors, spacing, borderRadius, typography } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
+import { copy } from "@/ui/copy";
 
 interface VelocityMetricCardProps {
   velocity: number;
@@ -32,10 +33,10 @@ export const VelocityMetricCard = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.velocityInfo}>
-          <Text style={styles.label}>Velocity (Pace)</Text>
+          <Text style={styles.label}>{copy.common.velocityTitle}</Text>
           <View style={styles.valueRow}>
             <Text style={styles.value}>{velocity.toFixed(1)}</Text>
-            <Text style={styles.unit}>Beers/hr</Text>
+            <Text style={styles.unit}>{copy.common.beersPerHour}</Text>
           </View>
         </View>
         <View
@@ -75,7 +76,7 @@ export const VelocityMetricCard = ({
                 style={styles.paceButton}
                 accessibilityLabel="Save current pace"
               >
-                <Text style={styles.paceButtonText}>Save pace</Text>
+                <Text style={styles.paceButtonText}>{copy.common.savePace}</Text>
               </TouchableOpacity>
             )}
             {hasSaved && onClearSavedPace && (
@@ -85,7 +86,7 @@ export const VelocityMetricCard = ({
                 accessibilityLabel="Clear saved pace"
               >
                 <Text style={[styles.paceButtonText, styles.clearButtonText]}>
-                  Clear
+                  {copy.common.clearPace}
                 </Text>
               </TouchableOpacity>
             )}

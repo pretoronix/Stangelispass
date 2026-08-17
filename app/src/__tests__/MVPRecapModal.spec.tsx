@@ -5,6 +5,7 @@ import {
   MVPRecapData,
 } from "@/components/features/MVPRecapModal";
 import * as Haptics from "expo-haptics";
+import { copy } from "@/ui/copy";
 
 jest.mock("expo-haptics", () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
@@ -119,7 +120,7 @@ describe("MVPRecapModal", () => {
       />,
     );
 
-    const shareButton = getByText("Share");
+    const shareButton = getByText(copy.common.share);
     await act(async () => {
       await fireEvent.press(shareButton);
     });
@@ -138,7 +139,7 @@ describe("MVPRecapModal", () => {
       />,
     );
 
-    const closeButton = getByText("Close");
+    const closeButton = getByText(copy.common.close);
     await act(async () => {
       await fireEvent.press(closeButton);
     });

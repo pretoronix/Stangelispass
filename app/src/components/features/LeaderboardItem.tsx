@@ -4,6 +4,7 @@ import { colors, spacing, typography, borderRadius } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Avatar } from "../ui/Avatar";
 import { UserBeerCount } from "@/hooks/useBeers";
+import { copy } from "@/ui/copy";
 
 interface LeaderboardItemProps {
   item: UserBeerCount;
@@ -47,7 +48,7 @@ export const LeaderboardItem = memo(
           </View>
           {item.isAdmin && (
             <View style={styles.adminBadge}>
-              <Text style={styles.adminText}>ADMIN</Text>
+              <Text style={styles.adminText}>{copy.leaderboard.adminBadge}</Text>
             </View>
           )}
           {showStreak && (
