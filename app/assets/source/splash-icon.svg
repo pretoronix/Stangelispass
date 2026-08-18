@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Splash-Variante: reduziert auf die Stange, kein Stempelring, kein Bodensatz.
+       Transparent - der Splash-Hintergrund #1a1a2e kommt aus app.json. -->
+  <defs>
+    <linearGradient id="beer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe066"/>
+      <stop offset="0.4" stop-color="#ffd700"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="foam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffdf5"/>
+      <stop offset="1" stop-color="#ecdfc6"/>
+    </linearGradient>
+    <clipPath id="glassClip">
+      <path d="M356 262 L378 748 Q382 788 422 788 L602 788 Q642 788 646 748 L668 262 Z"/>
+    </clipPath>
+  </defs>
+
+  <g transform="translate(512 512) scale(1.35) translate(-512 -483)">
+    <g clip-path="url(#glassClip)">
+      <rect x="330" y="286" width="364" height="520" fill="url(#beer)"/>
+      <path d="M404 300 L424 726" fill="none" stroke="#fffdf5" stroke-width="30"
+            stroke-linecap="round" opacity="0.3"/>
+    </g>
+
+    <path d="M356 262 L378 748 Q382 788 422 788 L602 788 Q642 788 646 748 L668 262 Z"
+          fill="none" stroke="#ffd700" stroke-width="20" stroke-linejoin="round"/>
+
+    <path d="M348 268 C346 212 394 186 434 208 C458 174 530 172 558 206
+             C608 190 682 212 676 268 C676 302 618 320 512 320
+             C406 320 348 302 348 268 Z"
+          fill="url(#foam)" stroke="#ffffff" stroke-width="9" stroke-linejoin="round"/>
+  </g>
+</svg>

@@ -10,6 +10,7 @@ import {
 } from "@/services/supabase";
 import { PassType } from "@/utils/settings/settingsConstants";
 import { reportError } from "@/utils/logger";
+import { NO_EVENT_CREDITS_MESSAGE } from "@/services/iap";
 
 interface UseEventManagementProps {
   currentUser: User | null;
@@ -64,10 +65,7 @@ export const useEventManagement = ({
       Alert.alert("Event Started", "A new event is now active.");
     } catch (e) {
       if ((e as Error)?.message === "NO_EVENT_CREDITS") {
-        Alert.alert(
-          "Pass Required",
-          "No event passes available. Purchase a day or weekend pass in Settings.",
-        );
+        Alert.alert("Pass Required", NO_EVENT_CREDITS_MESSAGE);
         return;
       }
       Alert.alert("Error", "Failed to start event.");

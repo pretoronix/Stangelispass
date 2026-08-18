@@ -13,15 +13,15 @@
       "backgroundColor": "#1a1a2e"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.stangelispass.app",
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription": "Stängelispass uses the camera to scan QR codes for peer beer logging.",
-        "NSPhotoLibraryUsageDescription": "Stängelispass accesses your photo library only if you choose to save share cards.",
-        "NSUserTrackingUsageDescription": "Your data is not tracked across third-party apps or websites."
+        "NSCameraUsageDescription": "Stängelispass verwendet die Kamera ausschliesslich zum Scannen von QR-Codes, damit du einem Event beitreten und anderen Teilnehmenden ein Bier eintragen kannst. Es werden keine Fotos oder Videos aufgenommen oder gespeichert.",
+        "NSPhotoLibraryAddUsageDescription": "Stängelispass speichert deine Event-Sharecard als Bild in deiner Fotomediathek, wenn du im Teilen-Dialog «In Fotos sichern» wählst.",
+        "NSPhotoLibraryUsageDescription": "Stängelispass fragt den Zugriff auf die Fotomediathek nur ab, um deine Event-Sharecard dort zu sichern. Die App liest oder überträgt keine bestehenden Fotos."
       }
     },
     "android": {

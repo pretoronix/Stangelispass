@@ -143,6 +143,7 @@ export function SettingsSections({
           freeCredits={currentUser?.free_event_credits || 0}
           dayCredits={currentUser?.paid_event_credits_day || 0}
           weekendCredits={currentUser?.paid_event_credits_weekend || 0}
+          purchasesEnabled={eventPasses.iapEnabled}
           onBuyDayPass={() => eventPasses.handlePurchaseEventPass("day")}
           onBuyWeekendPass={() =>
             eventPasses.handlePurchaseEventPass("weekend")

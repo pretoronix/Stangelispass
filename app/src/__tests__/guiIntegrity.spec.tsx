@@ -275,6 +275,7 @@ jest.mock("@/hooks/settings", () => ({
     handleRedeemPromoCode: jest.fn(),
     handlePurchaseEventPass: jest.fn(),
     handlePurchaseLifetime: jest.fn(),
+    iapEnabled: jest.requireActual("@/services/iap").IAP_ENABLED,
   }),
   useLifetimePasses: () => ({
     codes: [],
@@ -432,13 +433,27 @@ describe("GUI Integrity Tests", () => {
       );
     });
 
-    it("shows event pass purchase options", async () => {
+    it("shows the tier card with credit counts", async () => {
       const { getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
-      await waitFor(() =>
-        expect(getByText(/Buy Single Event/i)).toBeTruthy(),
-      );
-      expect(getByText(/Buy Weekend Unlimited/i)).toBeTruthy();
-      expect(getByText(/Supporter/i)).toBeTruthy();
+      await waitFor(() => expect(getByText(/Current Tier/i)).toBeTruthy());
+      expect(getByText(/Free Events/i)).toBeTruthy();
+      expect(getByText(/Day Passes/i)).toBeTruthy();
+      expect(getByText(/Weekend Passes/i)).toBeTruthy();
+    });
+
+    // IAP is deferred to v1.1 (IAP_ENABLED === false). No purchase entry point
+    // may be reachable in v1.0 — a broken purchase flow is an App Store
+    // rejection under Guideline 2.1.
+    it("does not render any purchase call-to-action while IAP is disabled", async () => {
+      const { IAP_ENABLED } = jest.requireActual("@/services/iap");
+      expect(IAP_ENABLED).toBe(false);
+
+      const { queryByText, getByText } = await render(<SettingsScreen />, { wrapper: AllProviders });
+      await waitFor(() => expect(getByText(/Current Tier/i)).toBeTruthy());
+      expect(queryByText(/Buy Single Event/i)).toBeNull();
+      expect(queryByText(/Buy Weekend Unlimited/i)).toBeNull();
+      expect(queryByText(/Become a Supporter/i)).toBeNull();
+      expect(queryByText(/CHF/i)).toBeNull();
     });
 
     it("shows Event Administration only when active event and permissions exist", async () => {

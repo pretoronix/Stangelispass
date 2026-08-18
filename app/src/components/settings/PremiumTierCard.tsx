@@ -12,6 +12,12 @@ interface PremiumTierCardProps {
   freeCredits?: number;
   dayCredits?: number;
   weekendCredits?: number;
+  /**
+   * Whether the purchase call-to-actions are shown at all. Driven by the
+   * `IAP_ENABLED` feature flag — in-app purchases are deferred to v1.1, so v1.0
+   * must not render any "Buy" button.
+   */
+  purchasesEnabled?: boolean;
   onBuyDayPass: () => void;
   onBuyWeekendPass: () => void;
   onBuyLifetime: () => void;
@@ -23,6 +29,7 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
   freeCredits = 0,
   dayCredits = 0,
   weekendCredits = 0,
+  purchasesEnabled = false,
   onBuyDayPass,
   onBuyWeekendPass,
   onBuyLifetime,
@@ -61,7 +68,7 @@ export const PremiumTierCard: React.FC<PremiumTierCardProps> = ({
         </View>
       </View>
 
-      {!isLifetime && (
+      {purchasesEnabled && !isLifetime && (
         <>
           <Button
             title="Buy Single Event (CHF 10)"

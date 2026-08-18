@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Platform, Alert, Share } from "react-native";
 import { getLeaderboardLinks } from "@/utils/links";
+import { NO_EVENT_CREDITS_MESSAGE } from "@/services/iap";
 
 interface UseHomeActionsProps {
   currentUser: any;
@@ -78,9 +79,7 @@ export function useHomeActions({
       await startEvent("Night Out", "day");
     } catch (_e) {
       if ((_e as Error)?.message === "NO_EVENT_CREDITS") {
-        showPassRequired(
-          "No event passes available. Purchase a day or weekend pass in Settings.",
-        );
+        showPassRequired(NO_EVENT_CREDITS_MESSAGE);
         return;
       }
       Alert.alert("Error", "Failed to start round. Please try again.");

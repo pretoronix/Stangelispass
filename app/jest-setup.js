@@ -74,14 +74,8 @@ jest.mock('expo-audio', () => ({
   })),
 }), { virtual: true });
 
-jest.mock('expo-in-app-purchases', () => ({
-  connectAsync: jest.fn(async () => true),
-  getProductsAsync: jest.fn(async () => ({ responseCode: 0, results: [] })),
-  purchaseItemAsync: jest.fn(async () => ({})),
-  finishTransactionAsync: jest.fn(async () => true),
-  setPurchaseListener: jest.fn(() => ({ remove: jest.fn() })),
-  IAPResponseCode: { OK: 0 },
-}), { virtual: true });
+// No IAP mock: in-app purchases are disabled for v1.0 (see src/services/iap.ts,
+// IAP_ENABLED) and the `expo-in-app-purchases` dependency has been removed.
 
 // Silence logger output in tests while keeping payloads usable for assertions.
 jest.mock('@/utils/logger', () => {
